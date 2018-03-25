@@ -1,0 +1,72 @@
+@@grammar::Obsidian
+
+@@eol_comments :: /#.*?$/
+
+@@whitespace :: /[\t ]+/
+
+@@keyword :: do end
+
+program = @:statement_list $ ;
+
+statement_list = {eol | ';'} first:[statement] rest:{separated_statement} {eol | ';'} ;
+
+separated_statement = {eol | ';'}+ @:statement ;
+
+statement = head:expression args:{expression}* ;
+
+block = 'do' @:statement_list 'end' ;
+
+expression = binary_slurp ;
+
+binary_slurp = (binary_op)%{simple_expression}+ ;
+
+binary_op = {eol} @:op {eol}
+          | {eol} @:binary_identifier {eol}
+          ;
+
+simple_expression = atom
+                  | '{' {eol} @:(expression | op) {eol} '}'
+                  | call_expression
+                  | tuple
+                  | list
+                  | map
+                  | block
+                  ;
+
+call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_args} {eol} ')' ;
+
+call_expression_args = @:expression {eol} ;
+
+partial_call_expression = head:(expression | op) {eol} args:{call_expression_args} ;
+
+tuple = '(' {eol} ')'
+      | '(' first:partial_call_expression {eol} ',' {eol} rest:({eol} ',' {eol}).{partial_call_expression} ')'
+      ;
+
+list = '[' {eol} @:({eol} ',' {eol}).{partial_call_expression} ']' ;
+
+map = '{' {eol} '}'
+    | '{' first:partial_call_expression {eol} ',' {eol} rest:({eol} ','{eol}).{partial_call_expression} '}'
+    ;
+
+op = /[+\-=\/*&|^%!<>.:]+/ ;
+
+atom = identifier
+     | float
+     | integer
+     | double_string
+     | single_string
+     | symbol
+     ;
+
+@name
+identifier = /[_a-zA-Z$][_a-zA-Z0-9]*[?]?/ ;
+binary_identifier = '~' @:/[_a-zA-Z][_a-zA-Z0-9]*[?]?/ ;
+integer = /-?[0-9]+/ ;
+float = /-?[0-9]+\.[0-9]+/ ;
+double_string = /"([^"\\]|\\.)*"/ ;
+single_string = /'([^'\\]|\\.)*'/ ;
+symbol = '@' @:/[_a-zA-Z][_a-zA-Z0-9]*[?]?/ ;
+
+eol = '\n' ;
+

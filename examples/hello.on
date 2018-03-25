@@ -1,0 +1,8 @@
+name = "John Smith"  # name
+occupation = @farmer
+num = 3
+puts "Hello " * 3 + name
+
+if thing ~and thing do
+    puts "Hello~"
+end
