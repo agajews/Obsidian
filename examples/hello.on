@@ -5,6 +5,8 @@ float = 3.0
 float = bob
 puts "Hello " * 3 + name ; puts "Goodbye"
 
+"something {(function call) + other.thing}"
+
 (something else)
 (-> something)
 (~something)

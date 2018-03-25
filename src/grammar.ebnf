@@ -37,8 +37,6 @@ call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_a
 
 call_expression_args = @:expression {eol} ;
 
-# partial_call_expression = head:(expression | op) {eol} args:{call_expression_args} ;
-
 tuple = '(' {eol} ')'
       | '(' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ')'
       ;

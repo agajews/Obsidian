@@ -87,12 +87,24 @@ repository:
     endCaptures:
       0: name: 'constant.string.obsidian'
   double_string:
-    begin: '(")'
+    begin: '"'
     beginCaptures:
-      1: name: 'constant.string.obsidian'
+      0: name: 'constant.string.obsidian'
     patterns: [
       {
-        match: '[^"\\\\]+'
+        begin: '{'
+        patterns: [
+          {
+            include: '#constants'
+          }
+          {
+            include: '#call'
+          }
+        ]
+        end: '}'
+      }
+      {
+        match: '[^"\\\\{}]+'
         name: 'constant.string.obsidian'
       }
       {
