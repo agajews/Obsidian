@@ -455,11 +455,11 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _integer_(self):  # noqa
-        self._pattern(r'-?[0-9]+')
+        self._pattern(r'-?[0-9][_0-9]*')
 
     @tatsumasu()
     def _float_(self):  # noqa
-        self._pattern(r'-?[0-9]+\.[0-9]+')
+        self._pattern(r'-?[0-9][_0-9]*\.[0-9][_0-9]*')
 
     @tatsumasu()
     def _double_string_(self):  # noqa

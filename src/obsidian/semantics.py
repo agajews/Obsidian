@@ -192,10 +192,10 @@ class Semantics:
         return Ident(op)
 
     def integer(int_str):
-        return Int(int(int_str))
+        return Int(int(int_str.replace('_', '')))
 
     def float(float_str):
-        return Float(float(float_str))
+        return Float(float(float_str.replace('_', '')))
 
     def double_string(string):
         return String(clean_string(string[1:-1], '"'))

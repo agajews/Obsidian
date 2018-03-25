@@ -107,6 +107,19 @@ def test_int():
     '''
     assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(3)])]
 
+def test_int_underscore():
+    source = '''
+    x = 3_000_000
+    '''
+    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(3000000)])]
+
+
+def test_int_trailing_underscore():
+    source = '''
+    x = 3_000_000_
+    '''
+    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(3000000)])]
+
 
 def test_negative_int():
     source = '''
@@ -120,6 +133,20 @@ def test_float():
     x = 3.0
     '''
     assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Float(3.0)])]
+
+
+def test_float_underscore():
+    source = '''
+    x = 3_000_000.000_000
+    '''
+    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Float(3000000.0)])]
+
+
+def test_float_trailing_underscore():
+    source = '''
+    x = 3_000_000.000_000_
+    '''
+    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Float(3000000.0)])]
 
 
 def test_negative_float():
