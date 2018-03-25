@@ -8,12 +8,16 @@ puts "Hello " * 3 + name ; puts "Goodbye"
 "something {(function call) + other.thing}"
 
 (something else)
+(something ~else thing)
+(something
+  (something, something else)
+  (something))
 (-> something)
-(~something)
 
 (something)
 (something )
 (something, else)
+(~as)
 
 def (something else) do
   puts something

@@ -12,16 +12,16 @@ patterns: [
     beginCaptures:
       2: name: 'keyword.call.obsidian'
       3: name: 'keyword.call.obsidian'
-      4: name: 'test.string.obsidian'
+      # 4: name: 'test.string.obsidian'
     patterns: [
+      {
+        include: '#call'
+      }
       {
         include: '#constants'
       }
       {
         include: '#comment'
-      }
-      {
-        include: '#call'
       }
     ]
     end: '($|(?=;))'
@@ -189,10 +189,10 @@ repository:
     ]
 
   call:
-    begin: '\\((~?[_a-zA-Z][_a-zA-Z0-9]*[?]?|[+\\-=/*&|^%!<>.:$]+)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*(([ \t]+(?=[^+\\-=/*&|^%!<>.:$,\\s]))|[ \t]*\\))'
+    begin: '\\([ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?]?|[+\\-=/*&|^%!<>.:$]+)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*(?=([ \t]+[^+\\-=/*&|^%!<>.:$,~\\s])|([ \t]*\\))|([^,]*$))'
     beginCaptures:
-      1: name: 'keyword.call.obsidian'
-      2: name: 'keyword.call.obsidian'
+      1: name: 'entity.name.function.obsidian'
+      2: name: 'entity.name.function.obsidian'
     end: '\\)'
     patterns: [
       {
