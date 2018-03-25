@@ -61,7 +61,7 @@ class Ident(Node):
 
 class Int(Node):
     def __init__(self, val):
-        #TODO: Error handling
+        # TODO: Error handling
         self.val = val
 
     def show(self, indent):
@@ -70,7 +70,7 @@ class Int(Node):
 
 class Float(Node):
     def __init__(self, val):
-        #TODO: Error handling
+        # TODO: Error handling
         self.val = val
 
     def show(self, indent):
@@ -167,7 +167,6 @@ class BinarySlurp(Node):
     def __init__(self, slurp):
         self.slurp = slurp
 
-
     def show(self, indent):
         return ' '.join(e.show(indent) for e in self.slurp)
 
@@ -178,7 +177,7 @@ class Block(Node):
 
     def show(self, indent):
         return 'do ' + ('\n' + ' ' * (indent_spaces + 1)).join(s.show(indent + 1) for s in self.statements) + \
-                '\n' + ' ' * indent_spaces + 'end'
+            '\n' + ' ' * indent_spaces + 'end'
 
 
 class Semantics:
@@ -251,15 +250,6 @@ class Semantics:
         if len(info['args']) == 0:
             return info['head']
         return Call(info['head'], info['args'])
-
-    # def program(statements):
-    #     return [s for s in statements if s != '\n']
-
-    # def newlines(info):
-    #     return '\n'
-
-    # def semicolons(info):
-    #     return '\n'
 
     def statement_list(info):
         statements = []

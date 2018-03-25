@@ -1,0 +1,15 @@
+{
+  "name": "language-obsidian",
+  "version": "0.0.1",
+  "description": "Provides syntax recognition for Obsidian",
+  "keywords": [
+    "language",
+    "grammar",
+    "obsidian"
+  ],
+  "repository": "https://github.com/agajews/language-obsidian",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  }
+}

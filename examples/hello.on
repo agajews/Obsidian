@@ -1,10 +1,16 @@
 name = "John Smith"  # name
 occupation = @farmer
 num = 3
-puts "Hello " * 3 + name
+float = 3.0
+float = bob
+puts "Hello " * 3 + name ; puts "Goodbye"
+
+(something else)
+
+def (something else) do
+  puts something
+end
 
 if thing ~and thing do
     puts "Hello"
 end
-
-'''hello 'world' '''

@@ -1,0 +1,119 @@
+# If this is your first time writing a language grammar, check out:
+#   - https://flight-manual.atom.io/hacking-atom/sections/creating-a-grammar/
+
+scopeName: 'source.obsidian'
+name: 'Obsidian' # The title that will show up in grammar selection and on your status bar.
+fileTypes: [ # An array of file extensions.
+  'on'
+]
+patterns: [
+  {
+    begin: '(^|;)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*[?]?)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*([ \t]+(?=[^+\\-=/*&|^%!<>.:$\\s]))'
+    beginCaptures:
+      2: name: 'keyword.call.obsidian'
+      3: name: 'keyword.call.obsidian'
+      4: name: 'test.string.obsidian'
+    patterns: [
+      {
+        include: '#constants'
+      }
+      {
+        include: '#comment'
+      }
+      {
+        include: '#call'
+      }
+    ]
+    end: '($|(?=;))'
+  }
+  {
+    include: '#call'
+  }
+  {
+    include: '#constants'
+  }
+  {
+    include: '#comment'
+  }
+]
+
+repository:
+  float:
+    match: '(-?[0-9][_0-9]*\\.[0-9][_0-9]*)'
+    name: 'constant.numeric.double.obsidian'
+  int:
+    match: '(-?[0-9][_0-9]*)'
+    name: 'constant.numeric.long.obsidian'
+  double_string:
+    match: '("([^"\\\\]|\\.)*")'
+    name: 'constant.string.obsidian'
+  single_string:
+    match: "('([^'\\\\]|\\.)*')"
+    name: 'constant.string.obsidian'
+  symbol:
+    match: '(@[_a-zA-Z][_a-zA-Z0-9]*[?]?)'
+    name: 'constant.symbol.obsidian'
+  binary_ident:
+    match: '(~[_a-zA-Z][_a-zA-Z0-9]*[?]?)'
+    name: 'keyword.identifier.binary.obsidian'
+  comment:
+    match: '(#.*?$)'
+    name: 'comment.obsidian'
+  keyword:
+    match: '(do|end)'
+    name: 'keyword.obsidian'
+  ident:
+    match: '([_a-zA-Z][_a-zA-Z0-9]*[?]?)'
+    name: 'identifier.obsidian'
+  op:
+    match: '([+\-=\/*&|^%!<>.:$]+)'
+    name: 'operator.obsidian'
+
+  constants:
+    patterns: [
+      {
+        include: '#float'
+      }
+      {
+        include: '#int'
+      }
+      {
+        include: '#double_string'
+      }
+      {
+        include: '#single_string'
+      }
+      {
+        include: '#symbol'
+      }
+      {
+        include: '#binary_ident'
+      }
+      {
+        include: '#keyword'
+      }
+      {
+        include: '#ident'
+      }
+      {
+        include: '#op'
+      }
+    ]
+
+  call:
+    begin: '\\(([_a-zA-Z][_a-zA-Z0-9]*[?]?)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*'
+    beginCaptures:
+      1: name: 'keyword.call.obsidian'
+      2: name: 'keyword.call.obsidian'
+    end: '\\)'
+    patterns: [
+      {
+        include: '#constants'
+      }
+      {
+        include: '#comment'
+      }
+      {
+        include: '$self'
+      }
+    ]

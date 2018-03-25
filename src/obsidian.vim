@@ -1,4 +1,5 @@
 " Vim syntax file
+" Needs to be rewritten
 " Language: Obsidian
 " Maintainer: Alex Gajewski
 " Latest Revision: 25 March 2018
