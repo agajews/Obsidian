@@ -11,7 +11,7 @@ def parse(source):
 def test_simple_statement():
     source = '''puts "Hello, World!"
     '''
-    assert parse(source) == [Call(Ident('puts'), [String('Hello, World!')])]
+    assert parse(source) == [Call(Ident('pots'), [String('Hello, World!')])]
 
 
 def test_simple_multiple_statements():

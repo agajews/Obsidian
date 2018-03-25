@@ -19,6 +19,8 @@ puts "Hello " * 3 + name ; puts "Goodbye"
 (something, else)
 (~as)
 
+defop {~make} assoc: @left priority: 6
+
 def (something else) do
   puts something
 end
