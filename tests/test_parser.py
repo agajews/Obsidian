@@ -1,10 +1,12 @@
 from obsidian.semantics import *
 from obsidian import parser
 
+
 def parse(source):
     ast = parser.parse(source, trace=False)
     print(ast)
     return ast
+
 
 def test_simple_statement():
     source = '''puts "Hello, World!"
@@ -36,21 +38,115 @@ def test_simple_call_statement():
     source = '''
     puts.("Hello, World!",)
     '''
-    assert parse(source) == [BinarySlurp([Ident('puts'), Ident('.'), Tuple([String("Hello, World!")])])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('puts'), Ident('.'), Tuple([String("Hello, World!")])])]
 
 
 def test_simple_binary_slurp():
     source = '''
     puts 1+2
     '''
-    assert parse(source) == [Call(Ident('puts'), [BinarySlurp([Int(1), Ident('+'), Int(2)])])]
+    assert parse(source) == [Call(Ident('puts'), [
+        BinarySlurp([Int(1), Ident('+'), Int(2)])])]
 
 
 def test_compound_binary_slurp():
     source = '''
     puts 1+2 * 3
     '''
-    assert parse(source) == [Call(Ident('puts'), [BinarySlurp([Int(1), Ident('+'), Int(2), Ident('*'), Int(3)])])]
+    assert parse(source) == [Call(Ident('puts'), [BinarySlurp(
+        [Int(1), Ident('+'), Int(2), Ident('*'), Int(3)])])]
+
+
+def test_op_identifier():
+    source = '''
+    plus = {+}
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('plus'), Ident('='), Ident('+')])]
+
+
+def test_binary_identifier():
+    source = '''
+    fn = {~and}
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('fn'), Ident('='), Ident('and')])]
+
+
+def test_whitespace_slurp():
+    source = '''
+    x
+    =
+    1
+    +
+    2
+    puts x
+    .
+    y
+    '''
+    assert parse(source) == [
+        BinarySlurp([Ident('x'), Ident('='), Int(1), Ident('+'), Int(2)]),
+        Call(Ident('puts'), [BinarySlurp(
+            [Ident('x'), Ident('.'), Ident('y')])])
+    ]
+
+
+def test_whitespace_call():
+    source = '''
+    (
+    fn
+    arg1
+    arg2
+    )
+    '''
+    assert parse(source) == [Call(Ident('fn'), [Ident('arg1'), Ident('arg2')])]
+
+
+def test_whitespace_tuple():
+    source = '''
+    (
+    fn,
+    arg1,
+    arg2,
+    )
+    '''
+    assert parse(source) == [Tuple(
+        [Ident('fn'), Ident('arg1'), Ident('arg2')])]
+
+
+def test_whitespace_single_tuple():
+    source = '''
+    (
+    fn,
+    )
+    '''
+    assert parse(source) == [Tuple(
+        [Ident('fn')])]
+
+
+def test_whitespace_list():
+    source = '''
+    [
+    fn,
+    arg1,
+    arg2,
+    ]
+    '''
+    assert parse(source) == [List(
+        [Ident('fn'), Ident('arg1'), Ident('arg2')])]
+
+
+def test_whitespace_map():
+    source = '''
+    {
+    fn,
+    arg1,
+    arg2,
+    }
+    '''
+    assert parse(source) == [Map(
+        [Ident('fn'), Ident('arg1'), Ident('arg2')])]
 
 
 def test_simple_if():
@@ -61,7 +157,7 @@ def test_simple_if():
     '''
     assert parse(source) == [
         Call(Ident('if'), [BinarySlurp([Ident('name'), Ident('is'), String('John')]),
-        Block([Call(Ident('puts'), [String('Hello, John!')])])])
+                           Block([Call(Ident('puts'), [String('Hello, John!')])])])
     ]
 
 
@@ -99,34 +195,55 @@ def test_double_multiline_quote():
     source = r'''puts "Hello,
     World!"
     '''
-    assert parse(source) == [Call(Ident('puts'), [String("Hello,\n    World!")])]
+    assert parse(source) == [
+        Call(Ident('puts'), [String("Hello,\n    World!")])]
 
 
 def test_single_multiline_quote():
     source = r'''puts 'Hello,
     World!'
     '''
-    assert parse(source) == [Call(Ident('puts'), [String("Hello,\n    World!")])]
+    assert parse(source) == [
+        Call(Ident('puts'), [String("Hello,\n    World!")])]
 
 
 def test_triple_double_quote():
     source = r'''puts """Hello,
     "World"!"""
     '''
-    assert parse(source) == [Call(Ident('puts'), [String('Hello,\n    "World"!')])]
+    assert parse(source) == [Call(Ident('puts'), [
+        String('Hello,\n    "World"!')])]
+
+
+def test_triple_double_quote_escape():
+    source = r'''puts """Hello,
+    "World"!"""
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        String('Hello,\n    "World"!')])]
+
+
+def test_triple_single_quote_escape():
+    source = r"""puts '''Hello,
+    ''\'World'\'!'''
+    """
+    assert parse(source) == [Call(Ident('puts'), [
+        String("Hello,\n    '''World''!")])]
 
 
 def test_triple_single_quote():
     source = r"""puts '''Hello,
-    'World'!'''
+    ''\'World'\'!'''
     """
-    assert parse(source) == [Call(Ident('puts'), [String("Hello,\n    'World'!")])]
+    assert parse(source) == [Call(Ident('puts'), [
+        String("Hello,\n    '''World''!")])]
 
 
 def test_unary_in_tuple():
     source = '''puts (-x)
     '''
-    assert parse(source) == [Call(Ident('puts'), [Call(Ident('-'), [Ident('x')])])]
+    assert parse(source) == [Call(Ident('puts'), [
+        Call(Ident('-'), [Ident('x')])])]
 
 
 def test_int():
@@ -135,18 +252,21 @@ def test_int():
     '''
     assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(3)])]
 
+
 def test_int_underscore():
     source = '''
     x = 3_000_000
     '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(3000000)])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(3000000)])]
 
 
 def test_int_trailing_underscore():
     source = '''
     x = 3_000_000_
     '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(3000000)])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(3000000)])]
 
 
 def test_negative_int():
@@ -167,28 +287,32 @@ def test_float_underscore():
     source = '''
     x = 3_000_000.000_000
     '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Float(3000000.0)])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(3000000.0)])]
 
 
 def test_float_trailing_underscore():
     source = '''
     x = 3_000_000.000_000_
     '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Float(3000000.0)])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(3000000.0)])]
 
 
 def test_negative_float():
     source = '''
     x = -3.0
     '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Float(-3.0)])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(-3.0)])]
 
 
 def test_symbol():
     source = '''
     x = @thingy
     '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Symbol('thingy')])]
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Symbol('thingy')])]
 
 
 def test_op_identifier():
@@ -203,7 +327,8 @@ def test_op_identifier():
                 BinarySlurp([Ident('x'), Ident(':'), Ident('int')]),
                 BinarySlurp([Ident('y'), Ident(':'), Ident('int')]),
             ]), Block([
-                Call(BinarySlurp([Ident('x'), Ident('.'), Ident('add_int')]), [Ident('y')])
+                Call(BinarySlurp([Ident('x'), Ident('.'),
+                                  Ident('add_int')]), [Ident('y')])
             ])
         ])
     ]
@@ -217,7 +342,8 @@ def test_if_not():
     '''
     assert parse(source) == [
         Call(Ident('if'), [
-            Call(Ident('not'), [BinarySlurp([Ident('thing'), Ident('.'), Tuple()])]),
+            Call(Ident('not'), [BinarySlurp(
+                [Ident('thing'), Ident('.'), Tuple()])]),
             Block([Call(Ident('puts'), [String('badness')])])
         ])
     ]
@@ -266,12 +392,45 @@ def test_comment():
 
 def test_list():
     source = '''
-    list = [1, 2, compute "number"]
+    list = [1, 2, (compute "number")]
     '''
     assert parse(source) == [BinarySlurp([
         Ident('list'),
         Ident('='),
         List([Int(1), Int(2), Call(Ident('compute'), [String('number')])])
+    ])]
+
+
+def test_empty_list():
+    source = '''
+    list = []
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('list'),
+        Ident('='),
+        List()
+    ])]
+
+
+def test_single_list():
+    source = '''
+    list = [1]
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('list'),
+        Ident('='),
+        List([Int(1)])
+    ])]
+
+
+def test_single_list_trailing():
+    source = '''
+    list = [1,]
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('list'),
+        Ident('='),
+        List([Int(1)])
     ])]
 
 
@@ -298,7 +457,39 @@ def test_map():
         Map([
             BinarySlurp([String('thing'), Ident('->'), String('place')]),
             BinarySlurp([Int(2), Ident('->'), Int(3)]),
-            BinarySlurp([Int(5), Ident('->'), Call(Ident('compute'), [String('number')])])
+            BinarySlurp(
+                [Int(5), Ident('->'), Call(Ident('compute'), [String('number')])])
+        ])
+    ])]
+
+
+def test_map_trailing():
+    source = '''
+    map = {"thing" -> "place",
+           2 -> 3,
+           5 -> (compute "number"),}
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('map'),
+        Ident('='),
+        Map([
+            BinarySlurp([String('thing'), Ident('->'), String('place')]),
+            BinarySlurp([Int(2), Ident('->'), Int(3)]),
+            BinarySlurp(
+                [Int(5), Ident('->'), Call(Ident('compute'), [String('number')])])
+        ])
+    ])]
+
+
+def test_single_map():
+    source = '''
+    map = {"thing" -> "place",}
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('map'),
+        Ident('='),
+        Map([
+            BinarySlurp([String('thing'), Ident('->'), String('place')]),
         ])
     ])]
 
@@ -311,6 +502,66 @@ def test_empty_map():
         Ident('map'),
         Ident('='),
         Map()
+    ])]
+
+
+def test_tuple():
+    source = '''
+    tuple = ("thing" -> "place",
+             2 -> 3,
+             5 -> (compute "number"))
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('tuple'),
+        Ident('='),
+        Tuple([
+            BinarySlurp([String('thing'), Ident('->'), String('place')]),
+            BinarySlurp([Int(2), Ident('->'), Int(3)]),
+            BinarySlurp(
+                [Int(5), Ident('->'), Call(Ident('compute'), [String('number')])])
+        ])
+    ])]
+
+
+def test_tuple_trailing():
+    source = '''
+    tuple = ("thing" -> "place",
+             2 -> 3,
+             5 -> (compute "number"),)
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('tuple'),
+        Ident('='),
+        Tuple([
+            BinarySlurp([String('thing'), Ident('->'), String('place')]),
+            BinarySlurp([Int(2), Ident('->'), Int(3)]),
+            BinarySlurp(
+                [Int(5), Ident('->'), Call(Ident('compute'), [String('number')])])
+        ])
+    ])]
+
+
+def test_single_tuple():
+    source = '''
+    tuple = ("thing" -> "place",)
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('tuple'),
+        Ident('='),
+        Tuple([
+            BinarySlurp([String('thing'), Ident('->'), String('place')]),
+        ])
+    ])]
+
+
+def test_empty_tuple():
+    source = '''
+    tuple = ()
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('tuple'),
+        Ident('='),
+        Tuple()
     ])]
 
 
@@ -341,7 +592,8 @@ def test_class():
     '''
     assert parse(source) == [Call(Ident('class'), [Ident('Dog'), Block([
         Call(Ident('def'), [Call(Ident('new'), [Ident('breed')]), Block([
-            BinarySlurp([Ident('self'), Ident('.'), Ident('breed'), Ident('='), Ident('breed')])
+            BinarySlurp([Ident('self'), Ident('.'), Ident(
+                'breed'), Ident('='), Ident('breed')])
         ])]),
         Call(Ident('def'), [Call(Ident('bark')), Block([
             Call(Ident('puts'), [String('Woof!')])
@@ -361,10 +613,11 @@ def test_else():
         Ident('condition'), Block([
             Call(Ident('puts'), [String('condition is true')])
         ]), BinarySlurp([Ident('else'), Ident(':'),
-            Block([
-                Call(Ident('puts'), [String('condition is false')])
-            ])
-        ])
+                         Block([
+                             Call(Ident('puts'), [
+                                  String('condition is false')])
+                         ])
+                         ])
     ])]
 
 
@@ -376,8 +629,10 @@ def test_match():
     end
     '''
     assert parse(source) == [Call(Ident('match'), [Ident('x'), Block([
-        BinarySlurp([Ident('Dog'), Ident('->'), Call(Ident('puts'), [String("I'm a dog")])]),
-        BinarySlurp([Ident('Cat'), Ident('->'), Call(Ident('puts'), [String("I'm a cat")])]),
+        BinarySlurp([Ident('Dog'), Ident('->'),
+                     Call(Ident('puts'), [String("I'm a dog")])]),
+        BinarySlurp([Ident('Cat'), Ident('->'),
+                     Call(Ident('puts'), [String("I'm a cat")])]),
     ])])]
 
 
@@ -389,9 +644,10 @@ def test_record():
     end
     '''
     truth = [Call(Ident('record'), [Ident('Dog'), Block([
-        BinarySlurp([Ident('breed'), Ident(':'), List([Symbol('golden_retriever'), Symbol('beagle')])]),
+        BinarySlurp([Ident('breed'), Ident(':'), List(
+            [Symbol('golden_retriever'), Symbol('beagle')])]),
         BinarySlurp([Ident('name'), Ident(':'), Ident('String')])
-        ])])]
+    ])])]
     print('Truth: ', truth)
     assert parse(source) == truth
 
@@ -417,11 +673,13 @@ def test_varargs():
     '''
     assert parse(source) == [
         Call(Ident('def'), [
-            Call(Ident('variadic'), [Ident('first'), Call(Ident('...'), [Ident('rest')])]),
+            Call(Ident('variadic'), [Ident('first'),
+                                     Call(Ident('...'), [Ident('rest')])]),
             Block([Call(Ident('stuff'))])
         ]),
         Call(Ident('variadic'), [Ident('arg1')]),
-        Call(Ident('variadic'), [Ident('arg1'), Ident('arg2'), Call(Ident('...'), [Ident('args')])]),
+        Call(Ident('variadic'), [Ident('arg1'), Ident(
+            'arg2'), Call(Ident('...'), [Ident('args')])]),
     ]
 
 
@@ -434,7 +692,8 @@ def test_inline_do():
         Ident('+'),
         Block([
             BinarySlurp([Ident('name'), Ident('='), String('John')]),
-            BinarySlurp([Ident('name'), Ident('.'), List([BinarySlurp([Int(0), Ident(':'), Int(2)])])])
+            BinarySlurp([Ident('name'), Ident('.'), List(
+                [BinarySlurp([Int(0), Ident(':'), Int(2)])])])
         ]),
         Ident('+'),
         String('!')

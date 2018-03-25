@@ -25,7 +25,7 @@ binary_op = {eol} @:op {eol}
           ;
 
 simple_expression = atom
-                  | '{' {eol} @:(expression | op) {eol} '}'
+                  | '{' {eol} @:(expression | op | binary_identifier) {eol} '}'
                   | call_expression
                   | tuple
                   | list
@@ -37,17 +37,19 @@ call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_a
 
 call_expression_args = @:expression {eol} ;
 
-partial_call_expression = head:(expression | op) {eol} args:{call_expression_args} ;
+# partial_call_expression = head:(expression | op) {eol} args:{call_expression_args} ;
 
 tuple = '(' {eol} ')'
-      | '(' first:partial_call_expression {eol} ',' {eol} rest:({eol} ',' {eol}).{partial_call_expression} ')'
+      | '(' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ')'
       ;
 
-list = '[' {eol} @:({eol} ',' {eol}).{partial_call_expression} ']' ;
-
 map = '{' {eol} '}'
-    | '{' first:partial_call_expression {eol} ',' {eol} rest:({eol} ','{eol}).{partial_call_expression} '}'
+    | '{' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
     ;
+
+collection_rest = @+:expression {{eol} ',' {eol} @+:expression} {eol} [','] ;
+
+list = '[' {eol} @:[collection_rest] {eol} ']' ;
 
 op = /[+\-=\/*&|^%!<>.:$]+/ ;
 
@@ -66,8 +68,8 @@ identifier = /[_a-zA-Z][_a-zA-Z0-9]*[?]?/ ;
 binary_identifier = '~' @:/[_a-zA-Z][_a-zA-Z0-9]*[?]?/ ;
 integer = /-?[0-9][_0-9]*/ ;
 float = /-?[0-9][_0-9]*\.[0-9][_0-9]*/ ;
-triple_double_string = /"""([^"\\]|\\.|"[^"\\]|""[^"\\])*"""/ ;
-triple_single_string = /'''([^'\\]|\\.|'[^'\\]|''[^'\\])*'''/ ;
+triple_double_string = /"""([^"\\]|\\.|"([^"\\]|\\.)|""([^"\\]|\\.))*"""/ ;
+triple_single_string = /'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''/ ;
 double_string = /"([^"\\]|\\.)*"/ ;
 single_string = /'([^'\\]|\\.)*'/ ;
 symbol = '@' @:/[_a-zA-Z][_a-zA-Z0-9]*[?]?/ ;

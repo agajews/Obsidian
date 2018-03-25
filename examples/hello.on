@@ -6,6 +6,12 @@ float = bob
 puts "Hello " * 3 + name ; puts "Goodbye"
 
 (something else)
+(-> something)
+(~something)
+
+(something)
+(something )
+(something, else)
 
 def (something else) do
   puts something

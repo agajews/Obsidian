@@ -214,12 +214,14 @@ class Semantics:
     def tuple(info):
         if info.get('first') is None:
             return Tuple()
-        return Tuple([info['first']] + info['rest'])
+        rest = info['rest'] if info['rest'] is not None else []
+        return Tuple([info['first']] + rest)
 
     def map(info):
         if info.get('first') is None:
             return Map()
-        return Map([info['first']] + info['rest'])
+        rest = info['rest'] if info['rest'] is not None else []
+        return Map([info['first']] + rest)
 
     def list(elements):
         return List(elements)

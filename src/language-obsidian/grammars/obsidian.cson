@@ -8,7 +8,7 @@ fileTypes: [ # An array of file extensions.
 ]
 patterns: [
   {
-    begin: '(^|;)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*[?]?)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*([ \t]+(?=[^+\\-=/*&|^%!<>.:$\\s]))'
+    begin: '(^|;)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*[?]?)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*([ \t]+(?=[^+\\-=/*&|^%!<>.:$,\\s]))'
     beginCaptures:
       2: name: 'keyword.call.obsidian'
       3: name: 'keyword.call.obsidian'
@@ -44,12 +44,82 @@ repository:
   int:
     match: '(-?[0-9][_0-9]*)'
     name: 'constant.numeric.long.obsidian'
+  triple_double_string:
+    begin: '"""'
+    beginCaptures:
+      0: name: 'constant.string.obsidian'
+    patterns: [
+      {
+        match: '[^"\\\\]+'
+        name: 'constant.string.obsidian'
+      }
+      {
+        match: '\\\\.'
+        name: 'constant.character.escape'
+      }
+      {
+        match: '"{1,2}(?!")'
+        name: 'constant.string.obsidian'
+      }
+    ]
+    end: '"""'
+    endCaptures:
+      0: name: 'constant.string.obsidian'
+  triple_single_string:
+    begin: "'''"
+    beginCaptures:
+      0: name: 'constant.string.obsidian'
+    patterns: [
+      {
+        match: "[^'\\\\]+"
+        name: 'constant.string.obsidian'
+      }
+      {
+        match: '\\\\.'
+        name: 'constant.character.escape'
+      }
+      {
+        match: "'{1,2}(?!')"
+        name: 'constant.string.obsidian'
+      }
+    ]
+    end: "'''"
+    endCaptures:
+      0: name: 'constant.string.obsidian'
   double_string:
-    match: '("([^"\\\\]|\\.)*")'
-    name: 'constant.string.obsidian'
+    begin: '(")'
+    beginCaptures:
+      1: name: 'constant.string.obsidian'
+    patterns: [
+      {
+        match: '[^"\\\\]+'
+        name: 'constant.string.obsidian'
+      }
+      {
+        match: '\\\\.'
+        name: 'constant.character.escape'
+      }
+    ]
+    end: '"'
+    endCaptures:
+      0: name: 'constant.string.obsidian'
   single_string:
-    match: "('([^'\\\\]|\\.)*')"
-    name: 'constant.string.obsidian'
+    begin: "'"
+    beginCaptures:
+      0: name: 'constant.string.obsidian'
+    patterns: [
+      {
+        match: "[^'\\\\]+"
+        name: 'constant.string.obsidian'
+      }
+      {
+        match: '\\\\.'
+        name: 'constant.character.escape'
+      }
+    ]
+    end: "'"
+    endCaptures:
+      1: name: 'constant.string.obsidian'
   symbol:
     match: '(@[_a-zA-Z][_a-zA-Z0-9]*[?]?)'
     name: 'constant.symbol.obsidian'
@@ -78,6 +148,12 @@ repository:
         include: '#int'
       }
       {
+        include: '#triple_double_string'
+      }
+      {
+        include: '#triple_single_string'
+      }
+      {
         include: '#double_string'
       }
       {
@@ -101,7 +177,7 @@ repository:
     ]
 
   call:
-    begin: '\\(([_a-zA-Z][_a-zA-Z0-9]*[?]?)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*'
+    begin: '\\((~?[_a-zA-Z][_a-zA-Z0-9]*[?]?|[+\\-=/*&|^%!<>.:$]+)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*(([ \t]+(?=[^+\\-=/*&|^%!<>.:$,\\s]))|[ \t]*\\))'
     beginCaptures:
       1: name: 'keyword.call.obsidian'
       2: name: 'keyword.call.obsidian'
