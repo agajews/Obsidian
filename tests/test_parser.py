@@ -709,3 +709,14 @@ def test_tuple_deconstruction():
         Ident('='),
         Tuple([String('John Smith'), Symbol('farmer')])
     ])]
+
+
+def test_defop():
+    source = '''
+    defop {+} assoc: @left priority: 5
+    '''
+    assert parse(source) == [Call(Ident('defop'), [
+        Ident('+'),
+        BinarySlurp([Ident('assoc'), Ident(':'), Symbol('left')]),
+        BinarySlurp([Ident('priority'), Ident(':'), Int(5)])
+    ])]
