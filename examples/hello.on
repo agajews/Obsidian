@@ -6,3 +6,5 @@ puts "Hello " * 3 + name
 if thing ~and thing do
     puts "Hello"
 end
+
+'''hello 'world' '''

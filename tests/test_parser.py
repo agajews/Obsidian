@@ -95,6 +95,34 @@ def test_single_quote_escape():
     assert parse(source) == [Call(Ident('puts'), [String("Hello, 'World!'")])]
 
 
+def test_double_multiline_quote():
+    source = r'''puts "Hello,
+    World!"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String("Hello,\n    World!")])]
+
+
+def test_single_multiline_quote():
+    source = r'''puts 'Hello,
+    World!'
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String("Hello,\n    World!")])]
+
+
+def test_triple_double_quote():
+    source = r'''puts """Hello,
+    "World"!"""
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('Hello,\n    "World"!')])]
+
+
+def test_triple_single_quote():
+    source = r"""puts '''Hello,
+    'World'!'''
+    """
+    assert parse(source) == [Call(Ident('puts'), [String("Hello,\n    'World'!")])]
+
+
 def test_unary_in_tuple():
     source = '''puts (-x)
     '''

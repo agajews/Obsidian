@@ -203,6 +203,12 @@ class Semantics:
     def single_string(string):
         return String(clean_string(string[1:-1], "'"))
 
+    def triple_double_string(string):
+        return String(clean_string(string[3:-3], '"'))
+
+    def triple_single_string(string):
+        return String(clean_string(string[3:-3], "'"))
+
     def symbol(symbol):
         return Symbol(symbol)
 

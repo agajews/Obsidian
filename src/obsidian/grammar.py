@@ -435,6 +435,10 @@ class ObsidianParser(Parser):
             with self._option():
                 self._integer_()
             with self._option():
+                self._triple_double_string_()
+            with self._option():
+                self._triple_single_string_()
+            with self._option():
                 self._double_string_()
             with self._option():
                 self._single_string_()
@@ -460,6 +464,14 @@ class ObsidianParser(Parser):
     @tatsumasu()
     def _float_(self):  # noqa
         self._pattern(r'-?[0-9][_0-9]*\.[0-9][_0-9]*')
+
+    @tatsumasu()
+    def _triple_double_string_(self):  # noqa
+        self._pattern(r'"""([^"\\]|\\.|"[^"\\]|""[^"\\])*"""')
+
+    @tatsumasu()
+    def _triple_single_string_(self):  # noqa
+        self._pattern(r"'''([^'\\]|\\.|'[^'\\]|''[^'\\])*'''")
 
     @tatsumasu()
     def _double_string_(self):  # noqa
@@ -542,6 +554,12 @@ class ObsidianSemantics(object):
         return ast
 
     def float(self, ast):  # noqa
+        return ast
+
+    def triple_double_string(self, ast):  # noqa
+        return ast
+
+    def triple_single_string(self, ast):  # noqa
         return ast
 
     def double_string(self, ast):  # noqa

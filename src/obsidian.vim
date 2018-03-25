@@ -12,6 +12,9 @@ syn keyword obsidianKeyword do end
 syn match obsidianNumber '\v-?[0-9][_0-9]*'
 syn match obsidianNumber '\v-?[0-9][_0-9]*\.[0-9][_0-9]*'
 
+" syn match obsidianString '"""([^"\\]|\\.|"[^"\\]|""[^"\\])*"""'
+" syn match obsidianString "'''([^'\\]|\\.|'[^'\\]|''[^'\\])*'''"
+
 syn match obsidianString '\v"([^"\\]|\\.)*"'
 syn match obsidianString "\v'([^'\\]|\\.)*'"
 
