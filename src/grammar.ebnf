@@ -56,7 +56,7 @@ atom = identifier
      | integer
      | triple_double_string
      | triple_single_string
-     | double_string
+     | interpolated_string
      | single_string
      | symbol
      ;
@@ -68,8 +68,14 @@ integer = /-?[0-9][_0-9]*/ ;
 float = /-?[0-9][_0-9]*\.[0-9][_0-9]*/ ;
 triple_double_string = /"""([^"\\]|\\.|"([^"\\]|\\.)|""([^"\\]|\\.))*"""/ ;
 triple_single_string = /'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''/ ;
-double_string = /"([^"\\]|\\.)*"/ ;
 single_string = /'([^'\\]|\\.)*'/ ;
 symbol = '@' @:/[_a-zA-Z][_a-zA-Z0-9]*[?]?/ ;
 
 eol = '\n' ;
+
+interpolated_string = head:/"[ \t]*/ body:{interpolated_body} /"/;
+interpolated_body = /{/ {eol} expression:expression {eol} /[ \t]*/ tail:/}[ \t]*/
+                  | @:string_body
+                  ;
+
+string_body = /([^"\\{}]|\\.)+/ ;

@@ -420,7 +420,7 @@ class ObsidianParser(Parser):
             with self._option():
                 self._triple_single_string_()
             with self._option():
-                self._double_string_()
+                self._interpolated_string_()
             with self._option():
                 self._single_string_()
             with self._option():
@@ -455,10 +455,6 @@ class ObsidianParser(Parser):
         self._pattern(r"'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''")
 
     @tatsumasu()
-    def _double_string_(self):  # noqa
-        self._pattern(r'"([^"\\]|\\.)*"')
-
-    @tatsumasu()
     def _single_string_(self):  # noqa
         self._pattern(r"'([^'\\]|\\.)*'")
 
@@ -471,6 +467,52 @@ class ObsidianParser(Parser):
     @tatsumasu()
     def _eol_(self):  # noqa
         self._token('\n')
+
+    @tatsumasu()
+    def _interpolated_string_(self):  # noqa
+        self._pattern(r'"[ \t]*')
+        self.name_last_node('head')
+
+        def block2():
+            self._interpolated_body_()
+        self._closure(block2)
+        self.name_last_node('body')
+        self._pattern(r'"')
+        self.ast._define(
+            ['body', 'head'],
+            []
+        )
+
+    @tatsumasu()
+    def _interpolated_body_(self):  # noqa
+        with self._choice():
+            with self._option():
+                self._pattern(r'{')
+
+                def block0():
+                    self._eol_()
+                self._closure(block0)
+                self._expression_()
+                self.name_last_node('expression')
+
+                def block2():
+                    self._eol_()
+                self._closure(block2)
+                self._pattern(r'[ \t]*')
+                self._pattern(r'}[ \t]*')
+                self.name_last_node('tail')
+            with self._option():
+                self._string_body_()
+                self.name_last_node('@')
+            self._error('no available options')
+        self.ast._define(
+            ['expression', 'tail'],
+            []
+        )
+
+    @tatsumasu()
+    def _string_body_(self):  # noqa
+        self._pattern(r'([^"\\{}]|\\.)+')
 
 
 class ObsidianSemantics(object):
@@ -543,9 +585,6 @@ class ObsidianSemantics(object):
     def triple_single_string(self, ast):  # noqa
         return ast
 
-    def double_string(self, ast):  # noqa
-        return ast
-
     def single_string(self, ast):  # noqa
         return ast
 
@@ -553,6 +592,15 @@ class ObsidianSemantics(object):
         return ast
 
     def eol(self, ast):  # noqa
+        return ast
+
+    def interpolated_string(self, ast):  # noqa
+        return ast
+
+    def interpolated_body(self, ast):  # noqa
+        return ast
+
+    def string_body(self, ast):  # noqa
         return ast
 
 

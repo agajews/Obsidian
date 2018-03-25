@@ -239,6 +239,61 @@ def test_triple_single_quote():
         String("Hello,\n    '''World''!")])]
 
 
+def test_string_interpolation():
+    source = r'''
+    puts "Hello, {"John"}!"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('Hello, John!')])]
+
+
+def test_string_interpolation_nested():
+    source = r'''
+    puts "Hello, {1 + {2}}"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([
+            String('Hello, '),
+            BinarySlurp([Int(1), Ident('+'), Int(2)])])
+    ])]
+
+
+def test_string_interpolation_empty():
+    source = r'''
+    puts "Hello{""}!"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('Hello!')])]
+
+
+def test_string_interpolation_leading_space():
+    source = r'''
+    puts "  Hello, {"John"}"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('  Hello, John')])]
+
+
+def test_string_interpolation_trailing_space():
+    source = r'''
+    puts "  Hello, {"John"}  "
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('  Hello, John  ')])]
+
+
+def test_string_interpolation_compound():
+    source = r'''
+    puts "  Hello, { name  }  {  "!" }  "
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('  Hello, '), Ident('name'), String('  !  ')])])]
+
+
+# def test_string_interpolation_call():
+#     source = r'''
+#     puts "  Hello, { (last name)  }  {  "!" }  "
+#     '''
+#     assert parse(source) == [Call(Ident('puts'), [
+#         InterpolatedString([String('  Hello, '), Call(Ident('last'), [Ident('name')]), String('  !  ')])])]
+#
+#
 def test_unary_in_tuple():
     source = '''puts (-x)
     '''

@@ -31,7 +31,7 @@ def clean_string(string, to_escape):
             escaped = True
         elif escaped:
             escaped = False
-            if char == to_escape:
+            if char in to_escape:
                 new_string += char
             else:
                 new_string += '\\' + char
@@ -42,8 +42,8 @@ def clean_string(string, to_escape):
 
 class Node:
     def __repr__(self):
-        return self.show(0)
-        # return str(type(self).__name__) + pformat(self.__dict__)
+        # return self.show(0)
+        return str(type(self).__name__) + pformat(self.__dict__)
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -83,6 +83,14 @@ class String(Node):
 
     def show(self, indent):
         return '"' + self.string.replace('"', '\\"') + '"'
+
+
+class InterpolatedString(Node):
+    def __init__(self, body):
+        self.body = body
+
+    def show(self, indent):
+        return '"' + ''.join(b.show(indent) for b in self.body) + '"'
 
 
 class Symbol(Node):
@@ -196,8 +204,34 @@ class Semantics:
     def float(float_str):
         return Float(float(float_str.replace('_', '')))
 
-    def double_string(string):
-        return String(clean_string(string[1:-1], '"'))
+    def interpolated_string(info):
+        newbody = [String(info['head'][1:])]
+        for elem in info['body']:
+            if isinstance(elem, String) and len(elem.string) > 0:
+                newbody.append(elem)
+            else:
+                expr = elem['expression']
+                if isinstance(expr, String):
+                    if len(expr.string) > 0:
+                        newbody.append(expr)
+                else:
+                    newbody.append(expr)
+                tail = elem['tail'][1:]
+                if len(tail) > 0:
+                    newbody.append(String(tail))
+        collapsed = [newbody[0]]
+        for elem in newbody[1:]:
+            if isinstance(collapsed[-1], String) and isinstance(elem, String):
+                collapsed[-1].string += elem.string
+            else:
+                collapsed.append(elem)
+        print('Collapsed: ', collapsed)
+        if len(collapsed) == 1:
+            return collapsed[0]
+        return InterpolatedString(collapsed)
+
+    def string_body(body):
+        return String(clean_string(body, '"{}'))
 
     def single_string(string):
         return String(clean_string(string[1:-1], "'"))
