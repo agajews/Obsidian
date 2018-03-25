@@ -95,7 +95,34 @@ repository:
         begin: '{'
         patterns: [
           {
-            include: '#constants'
+            include: '#float'
+          }
+          {
+            include: '#int'
+          }
+          {
+            include: '#triple_double_string'
+          }
+          {
+            include: '#triple_single_string'
+          }
+          {
+            include: '#single_string'
+          }
+          {
+            include: '#symbol'
+          }
+          {
+            include: '#binary_ident'
+          }
+          {
+            include: '#keyword'
+          }
+          {
+            include: '#ident'
+          }
+          {
+            include: '#op'
           }
           {
             include: '#call'

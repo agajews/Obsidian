@@ -1,11 +1,13 @@
+import (...testing) ~as tests
+
 name = "John Smith"  # name
 occupation = @farmer
 num = 3
 float = 3.0
 float = bob
-puts "Hello " * 3 + name ; puts "Goodbye"
+puts "Hello " * 3 + name; puts "Goodbye"
 
-"something {(function call) + other.thing}"
+"something {(function call) + 'thing' other.thing}"
 
 (something else)
 (something ~else thing)
