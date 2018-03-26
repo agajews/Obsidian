@@ -150,6 +150,9 @@ repository:
   ident:
     match: '([_a-zA-Z][_a-zA-Z0-9]*[?]?)'
     name: 'identifier.obsidian'
+  self:
+    match: 'self'
+    name: 'variable.language'
   # op:
   #   match: '([+\-=/*&|^%!<>.:$]+)'
   #   name: 'operator.obsidian'
@@ -194,6 +197,9 @@ repository:
       }
       {
         include: '#kwarg'
+      }
+      {
+        include: '#self'
       }
       {
         include: '#ident'

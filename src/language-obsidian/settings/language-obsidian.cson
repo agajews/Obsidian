@@ -2,4 +2,5 @@
 # https://github.com/atom/language-gfm/blob/master/settings/gfm.cson
 
 '.source.obsidian':
-  'editor': {}
+  'editor':
+    'commentStart': '# '

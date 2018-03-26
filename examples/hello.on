@@ -17,7 +17,7 @@ puts "something {(function call) + "thing" other.thing}!"
 (something else)
 (something ~else thing)
 (something
-  (something, something else)
+  (something, (something else))
   (something))
 (-> something)
 
@@ -38,4 +38,19 @@ end
 
 if thing ~and thing do
   puts "Hello"
+end
+
+Dog = (class Dog: name => { self.name = name }
+             bark: _ => (puts "Woof!"))
+
+defclass Dog do
+  def (Dog name) do
+    self.name = name
+  end
+
+  bark = (puts "Woof!")
+
+  def (bark) do
+    puts "Woof!"
+  end
 end
