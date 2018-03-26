@@ -25,13 +25,15 @@ binary_op = {eol} @:op {eol}
           ;
 
 simple_expression = atom
-                  | '{' {eol} @:(expression | op | binary_identifier) {eol} '}'
+                  | curly_expression
                   | call_expression
                   | tuple
                   | list
                   | map
                   | block
                   ;
+
+curly_expression = '{' {eol} @:({{eol} ';' {eol}}+).{expression | op | binary_identifier}+ {eol} '}' ;
 
 call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_args} {eol} ')' ;
 

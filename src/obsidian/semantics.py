@@ -282,10 +282,15 @@ class Semantics:
     def call_expression(info):
         return Call(info['head'], info['args'])
 
-    def partial_call_expression(info):
-        if len(info['args']) == 0:
-            return info['head']
-        return Call(info['head'], info['args'])
+    # def partial_call_expression(info):
+    #     if len(info['args']) == 0:
+    #         return info['head']
+    #     return Call(info['head'], info['args'])
+
+    def curly_expression(exprs):
+        if len(exprs) == 1:
+            return exprs[0]
+        return Block(exprs)
 
     def statement_list(info):
         statements = []

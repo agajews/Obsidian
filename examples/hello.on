@@ -43,7 +43,13 @@ end
 Dog = (class Dog: name => { self.name = name }
              bark: _ => (puts "Woof!"))
 
+
+defrecord Dog do
+  name: String
+end
+
 defclass Dog do
+  (Dog name) = { self.name = name }
   def (Dog name) do
     self.name = name
   end

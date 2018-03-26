@@ -448,6 +448,44 @@ def test_curly_expression():
     ])])]
 
 
+def test_curly_expression_compound():
+    source = '''
+    puts 3 * {x = 4; x + 1}
+    '''
+    assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
+        Int(3),
+        Ident('*'),
+        Block([
+            BinarySlurp([Ident('x'), Ident('='), Int(4)]),
+            BinarySlurp([Ident('x'), Ident('+'), Int(1)])
+        ])
+    ])])]
+
+
+def test_curly_expression_compound_multiline():
+    source = '''
+    puts 3
+    *
+    {
+    x
+    =
+    4
+    ;
+    x
+    +
+    1
+    }
+    '''
+    assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
+        Int(3),
+        Ident('*'),
+        Block([
+            BinarySlurp([Ident('x'), Ident('='), Int(4)]),
+            BinarySlurp([Ident('x'), Ident('+'), Int(1)])
+        ])
+    ])])]
+
+
 def test_list_slice():
     source = '''
     puts list.[3:5]
@@ -456,6 +494,17 @@ def test_list_slice():
         Ident('list'),
         Ident('.'),
         List([BinarySlurp([Int(3), Ident(':'), Int(5)])])
+    ])])]
+
+
+def test_list_dot_slice():
+    source = '''
+    puts list.[3..5]
+    '''
+    assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
+        Ident('list'),
+        Ident('.'),
+        List([BinarySlurp([Int(3), Ident('..'), Int(5)])])
     ])])]
 
 

@@ -204,26 +204,7 @@ class ObsidianParser(Parser):
             with self._option():
                 self._atom_()
             with self._option():
-                self._token('{')
-
-                def block0():
-                    self._eol_()
-                self._closure(block0)
-                with self._group():
-                    with self._choice():
-                        with self._option():
-                            self._expression_()
-                        with self._option():
-                            self._op_()
-                        with self._option():
-                            self._binary_identifier_()
-                        self._error('no available options')
-                self.name_last_node('@')
-
-                def block3():
-                    self._eol_()
-                self._closure(block3)
-                self._token('}')
+                self._curly_expression_()
             with self._option():
                 self._call_expression_()
             with self._option():
@@ -235,6 +216,46 @@ class ObsidianParser(Parser):
             with self._option():
                 self._block_()
             self._error('no available options')
+
+    @tatsumasu()
+    def _curly_expression_(self):  # noqa
+        self._token('{')
+
+        def block0():
+            self._eol_()
+        self._closure(block0)
+
+        def sep2():
+            with self._group():
+
+                def block3():
+
+                    def block4():
+                        self._eol_()
+                    self._closure(block4)
+                    self._token(';')
+
+                    def block5():
+                        self._eol_()
+                    self._closure(block5)
+                self._positive_closure(block3)
+
+        def block2():
+            with self._choice():
+                with self._option():
+                    self._expression_()
+                with self._option():
+                    self._op_()
+                with self._option():
+                    self._binary_identifier_()
+                self._error('no available options')
+        self._positive_gather(block2, sep2)
+        self.name_last_node('@')
+
+        def block7():
+            self._eol_()
+        self._closure(block7)
+        self._token('}')
 
     @tatsumasu()
     def _call_expression_(self):  # noqa
@@ -541,6 +562,9 @@ class ObsidianSemantics(object):
         return ast
 
     def simple_expression(self, ast):  # noqa
+        return ast
+
+    def curly_expression(self, ast):  # noqa
         return ast
 
     def call_expression(self, ast):  # noqa
