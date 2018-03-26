@@ -1,4 +1,4 @@
-import (...testing) ~as tests
+import (..testing) ~as tests
 
 name = "John Smith"  # name
 occupation = @farmer
@@ -20,6 +20,7 @@ puts "Hello " * 3 + name; puts "Goodbye"
 (something )
 (something, else)
 (~as)
+complicated_array.[0..3, 1..@len, @all]
 
 defop {~make} assoc: @left priority: 6
 

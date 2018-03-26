@@ -372,13 +372,6 @@ def test_bigfloat_trailing_underscore():
         [Ident('x'), Ident('='), Float(300e10)])]
 
 
-def test_negative_int():
-    source = '''
-    x = -3
-    '''
-    assert parse(source) == [BinarySlurp([Ident('x'), Ident('='), Int(-3)])]
-
-
 def test_float():
     source = '''
     x = 3.0
@@ -400,14 +393,6 @@ def test_float_trailing_underscore():
     '''
     assert parse(source) == [BinarySlurp(
         [Ident('x'), Ident('='), Float(3000000.0)])]
-
-
-def test_negative_float():
-    source = '''
-    x = -3.0
-    '''
-    assert parse(source) == [BinarySlurp(
-        [Ident('x'), Ident('='), Float(-3.0)])]
 
 
 def test_symbol():
@@ -823,3 +808,11 @@ def test_defop():
         BinarySlurp([Ident('assoc'), Ident(':'), Symbol('left')]),
         BinarySlurp([Ident('priority'), Ident(':'), Int(5)])
     ])]
+
+
+def test_dots():
+    source = '''
+    x = 1...3
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(1), Ident('...'), Int(3)])]

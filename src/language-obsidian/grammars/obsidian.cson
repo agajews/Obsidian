@@ -39,19 +39,19 @@ patterns: [
 
 repository:
   float:
-    match: '(-?[0-9][_0-9]*\\.[0-9][_0-9]*([eE][0-9][_0-9]*)?)'
-    name: 'constant.numeric.double.obsidian'
+    match: '([0-9][_0-9]*\\.[0-9][_0-9]*([eE][0-9][_0-9]*)?)'
+    name: 'constant.numeric.obsidian'
   int:
-    match: '(-?[0-9][_0-9]*([eE][0-9][_0-9]*)?)'
-    name: 'constant.numeric.long.obsidian'
+    match: '([0-9][_0-9]*([eE][0-9][_0-9]*)?)'
+    name: 'constant.numeric.obsidian'
   triple_double_string:
     begin: '"""'
     beginCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.triple.obsidian'
     patterns: [
       {
         match: '[^"\\\\]+'
-        name: 'constant.string.obsidian'
+        name: 'string.quoted.triple.obsidian'
       }
       {
         match: '\\\\.'
@@ -59,20 +59,20 @@ repository:
       }
       {
         match: '"{1,2}(?!")'
-        name: 'constant.string.obsidian'
+        name: 'string.quoted.triple.obsidian'
       }
     ]
     end: '"""'
     endCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.triple.obsidian'
   triple_single_string:
     begin: "'''"
     beginCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.triple.obsidian'
     patterns: [
       {
         match: "[^'\\\\]+"
-        name: 'constant.string.obsidian'
+        name: 'string.quoted.triple.obsidian'
       }
       {
         match: '\\\\.'
@@ -80,16 +80,16 @@ repository:
       }
       {
         match: "'{1,2}(?!')"
-        name: 'constant.string.obsidian'
+        name: 'string.quoted.triple.obsidian'
       }
     ]
     end: "'''"
     endCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.triple.obsidian'
   double_string:
     begin: '"'
     beginCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.double.obsidian'
     patterns: [
       {
         begin: '{'
@@ -105,7 +105,7 @@ repository:
       }
       {
         match: '[^"\\\\{}]+'
-        name: 'constant.string.obsidian'
+        name: 'string.quoted.double.obsidian'
       }
       {
         match: '\\\\.'
@@ -114,15 +114,15 @@ repository:
     ]
     end: '"'
     endCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.double.obsidian'
   single_string:
     begin: "'"
     beginCaptures:
-      0: name: 'constant.string.obsidian'
+      0: name: 'string.quoted.single.obsidian'
     patterns: [
       {
         match: "[^'\\\\]+"
-        name: 'constant.string.obsidian'
+        name: 'string.quoted.single.obsidian'
       }
       {
         match: '\\\\.'
@@ -131,28 +131,37 @@ repository:
     ]
     end: "'"
     endCaptures:
-      1: name: 'constant.string.obsidian'
+      1: name: 'string.quoted.single.obsidian'
   symbol:
     match: '(@[_a-zA-Z][_a-zA-Z0-9]*[?]?)'
-    name: 'constant.symbol.obsidian'
+    name: 'constant.other.obsidian'
   binary_ident:
     match: '(~[_a-zA-Z][_a-zA-Z0-9]*[?]?)'
-    name: 'keyword.identifier.binary.obsidian'
+    name: 'keyword.other.obsidian'
   comment:
     match: '(#.*?$)'
-    name: 'comment.obsidian'
+    name: 'comment.line.obsidian'
   keyword:
     match: '(do|end)'
-    name: 'keyword.obsidian'
+    name: 'keyword.control.obsidian'
+  bool:
+    match: '(true|false)'
+    name: 'constant.language.obsidian'
   ident:
     match: '([_a-zA-Z][_a-zA-Z0-9]*[?]?)'
     name: 'identifier.obsidian'
-  op:
-    match: '([+\-=\/*&|^%!<>.:$]+)'
-    name: 'operator.obsidian'
+  # op:
+  #   match: '([+\-=/*&|^%!<>.:$]+)'
+  #   name: 'operator.obsidian'
+  kwarg:
+    match: '([_a-zA-Z][_a-zA-Z0-9]*[?]?[ \t]*:)'
+    name: 'entity.name.tag.obsidian'
 
   constants:
     patterns: [
+      # {
+      #   include: '#op'
+      # }
       {
         include: '#float'
       }
@@ -181,15 +190,18 @@ repository:
         include: '#keyword'
       }
       {
-        include: '#ident'
+        include: '#bool'
       }
       {
-        include: '#op'
+        include: '#kwarg'
+      }
+      {
+        include: '#ident'
       }
     ]
 
   call:
-    begin: '\\([ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?]?|[+\\-=/*&|^%!<>.:$]+)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*(?=([ \t]+[^+\\-=/*&|^%!<>.:$,~\\s])|([ \t]*\\))|([^,]*$))'
+    begin: '\\([ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?]?|[+\\-=/*&|^%!<>.:$]+)([ \t]*[+\\-=/*&|^%!<>.:$]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?]?)*(?=([ \t]+[^+\\-=/*&|^%!<>.:$,~\\s])|([ \t]*\\))|([^,]*(\\)|$)))'
     beginCaptures:
       1: name: 'entity.name.function.obsidian'
       2: name: 'entity.name.function.obsidian'
