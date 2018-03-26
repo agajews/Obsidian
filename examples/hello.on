@@ -1,4 +1,9 @@
 import (..testing) ~as tests
+import logging showing: {Logger ~as L, showLog ~as showL}
+import gravity showing: (...)
+import swimming hiding: water
+
+nothing = nil
 
 name = "John Smith"  # name
 occupation = @farmer
@@ -7,7 +12,7 @@ float = 3.0
 float = bob
 puts "Hello " * 3 + name; puts "Goodbye"
 
-"something {(function call) + "thing" other.thing}"
+puts "something {(function call) + "thing" other.thing}!"
 
 (something else)
 (something ~else thing)
@@ -26,8 +31,11 @@ defop {~make} assoc: @left priority: 6
 
 def (something else) do
   puts something
+  do
+    puts "goodbye"
+  end
 end
 
 if thing ~and thing do
-    puts "Hello"
+  puts "Hello"
 end

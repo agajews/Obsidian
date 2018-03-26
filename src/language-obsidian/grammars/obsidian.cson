@@ -144,8 +144,8 @@ repository:
   keyword:
     match: '(do|end)'
     name: 'keyword.control.obsidian'
-  bool:
-    match: '(true|false)'
+  lang_const:
+    match: '(true|false|nil)'
     name: 'constant.language.obsidian'
   ident:
     match: '([_a-zA-Z][_a-zA-Z0-9]*[?]?)'
@@ -190,7 +190,7 @@ repository:
         include: '#keyword'
       }
       {
-        include: '#bool'
+        include: '#lang_const'
       }
       {
         include: '#kwarg'
