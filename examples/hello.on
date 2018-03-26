@@ -2,7 +2,7 @@ import (...testing) ~as tests
 
 name = "John Smith"  # name
 occupation = @farmer
-num = 3
+num = 3e10
 float = 3.0
 float = bob
 puts "Hello " * 3 + name; puts "Goodbye"

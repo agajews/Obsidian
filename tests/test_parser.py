@@ -324,6 +324,54 @@ def test_int_trailing_underscore():
         [Ident('x'), Ident('='), Int(3000000)])]
 
 
+def test_bigint():
+    source = '''
+    x = 3e10
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(int(3e10))])]
+
+
+def test_bigint_underscore():
+    source = '''
+    x = 3_00e1_0
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(int(300e10))])]
+
+
+def test_bigint_trailing_underscore():
+    source = '''
+    x = 3_00_e1_0_
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(int(300e10))])]
+
+
+def test_bigfloat():
+    source = '''
+    x = 3.0e10
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(3e10)])]
+
+
+def test_bigfloat_underscore():
+    source = '''
+    x = 3_00.0e1_0
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(300e10)])]
+
+
+def test_bigfloat_trailing_underscore():
+    source = '''
+    x = 3_00.0_e1_0_
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(300e10)])]
+
+
 def test_negative_int():
     source = '''
     x = -3

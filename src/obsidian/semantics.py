@@ -199,7 +199,7 @@ class Semantics:
         return Ident(op)
 
     def integer(int_str):
-        return Int(int(int_str.replace('_', '')))
+        return Int(int(float(int_str.replace('_', ''))))
 
     def float(float_str):
         return Float(float(float_str.replace('_', '')))
