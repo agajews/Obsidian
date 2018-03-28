@@ -253,8 +253,8 @@ repository:
   partial_call:
     begin: '\\[[ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?!]?|[+\\-=/*&|^%!<>.:]+)([ \t]*[+\\-=/*&|^%!<>.:]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*(?=([ \t]+[^+\\-=/*&|^%!<>.:,~\\s])|([ \t]*\\])|([^,]*(\\]|$)))'
     beginCaptures:
-      1: name: 'constant.language.partial_call.obsidian'
-      2: name: 'constant.language.partial_call.obsidian'
+      1: name: 'support.function.partial_call.obsidian'
+      2: name: 'support.function.partial_call.obsidian'
     end: '\\]'
     patterns: [
       {
