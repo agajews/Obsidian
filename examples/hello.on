@@ -133,6 +133,8 @@ end
 
 ---
 
+[call partially]
+
 import cpp showing: (runmain, argparse, lib, std)
 
 runmain do
@@ -144,5 +146,5 @@ runmain do
 
   (lib.file args.filename).lines
     |> [lib.take args.n]
-    |> [std.for_each line => (l.puts line)]
+    |> [std.for_each line => (lib.puts line)]
 end

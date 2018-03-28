@@ -1,4 +1,4 @@
-@@grammar::Obsidian
+@@grammar :: Obsidian
 
 @@eol_comments :: /#.*?$/
 
