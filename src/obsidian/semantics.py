@@ -134,22 +134,13 @@ class Call(Node):
         return '(' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ')'
 
 
-# class Access(Node):
-#     def __init__(self, accessable_expr, elements):
-#         self.accessable_expr = accessable_expr
-#         self.elements = elements
+class PartialCall(Node):
+    def __init__(self, callable_expr, args=None):
+        self.callable_expr = callable_expr
+        self.args = args if args is not None else []
 
-#     def show(self, indent):
-#         return self.callable_expr.show(indent) + '[' + ', '.join(e.show(indent) for e in self.args) + ']'
-
-
-# class CurlyAccess(Node):
-#     def __init__(self, accessable_expr, elements):
-#         self.accessable_expr = accessable_expr
-#         self.elements = elements
-
-#     def show(self, indent):
-#         return self.callable_expr.show(indent) + '{' + ', '.join(e.show(indent) for e in self.args) + '}'
+    def show(self, indent):
+        return '[' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ']'
 
 
 class Unary(Node):
@@ -159,6 +150,14 @@ class Unary(Node):
 
     def show(self, indent):
         return self.op + self.expr.show(indent)
+
+
+class Unquote(Node):
+    def __init__(self, expr):
+        self.expr = expr
+
+    def show(self, indent):
+        return '$' + self.expr.show(indent)
 
 
 class Binary(Node):
@@ -257,8 +256,11 @@ class Semantics:
         rest = info['rest'] if info['rest'] is not None else []
         return Map([info['first']] + rest)
 
-    def list(elements):
-        return List(elements)
+    def list(info):
+        if info.get('first') is None:
+            return List()
+        rest = info['rest'] if info['rest'] is not None else []
+        return List([info['first']] + rest)
 
     def unary_expression(info):
         return Unary(info['op'], info['expression'])
@@ -282,10 +284,11 @@ class Semantics:
     def call_expression(info):
         return Call(info['head'], info['args'])
 
-    # def partial_call_expression(info):
-    #     if len(info['args']) == 0:
-    #         return info['head']
-    #     return Call(info['head'], info['args'])
+    def partial_call_expression(info):
+        return PartialCall(info['head'], info['args'])
+
+    def unquote_expression(info):
+        return Unquote(info)
 
     def curly_expression(exprs):
         if len(exprs) == 1:

@@ -4,7 +4,7 @@ from obsidian import parser
 
 def parse(source):
     ast = parser.parse(source, trace=False)
-    print(ast)
+    # print(ast)
     return ast
 
 
@@ -403,9 +403,58 @@ def test_symbol():
         [Ident('x'), Ident('='), Symbol('thingy')])]
 
 
+def test_ident_question():
+    source = '''
+    works? = true
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('works?'), Ident('='), Ident('true')])]
+
+
+def test_ident_question_nospace():
+    source = '''
+    works?=true
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('works?'), Ident('='), Ident('true')])]
+
+
+def test_question_op():
+    source = '''
+    works ?= true
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('works'), Ident('?='), Ident('true')])]
+
+
+def test_ident_exclamation():
+    source = '''
+    works! = true
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('works!'), Ident('='), Ident('true')])]
+
+
+def test_ident_question_nospace():
+    source = '''
+    works!=true
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('works!'), Ident('='), Ident('true')])]
+
+
+def test_question_op():
+    source = '''
+    works != true
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('works'), Ident('!='), Ident('true')])]
+
+
 def test_op_identifier():
     source = '''
-    def (+ x:int y:int) do
+
+    def (+ x: int y: int) do
         x.add_int y
     end
     '''
@@ -486,38 +535,50 @@ def test_curly_expression_compound_multiline():
     ])])]
 
 
-def test_list_slice():
+def test_curly_expression_compound_multiline_nosemi():
     source = '''
-    puts list.[3:5]
+    puts 3
+    *
+    {
+    x
+    =
+    4
+    x
+    +
+    1
+    }
     '''
     assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
-        Ident('list'),
-        Ident('.'),
-        List([BinarySlurp([Int(3), Ident(':'), Int(5)])])
+        Int(3),
+        Ident('*'),
+        Block([
+            BinarySlurp([Ident('x'), Ident('='), Int(4)]),
+            BinarySlurp([Ident('x'), Ident('+'), Int(1)])
+        ])
     ])])]
 
 
 def test_list_dot_slice():
     source = '''
-    puts list.[3..5]
+    puts list.{3..5}
     '''
     assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
         Ident('list'),
         Ident('.'),
-        List([BinarySlurp([Int(3), Ident('..'), Int(5)])])
+        BinarySlurp([Int(3), Ident('..'), Int(5)])
     ])])]
 
 
 def test_toplevel_expression():
     source = '''
-    3+4
+    3 + 4
     '''
     assert parse(source) == [BinarySlurp([Int(3), Ident('+'), Int(4)])]
 
 
 def test_comment():
     source = r'''
-    puts "Hello!" # inline
+    puts "Hello!"  # inline
     # prints "Hello\nWorld!"
     puts "World!"
     '''
@@ -551,34 +612,12 @@ def test_empty_list():
 
 def test_single_list():
     source = '''
-    list = [1]
+    list = [1, ]
     '''
     assert parse(source) == [BinarySlurp([
         Ident('list'),
         Ident('='),
         List([Int(1)])
-    ])]
-
-
-def test_single_list_trailing():
-    source = '''
-    list = [1,]
-    '''
-    assert parse(source) == [BinarySlurp([
-        Ident('list'),
-        Ident('='),
-        List([Int(1)])
-    ])]
-
-
-def test_empty_list():
-    source = '''
-    list = []
-    '''
-    assert parse(source) == [BinarySlurp([
-        Ident('list'),
-        Ident('='),
-        List()
     ])]
 
 
@@ -604,7 +643,7 @@ def test_map_trailing():
     source = '''
     map = {"thing" -> "place",
            2 -> 3,
-           5 -> (compute "number"),}
+           5 -> (compute "number"), }
     '''
     assert parse(source) == [BinarySlurp([
         Ident('map'),
@@ -620,7 +659,7 @@ def test_map_trailing():
 
 def test_single_map():
     source = '''
-    map = {"thing" -> "place",}
+    map = {"thing" -> "place", }
     '''
     assert parse(source) == [BinarySlurp([
         Ident('map'),
@@ -700,6 +739,53 @@ def test_empty_tuple():
         Ident('='),
         Tuple()
     ])]
+
+
+def test_call_expression():
+    source = '''
+    (puts "Hello, World!")
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('Hello, World!')])]
+
+
+def test_partial_call_expression():
+    source = '''
+    [replace "Hello, World!"]
+    '''
+    assert parse(source) == [PartialCall(
+        Ident('replace'), [String('Hello, World!')])]
+
+
+def test_unquote():
+    source = '''
+    $var (do_stuff)
+    '''
+    assert parse(source) == [
+        Call(Unquote(Ident('var')), [Call(Ident('do_stuff'))])]
+
+
+def test_unquote_call():
+    source = '''
+    $(fn arg) (do_stuff)
+    '''
+    assert parse(source) == [
+        Call(Unquote(Call(Ident('fn'), [Ident('arg')])), [Call(Ident('do_stuff'))])]
+
+
+def test_unquote_compound():
+    source = '''
+    ${(fn arg).attr} (do_stuff)
+    '''
+    assert parse(source) == [
+        Call(Unquote(BinarySlurp([Call(Ident('fn'), [Ident('arg')]), Ident('.'), Ident('attr')])), [Call(Ident('do_stuff'))])]
+
+
+def test_unquote_nested():
+    source = '''
+    $$var (do_stuff)
+    '''
+    assert parse(source) == [
+        Call(Unquote(Unquote(Ident('var'))), [Call(Ident('do_stuff'))])]
 
 
 def test_lambda():
@@ -802,11 +888,11 @@ def test_kwargs():
 
 def test_varargs():
     source = '''
-    def (variadic first (...rest)) do
+    def (variadic first(...rest)) do
         (stuff)
     end
     (variadic arg1)
-    variadic arg1 arg2 (...args)
+    variadic arg1 arg2(...args)
     '''
     assert parse(source) == [
         Call(Ident('def'), [
@@ -822,15 +908,15 @@ def test_varargs():
 
 def test_inline_do():
     source = '''
-    puts "Hello " + do name = "John"; name.[0:2] end + "!"
+    puts "Hello " + do name = "John"; name.{0..2} end + "!"
     '''
     assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
         String('Hello '),
         Ident('+'),
         Block([
             BinarySlurp([Ident('name'), Ident('='), String('John')]),
-            BinarySlurp([Ident('name'), Ident('.'), List(
-                [BinarySlurp([Int(0), Ident(':'), Int(2)])])])
+            BinarySlurp([Ident('name'), Ident('.'), BinarySlurp(
+                [Int(0), Ident('..'), Int(2)])])
         ]),
         Ident('+'),
         String('!')
@@ -865,3 +951,17 @@ def test_dots():
     '''
     assert parse(source) == [BinarySlurp(
         [Ident('x'), Ident('='), Int(1), Ident('...'), Int(3)])]
+
+
+def test_inline_def():
+    source = '''
+    (Dog name) = do
+        self.name = name
+    end
+    '''
+    assert parse(source) == [BinarySlurp([
+        Call(Ident('Dog'), [Ident('name')]),
+        Ident('='),
+        Block([BinarySlurp([Ident('self'), Ident('.'),
+                            Ident('name'), Ident('='), Ident('name')])])
+    ])]
