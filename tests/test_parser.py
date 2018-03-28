@@ -286,14 +286,14 @@ def test_string_interpolation_compound():
         InterpolatedString([String('  Hello, '), Ident('name'), String('  !  ')])])]
 
 
-# def test_string_interpolation_call():
-#     source = r'''
-#     puts "  Hello, { (last name)  }  {  "!" }  "
-#     '''
-#     assert parse(source) == [Call(Ident('puts'), [
-#         InterpolatedString([String('  Hello, '), Call(Ident('last'), [Ident('name')]), String('  !  ')])])]
-#
-#
+def test_string_interpolation_call():
+    source = r'''
+    puts "  Hello, { (last name)  }  {  "!" }  "
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('  Hello, '), Call(Ident('last'), [Ident('name')]), String('  !  ')])])]
+
+
 def test_unary_in_tuple():
     source = '''puts (-x)
     '''
@@ -739,6 +739,24 @@ def test_empty_tuple():
         Ident('='),
         Tuple()
     ])]
+
+
+def test_tuple_slurp():
+    source = '''
+    x, y = (fn z)
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Tuple([Ident('x'), Ident('y')]), Ident('='), Call(Ident('fn'), [Ident('z')])])]
+
+
+def test_tuple_slurp_inline():
+    source = '''
+    do
+        return x, y
+    end
+    '''
+    assert parse(source) == [Block(
+        [Call(Ident('return'), [Tuple([Ident('x'), Ident('y')])])])]
 
 
 def test_call_expression():

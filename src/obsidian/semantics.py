@@ -244,6 +244,11 @@ class Semantics:
     def symbol(symbol):
         return Symbol(symbol)
 
+    def inline_tuple(exprs):
+        if len(exprs) == 1:
+            return exprs[0]
+        return Tuple(exprs)
+
     def tuple(info):
         if info.get('first') is None:
             return Tuple()
@@ -266,6 +271,11 @@ class Semantics:
         return Unary(info['op'], info['expression'])
 
     def binary_slurp(slurp):
+        if len(slurp) == 1:
+            return slurp[0]
+        return BinarySlurp(slurp)
+
+    def tuple_slurp(slurp):
         if len(slurp) == 1:
             return slurp[0]
         return BinarySlurp(slurp)

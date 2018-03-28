@@ -16,7 +16,13 @@ statement = head:expression args:{expression}* ;
 
 block = 'do' @:statement_list 'end' ;
 
-expression = binary_slurp ;
+expression = tuple_slurp ;
+
+tuple_slurp = (binary_op)%{inline_tuple}+ ;
+
+inline_tuple = (',').{simple_expression}+ ;
+
+non_tuple_expression = binary_slurp ;
 
 binary_slurp = (binary_op)%{simple_expression}+ ;
 
@@ -42,27 +48,28 @@ simple_expression = identifier
                   | unquote_expression
                   ;
 
-curly_expression = '{' {eol} (@+:op | @+:binary_identifier | @+:expression {{eol | ';'} @+:expression}) {eol} '}' ;
+curly_expression = '{' {eol} (@+:op | @+:binary_identifier | @+:non_tuple_expression {{eol | ';'} @+:non_tuple_expression}) {eol} '}' ;
 
-call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ')' ;
+call_expression = '(' {eol} head:(non_tuple_expression | op) {eol} args:{call_expression_arg} {eol} ')' ;
 
-partial_call_expression = '[' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ']' ;
+partial_call_expression = '[' {eol} head:(non_tuple_expression | op) {eol} args:{call_expression_arg} {eol} ']' ;
 
 call_expression_arg = @:expression {eol} ;
 
 tuple = '(' {eol} ')'
-      | '(' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ')'
+      | '(' {eol} first:non_tuple_expression {eol} ',' {eol} rest:[collection_rest] {eol} ')'
       ;
 
+
 map = '{' {eol} '}'
-    | '{' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
+    | '{' {eol} first:non_tuple_expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
     ;
 
 list = '[' {eol} ']'
-    | '[' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ']'
+    | '[' {eol} first:non_tuple_expression {eol} ',' {eol} rest:[collection_rest] {eol} ']'
     ;
 
-collection_rest = @+:expression {{eol} ',' {eol} @+:expression} {eol} [','] ;
+collection_rest = @+:non_tuple_expression {{eol} ',' {eol} @+:non_tuple_expression} {eol} [','] ;
 
 unquote_expression = '$' @:simple_expression ;
 

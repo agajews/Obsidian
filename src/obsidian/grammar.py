@@ -158,6 +158,32 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _expression_(self):  # noqa
+        self._tuple_slurp_()
+
+    @tatsumasu()
+    def _tuple_slurp_(self):  # noqa
+
+        def sep0():
+            with self._group():
+                self._binary_op_()
+
+        def block0():
+            self._inline_tuple_()
+        self._positive_join(block0, sep0)
+
+    @tatsumasu()
+    def _inline_tuple_(self):  # noqa
+
+        def sep0():
+            with self._group():
+                self._token(',')
+
+        def block0():
+            self._simple_expression_()
+        self._positive_gather(block0, sep0)
+
+    @tatsumasu()
+    def _non_tuple_expression_(self):  # noqa
         self._binary_slurp_()
 
     @tatsumasu()
@@ -251,7 +277,7 @@ class ObsidianParser(Parser):
                     self._binary_identifier_()
                     self.add_last_node_to_name('@')
                 with self._option():
-                    self._expression_()
+                    self._non_tuple_expression_()
                     self.add_last_node_to_name('@')
 
                     def block4():
@@ -264,7 +290,7 @@ class ObsidianParser(Parser):
                                     self._token(';')
                                 self._error('no available options')
                         self._closure(block5)
-                        self._expression_()
+                        self._non_tuple_expression_()
                         self.add_last_node_to_name('@')
                     self._closure(block4)
                 self._error('no available options')
@@ -284,7 +310,7 @@ class ObsidianParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._expression_()
+                    self._non_tuple_expression_()
                 with self._option():
                     self._op_()
                 self._error('no available options')
@@ -318,7 +344,7 @@ class ObsidianParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._expression_()
+                    self._non_tuple_expression_()
                 with self._option():
                     self._op_()
                 self._error('no available options')
@@ -367,7 +393,7 @@ class ObsidianParser(Parser):
                 def block1():
                     self._eol_()
                 self._closure(block1)
-                self._expression_()
+                self._non_tuple_expression_()
                 self.name_last_node('first')
 
                 def block3():
@@ -408,7 +434,7 @@ class ObsidianParser(Parser):
                 def block1():
                     self._eol_()
                 self._closure(block1)
-                self._expression_()
+                self._non_tuple_expression_()
                 self.name_last_node('first')
 
                 def block3():
@@ -449,7 +475,7 @@ class ObsidianParser(Parser):
                 def block1():
                     self._eol_()
                 self._closure(block1)
-                self._expression_()
+                self._non_tuple_expression_()
                 self.name_last_node('first')
 
                 def block3():
@@ -476,7 +502,7 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _collection_rest_(self):  # noqa
-        self._expression_()
+        self._non_tuple_expression_()
         self.add_last_node_to_name('@')
 
         def block1():
@@ -489,7 +515,7 @@ class ObsidianParser(Parser):
             def block3():
                 self._eol_()
             self._closure(block3)
-            self._expression_()
+            self._non_tuple_expression_()
             self.add_last_node_to_name('@')
         self._closure(block1)
 
@@ -614,6 +640,15 @@ class ObsidianSemantics(object):
         return ast
 
     def expression(self, ast):  # noqa
+        return ast
+
+    def tuple_slurp(self, ast):  # noqa
+        return ast
+
+    def inline_tuple(self, ast):  # noqa
+        return ast
+
+    def non_tuple_expression(self, ast):  # noqa
         return ast
 
     def binary_slurp(self, ast):  # noqa
