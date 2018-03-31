@@ -143,15 +143,6 @@ class PartialCall(Node):
         return '[' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ']'
 
 
-class Unary(Node):
-    def __init__(self, op, expr):
-        self.op = op
-        self.expr = expr
-
-    def show(self, indent):
-        return self.op + self.expr.show(indent)
-
-
 class Unquote(Node):
     def __init__(self, expr):
         self.expr = expr
@@ -224,7 +215,6 @@ class Semantics:
                 collapsed[-1].string += elem.string
             else:
                 collapsed.append(elem)
-        print('Collapsed: ', collapsed)
         if len(collapsed) == 1:
             return collapsed[0]
         return InterpolatedString(collapsed)
@@ -266,9 +256,6 @@ class Semantics:
             return List()
         rest = info['rest'] if info['rest'] is not None else []
         return List([info['first']] + rest)
-
-    def unary_expression(info):
-        return Unary(info['op'], info['expression'])
 
     def binary_slurp(slurp):
         if len(slurp) == 1:

@@ -1,10 +1,10 @@
 import (..testing) ~as tests
 import logging showing: (Logger ~as L, showLog ~as showL)
 import logging.(Logger ~as L, showLog ~as showL)
-import gravity showing: (...)
-import gravity.(...)
+import gravity showing: (..)
+import gravity.(..)
 import swimming hiding: water
-import swimming.(...) hiding: water
+import swimming.(..) hiding: water
 
 nothing = nil
 
@@ -93,6 +93,9 @@ class Dog = do
   fun (bark) = (puts "Woof!")
 end
 
+fun (fn self.dog: Dog.{name, self.dog_breed}, Cat.{self.name, breed: self.cat_breed}) =
+  nil
+
 let arr = [1, 2, 3]
 let sum = 0
 for i in 0..(len arr) do sum += arr.{i} end
@@ -101,19 +104,19 @@ arr.{0..10, @all, (-2)..@len}
 
 fun (double x) = x * 2
 
-fun (complicated_fn (...args)) = do
+fun (complicated_fn (..args) (&&kwargs)) = do
   puts "Computing complicated thing"
   call (complicated thing)
 end
 
 [1, 2, 3]
-  |> map.[_ * 2]
-  |> filter.[_ > 5]
+  |> [map _ * 2]
+  |> [filter _ > 5]
   |> puts
 
 module List = do
 
-fun (list (...args)) = [(...args)]
+fun (list (..args)) = [(..args)]
 
 end
 

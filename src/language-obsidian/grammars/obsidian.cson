@@ -153,7 +153,7 @@ repository:
     endCaptures:
       1: name: 'string.quoted.single.obsidian'
   keyword:
-    match: '(do|end)'
+    match: '(do|end)(?![_a-zA-Z0-9?!])'
     name: 'keyword.control.obsidian'
   symbol:
     match: '(@[_a-zA-Z][_a-zA-Z0-9]*[?!]?)'
@@ -171,7 +171,7 @@ repository:
     match: '([_a-zA-Z][_a-zA-Z0-9]*[?!]?)'
     name: 'identifier.obsidian'
   self:
-    match: 'self'
+    match: '(self|meta)(?![_a-zA-Z0-9?!])'
     name: 'variable.language'
   kwarg:
     match: '([_a-zA-Z][_a-zA-Z0-9]*[?!]?[ \t]*:)'
