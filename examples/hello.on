@@ -97,6 +97,8 @@ arr.{0..10, @all, (-2)..@len}
 
 fun (double x) = x * 2
 
+(x ~something else + 3 do: thing)
+
 fun (complicated_fn (..args) (&&kwargs)) =
   puts "Computing complicated thing"
   call (complicated thing)
@@ -125,8 +127,6 @@ type Dog =
 ---
 
 import cpp showing: (runmain, argparse, lib, std)
-
-(x ~something else + 3 do: thing)
 
 runmain
   argparse args =
