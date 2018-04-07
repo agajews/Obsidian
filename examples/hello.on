@@ -108,6 +108,12 @@ fun (complicated_fn (..args) (&&kwargs)) =
   |> [filter _ > 5]
   |> puts
 
+train model
+  xs: x_train
+  ys: y_train
+  l1: 1e-1
+  alpha: 3e-4
+
 module List =
 
   fun (list (..args)) = [(..args)]

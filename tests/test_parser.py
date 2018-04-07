@@ -362,6 +362,22 @@ def test_bigint():
         [Ident('x'), Ident('='), Int(int(3e10))])]
 
 
+def test_bigint_small():
+    source = '''
+    x = 3e-10
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(int(3e-10))])]
+
+
+def test_bigint_small_negative():
+    source = '''
+    x = -3e-10
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Int(int(-3e-10))])]
+
+
 def test_bigint_underscore():
     source = '''
     x = 3_00e1_0
@@ -384,6 +400,22 @@ def test_bigfloat():
     '''
     assert parse(source) == [BinarySlurp(
         [Ident('x'), Ident('='), Float(3e10)])]
+
+
+def test_bigfloat_small():
+    source = '''
+    x = 3.0e-10
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(3e-10)])]
+
+
+def test_bigfloat_small_negative():
+    source = '''
+    x = -3.0e-10
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Ident('x'), Ident('='), Float(-3e-10)])]
 
 
 def test_bigfloat_underscore():
