@@ -3,25 +3,6 @@ from . import semantics as sem
 
 class Panic(Exception):
     pass
-#
-#
-# def get_attr(obj, *attrs):
-#     if isinstance(obj, str):
-#         obj = ASTIdent(obj)
-#     for attr in attrs:
-#         obj = ASTCall(ASTIdent('getattr'), [obj, ASTIdent(attr)])
-#     return obj
-#
-#
-# def call(obj, *args):
-#     if isinstance(obj, str):
-#         obj = ASTIdent(obj)
-#     return IdentCall(obj, args)
-#
-#
-# def to_str(obj):
-#     return call(get_attr(obj, 'str'))
-#
 
 
 class PrimObject:
@@ -382,7 +363,7 @@ builtin_vars = {
 }
 
 
-def load_module(statements, name, preload=None):
+def load_module(statements, source_map, name, preload=None):
     if preload is None:
         preload = {}
     module = Module(name)

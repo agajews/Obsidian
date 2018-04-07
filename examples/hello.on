@@ -6,6 +6,10 @@ import gravity.(..)
 import swimming hiding: water
 import swimming.(..) hiding: water
 
+let
+  x = 3
+  y = 4
+
 nothing = nil
 
 name = "John Smith"  # name
@@ -33,20 +37,15 @@ puts "something {(function call) + "thing" other.thing}!"
 complicated_array.{0..3, 1..(-1)}
 complicated_array.{0..3, 1..@len, @all}
 
-operator assoc: @left priority: 6 {~make} = do
+operator assoc: @left priority: 6 {~make} =
   (stuff)
-end
 
-fun (something else) = do
+fun (something else) =
   puts something
-  do
-    puts "goodbye"
-  end
-end
+  puts "goodbye"
 
-if thing ~and thing do
+if thing ~and thing
   puts "Hello"
-end
 
 let Dog = (class Dog: self.name bark: () => (puts "Woof!"))
 
@@ -57,41 +56,35 @@ let arr = [x, y, z]
 
 record Dog = {name: String,}
 
-record Dog = do
+record Dog =
   name: String
-end
 
-class Dog do
+class Dog
   puts "stuff"
-end
 
-class Dog = do
+class Dog =
   (Dog name) = { self.name = name; (puts name) }
-  (Dog name) = do
+
+  (Dog name) =
     let self.name = name
-  end
-  fun (Dog name) = do
+
+  fun (Dog name) =
     let self.name = name
-  end
 
   let bark = () => (puts "Woof!")
 
   (bark) = (puts "Woof!")
 
-  fun (bark) = do
+  fun (bark) =
     puts "Woof!"
-  end
-end
 
-class Dog = do
-  fun (Dog name) = do
+class Dog =
+  fun (Dog name) =
     let self.name = name
-  end
 
   fun (Dog self.name self.breed)
 
   fun (bark) = (puts "Woof!")
-end
 
 fun (fn self.dog: Dog.{name, self.dog_breed}, Cat.{self.name, breed: self.cat_breed}) =
   nil
@@ -104,50 +97,44 @@ arr.{0..10, @all, (-2)..@len}
 
 fun (double x) = x * 2
 
-fun (complicated_fn (..args) (&&kwargs)) = do
+fun (complicated_fn (..args) (&&kwargs)) =
   puts "Computing complicated thing"
   call (complicated thing)
-end
 
 [1, 2, 3]
   |> [map _ * 2]
   |> [filter _ > 5]
   |> puts
 
-module List = do
+module List =
 
-fun (list (..args)) = [(..args)]
-
-end
+  fun (list (..args)) = [(..args)]
 
 ---
 
 import cpp showing: (type, fn, var)
 
-type Dog = do
-  fn (Dog name: String) = do
+type Dog =
+  fn (Dog name: String) =
     var self.name = name
-  end
 
   fn (Dog self.name self.breed)
 
   fn (bark) = (puts "Woof!")
-end
 
 ---
 
-[call partially]
-
 import cpp showing: (runmain, argparse, lib, std)
 
-runmain do
-  argparse args = do
-    (--filename) = (arg type: std.string help: "Filename to read")
-    (-n) = (arg type: int help: "Number of lines to print")
-    (--help) = "Prints the first `n` lines of a file"
-  end
+(x ~something else + 3 do: thing)
 
+runmain
+  argparse args =
+    filename = (arg type: std.string help: "Filename to read" aliased: ((-f), (--file)))
+    num = (arg type: int help: "Number of lines to print")
+    help = "Prints the first `n` lines of a file"
+
+  let lines = (lib.file args.filename)
   (lib.file args.filename).lines
     |> [lib.take args.n]
     |> [std.for_each line => (lib.puts line)]
-end

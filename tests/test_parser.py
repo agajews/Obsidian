@@ -1,21 +1,26 @@
 from obsidian.semantics import *
 from obsidian import parser
+from textwrap import dedent
+from beeprint import pp
 
 
 def parse(source):
-    ast = parser.parse(source, trace=False)
-    # print(ast)
+    ast, source_map = parser.parse(dedent(source), trace=False)
+    print('ast:')
+    pp(ast, max_depth=20)
     return ast
 
 
 def test_simple_statement():
-    source = '''puts "Hello, World!"
+    source = '''
+    puts "Hello, World!"
     '''
     assert parse(source) == [Call(Ident('puts'), [String('Hello, World!')])]
 
 
 def test_simple_multiple_statements():
-    source = '''puts "Hello!"
+    source = '''
+    puts "Hello!"
     puts "World!"
     '''
     assert parse(source) == [
@@ -151,9 +156,8 @@ def test_whitespace_map():
 
 def test_simple_if():
     source = '''
-    if name ~is "John" do
+    if name ~is "John"
         puts "Hello, John!"
-    end
     '''
     assert parse(source) == [
         Call(Ident('if'), [BinarySlurp([Ident('name'), Ident('is'), String('John')]),
@@ -162,88 +166,100 @@ def test_simple_if():
 
 
 def test_single_quote():
-    source = '''puts 'Hello, World!'
+    source = '''
+    puts 'Hello, World!'
     '''
     assert parse(source) == [Call(Ident('puts'), [String('Hello, World!')])]
 
 
 def test_single_nested_quote():
-    source = '''puts 'Hello, "World!"'
+    source = '''
+    puts 'Hello, "World!"'
     '''
     assert parse(source) == [Call(Ident('puts'), [String('Hello, "World!"')])]
 
 
 def test_double_nested_quote():
-    source = '''puts "Hello, 'World!'"
+    source = '''
+    puts "Hello, 'World!'"
     '''
     assert parse(source) == [Call(Ident('puts'), [String("Hello, 'World!'")])]
 
 
 def test_double_quote_escape():
-    source = r'''puts "Hello, \"World!\""
+    source = r'''
+    puts "Hello, \"World!\""
     '''
     assert parse(source) == [Call(Ident('puts'), [String('Hello, "World!"')])]
 
 
 def test_single_quote_escape():
-    source = r'''puts 'Hello, \'World!\''
+    source = r'''
+    puts 'Hello, \'World!\''
     '''
     assert parse(source) == [Call(Ident('puts'), [String("Hello, 'World!'")])]
 
 
 def test_double_multiline_quote():
-    source = r'''puts "Hello,
+    source = r'''
+    puts "Hello,
     World!"
     '''
     assert parse(source) == [
-        Call(Ident('puts'), [String("Hello,\n    World!")])]
+        Call(Ident('puts'), [String("Hello,\nWorld!")])]
 
 
 def test_single_multiline_quote():
-    source = r'''puts 'Hello,
+    source = r'''
+    puts 'Hello,
     World!'
     '''
     assert parse(source) == [
-        Call(Ident('puts'), [String("Hello,\n    World!")])]
+        Call(Ident('puts'), [String("Hello,\nWorld!")])]
 
 
 def test_triple_double_quote():
-    source = r'''puts """Hello,
+    source = r'''
+    puts """Hello,
     "World"!"""
     '''
     assert parse(source) == [Call(Ident('puts'), [
-        String('Hello,\n    "World"!')])]
+        String('Hello,\n"World"!')])]
 
 
 def test_triple_double_quote_escape():
-    source = r'''puts """Hello,
+    source = r'''
+    puts """Hello,
     "World"!"""
     '''
     assert parse(source) == [Call(Ident('puts'), [
-        String('Hello,\n    "World"!')])]
+        String('Hello,\n"World"!')])]
 
 
 def test_triple_single_quote_escape():
-    source = r"""puts '''Hello,
+    source = r"""
+    puts '''Hello,
     ''\'World'\'!'''
     """
     assert parse(source) == [Call(Ident('puts'), [
-        String("Hello,\n    '''World''!")])]
+        String("Hello,\n'''World''!")])]
 
 
 def test_triple_single_quote():
-    source = r"""puts '''Hello,
+    source = r"""
+    puts '''Hello,
     ''\'World'\'!'''
     """
     assert parse(source) == [Call(Ident('puts'), [
-        String("Hello,\n    '''World''!")])]
+        String("Hello,\n'''World''!")])]
 
 
 def test_string_interpolation():
     source = r'''
     puts "Hello, {"John"}!"
     '''
-    assert parse(source) == [Call(Ident('puts'), [String('Hello, John!')])]
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('Hello, '), String('John'), String('!')])])]
 
 
 def test_string_interpolation_nested():
@@ -261,41 +277,55 @@ def test_string_interpolation_empty():
     source = r'''
     puts "Hello{""}!"
     '''
-    assert parse(source) == [Call(Ident('puts'), [String('Hello!')])]
+    assert parse(source) == [
+        Call(Ident('puts'), [InterpolatedString([String('Hello'), String(''), String('!')])])]
 
 
 def test_string_interpolation_leading_space():
     source = r'''
     puts "  Hello, {"John"}"
     '''
-    assert parse(source) == [Call(Ident('puts'), [String('  Hello, John')])]
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('  Hello, '), String('John')])])]
 
 
 def test_string_interpolation_trailing_space():
     source = r'''
     puts "  Hello, {"John"}  "
     '''
-    assert parse(source) == [Call(Ident('puts'), [String('  Hello, John  ')])]
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('  Hello, '), String('John'), String('  ')])])]
 
 
 def test_string_interpolation_compound():
     source = r'''
     puts "  Hello, { name  }  {  "!" }  "
     '''
-    assert parse(source) == [Call(Ident('puts'), [
-        InterpolatedString([String('  Hello, '), Ident('name'), String('  !  ')])])]
+    assert parse(source) == [Call(Ident('puts'), [InterpolatedString([
+        String('  Hello, '),
+        Ident('name'),
+        String('  '),
+        String('!'),
+        String('  ')
+    ])])]
 
 
 def test_string_interpolation_call():
     source = r'''
     puts "  Hello, { (last name)  }  {  "!" }  "
     '''
-    assert parse(source) == [Call(Ident('puts'), [
-        InterpolatedString([String('  Hello, '), Call(Ident('last'), [Ident('name')]), String('  !  ')])])]
+    assert parse(source) == [Call(Ident('puts'), [InterpolatedString([
+        String('  Hello, '),
+        Call(Ident('last'), [Ident('name')]),
+        String('  '),
+        String('!'),
+        String('  ')
+    ])])]
 
 
-def test_unary_in_tuple():
-    source = '''puts (-x)
+def test_unary_in_call():
+    source = '''
+    puts (-x)
     '''
     assert parse(source) == [Call(Ident('puts'), [
         Call(Ident('-'), [Ident('x')])])]
@@ -453,10 +483,8 @@ def test_question_op():
 
 def test_op_identifier():
     source = '''
-
-    def (+ x: int y: int) do
+    def (+ x: int y: int)
         x.add_int y
-    end
     '''
     assert parse(source) == [
         Call(Ident('def'), [
@@ -473,9 +501,8 @@ def test_op_identifier():
 
 def test_if_not():
     source = '''
-    if (not thing.()) do
+    if (not thing.())
         puts "badness"
-    end
     '''
     assert parse(source) == [
         Call(Ident('if'), [
@@ -741,24 +768,6 @@ def test_empty_tuple():
     ])]
 
 
-def test_tuple_slurp():
-    source = '''
-    x, y = (fn z)
-    '''
-    assert parse(source) == [BinarySlurp(
-        [Tuple([Ident('x'), Ident('y')]), Ident('='), Call(Ident('fn'), [Ident('z')])])]
-
-
-def test_tuple_slurp_inline():
-    source = '''
-    do
-        return x, y
-    end
-    '''
-    assert parse(source) == [Block(
-        [Call(Ident('return'), [Tuple([Ident('x'), Ident('y')])])])]
-
-
 def test_call_expression():
     source = '''
     (puts "Hello, World!")
@@ -808,9 +817,8 @@ def test_unquote_nested():
 
 def test_lambda():
     source = '''
-    for list x => do
+    for list x =>
         puts x
-    end
     '''
     assert parse(source) == [Call(Ident('for'), [Ident('list'), BinarySlurp([
         Ident('x'),
@@ -821,15 +829,12 @@ def test_lambda():
 
 def test_class():
     source = '''
-    class Dog do
-        def (new breed) do
+    class Dog
+        def (new breed)
             self.breed = breed
-        end
 
-        def (bark) do
+        def (bark)
             puts "Woof!"
-        end
-    end
     '''
     assert parse(source) == [Call(Ident('class'), [Ident('Dog'), Block([
         Call(Ident('def'), [Call(Ident('new'), [Ident('breed')]), Block([
@@ -842,32 +847,11 @@ def test_class():
     ])])]
 
 
-def test_else():
-    source = '''
-    if condition do
-        puts "condition is true"
-    end else: do
-        puts "condition is false"
-    end
-    '''
-    assert parse(source) == [Call(Ident('if'), [
-        Ident('condition'), Block([
-            Call(Ident('puts'), [String('condition is true')])
-        ]), BinarySlurp([Ident('else'), Ident(':'),
-                         Block([
-                             Call(Ident('puts'), [
-                                  String('condition is false')])
-                         ])
-                         ])
-    ])]
-
-
 def test_match():
     source = '''
-    match x do
+    match x
         Dog -> (puts "I'm a dog")
         Cat -> (puts "I'm a cat")
-    end
     '''
     assert parse(source) == [Call(Ident('match'), [Ident('x'), Block([
         BinarySlurp([Ident('Dog'), Ident('->'),
@@ -879,10 +863,9 @@ def test_match():
 
 def test_record():
     source = '''
-    record Dog do
+    record Dog
         breed: [@golden_retriever, @beagle]
         name: String
-    end
     '''
     truth = [Call(Ident('record'), [Ident('Dog'), Block([
         BinarySlurp([Ident('breed'), Ident(':'), List(
@@ -906,11 +889,10 @@ def test_kwargs():
 
 def test_varargs():
     source = '''
-    def (variadic first(...rest)) do
+    def (variadic first(...rest))
         (stuff)
-    end
     (variadic arg1)
-    variadic arg1 arg2(...args)
+    variadic arg1 arg2 (...args)
     '''
     assert parse(source) == [
         Call(Ident('def'), [
@@ -922,23 +904,6 @@ def test_varargs():
         Call(Ident('variadic'), [Ident('arg1'), Ident(
             'arg2'), Call(Ident('...'), [Ident('args')])]),
     ]
-
-
-def test_inline_do():
-    source = '''
-    puts "Hello " + do name = "John"; name.{0..2} end + "!"
-    '''
-    assert parse(source) == [Call(Ident('puts'), [BinarySlurp([
-        String('Hello '),
-        Ident('+'),
-        Block([
-            BinarySlurp([Ident('name'), Ident('='), String('John')]),
-            BinarySlurp([Ident('name'), Ident('.'), BinarySlurp(
-                [Int(0), Ident('..'), Int(2)])])
-        ]),
-        Ident('+'),
-        String('!')
-    ])])]
 
 
 def test_tuple_deconstruction():
@@ -973,9 +938,8 @@ def test_dots():
 
 def test_inline_def():
     source = '''
-    (Dog name) = do
+    (Dog name) =
         self.name = name
-    end
     '''
     assert parse(source) == [BinarySlurp([
         Call(Ident('Dog'), [Ident('name')]),

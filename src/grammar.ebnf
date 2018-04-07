@@ -4,25 +4,21 @@
 
 @@whitespace :: /[\t ]+/
 
-@@keyword :: do end
-
 program = @:statement_list $ ;
 
 statement_list = {eol | ';'} first:[statement] rest:{separated_statement} {eol | ';'} ;
 
 separated_statement = {eol | ';'}+ @:statement ;
 
-statement = head:expression args:{expression}* ;
+statement = head:block_expression args:{block_expression}* ;
 
-block = 'do' @:statement_list 'end' ;
+block = {eol} '{-INDENT-}' {eol} @:statement_list {eol} '{-DEDENT-}' ;
 
-expression = tuple_slurp ;
+block_expression = block_slurp ;
 
-tuple_slurp = (binary_op)%{inline_tuple}+ ;
+block_slurp = (binary_op)%{simple_expression | block}+ ;
 
-inline_tuple = (',').{simple_expression}+ ;
-
-non_tuple_expression = binary_slurp ;
+expression = binary_slurp ;
 
 binary_slurp = (binary_op)%{simple_expression}+ ;
 
@@ -44,36 +40,34 @@ simple_expression = identifier
                   | tuple
                   | list
                   | map
-                  | block
                   | unquote_expression
                   ;
 
-curly_expression = '{' {eol} (@+:op | @+:binary_identifier | @+:non_tuple_expression {{eol | ';'} @+:non_tuple_expression}) {eol} '}' ;
+curly_expression = '{' {eol} (@+:op | @+:binary_identifier | @+:expression {{eol | ';'} @+:expression}) {eol} '}' ;
 
-call_expression = '(' {eol} head:(non_tuple_expression | op) {eol} args:{call_expression_arg} {eol} ')' ;
+call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ')' ;
 
-partial_call_expression = '[' {eol} head:(non_tuple_expression | op) {eol} args:{call_expression_arg} {eol} ']' ;
+partial_call_expression = '[' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ']' ;
 
 call_expression_arg = @:expression {eol} ;
 
 tuple = '(' {eol} ')'
-      | '(' {eol} first:non_tuple_expression {eol} ',' {eol} rest:[collection_rest] {eol} ')'
+      | '(' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ')'
       ;
 
 
 map = '{' {eol} '}'
-    | '{' {eol} first:non_tuple_expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
+    | '{' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
     ;
 
 list = '[' {eol} ']'
-    | '[' {eol} first:non_tuple_expression {eol} ',' {eol} rest:[collection_rest] {eol} ']'
+    | '[' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ']'
     ;
 
-collection_rest = @+:non_tuple_expression {{eol} ',' {eol} @+:non_tuple_expression} {eol} [','] ;
+collection_rest = @+:expression {{eol} ',' {eol} @+:expression} {eol} [','] ;
 
 unquote_expression = '$' @:simple_expression ;
 
-@name
 identifier = /[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
 binary_identifier = '~' @:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
 integer = /[0-9][_0-9]*([eE][0-9][_0-9]*)?/ ;
@@ -85,11 +79,9 @@ symbol = '@' @:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
 
 eol = '\n' ;
 
-interpolated_string = head:/"[ \t]*/ body:{interpolated_body} /"/;
-interpolated_body = /{/ {eol} expression:expression {eol} /[ \t]*/ tail:/}[ \t]*/
-                  | @:string_body
-                  ;
+interpolated_string = '"' @:{STRING_BODY | INTERPOLATED_BODY} '"';
+INTERPOLATED_BODY = '{' {eol} @:expression {eol} '}' ;
 
-string_body = /([^"\\{}]|\\.)+/ ;
+STRING_BODY = /([^"\\{}]|\\.)+/ ;
 
 op = /[+\-=\/*&|^%!?<>.:]+/ ;

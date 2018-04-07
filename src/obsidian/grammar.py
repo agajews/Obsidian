@@ -21,10 +21,7 @@ from tatsu.parsing import tatsumasu
 from tatsu.util import re, generic_main  # noqa
 
 
-KEYWORDS = {
-    'do',
-    'end',
-}  # type: ignore
+KEYWORDS = {}  # type: ignore
 
 
 class ObsidianBuffer(Buffer):
@@ -137,11 +134,11 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _statement_(self):  # noqa
-        self._expression_()
+        self._block_expression_()
         self.name_last_node('head')
 
         def block2():
-            self._expression_()
+            self._block_expression_()
         self._closure(block2)
         self.name_last_node('args')
         self.ast._define(
@@ -151,39 +148,45 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _block_(self):  # noqa
-        self._token('do')
+
+        def block0():
+            self._eol_()
+        self._closure(block0)
+        self._token('{-INDENT-}')
+
+        def block1():
+            self._eol_()
+        self._closure(block1)
         self._statement_list_()
         self.name_last_node('@')
-        self._token('end')
+
+        def block3():
+            self._eol_()
+        self._closure(block3)
+        self._token('{-DEDENT-}')
 
     @tatsumasu()
-    def _expression_(self):  # noqa
-        self._tuple_slurp_()
+    def _block_expression_(self):  # noqa
+        self._block_slurp_()
 
     @tatsumasu()
-    def _tuple_slurp_(self):  # noqa
+    def _block_slurp_(self):  # noqa
 
         def sep0():
             with self._group():
                 self._binary_op_()
 
         def block0():
-            self._inline_tuple_()
+            with self._choice():
+                with self._option():
+                    self._simple_expression_()
+                with self._option():
+                    self._block_()
+                self._error('no available options')
         self._positive_join(block0, sep0)
 
     @tatsumasu()
-    def _inline_tuple_(self):  # noqa
-
-        def sep0():
-            with self._group():
-                self._token(',')
-
-        def block0():
-            self._simple_expression_()
-        self._positive_gather(block0, sep0)
-
-    @tatsumasu()
-    def _non_tuple_expression_(self):  # noqa
+    def _expression_(self):  # noqa
         self._binary_slurp_()
 
     @tatsumasu()
@@ -256,8 +259,6 @@ class ObsidianParser(Parser):
             with self._option():
                 self._map_()
             with self._option():
-                self._block_()
-            with self._option():
                 self._unquote_expression_()
             self._error('no available options')
 
@@ -277,7 +278,7 @@ class ObsidianParser(Parser):
                     self._binary_identifier_()
                     self.add_last_node_to_name('@')
                 with self._option():
-                    self._non_tuple_expression_()
+                    self._expression_()
                     self.add_last_node_to_name('@')
 
                     def block4():
@@ -290,7 +291,7 @@ class ObsidianParser(Parser):
                                     self._token(';')
                                 self._error('no available options')
                         self._closure(block5)
-                        self._non_tuple_expression_()
+                        self._expression_()
                         self.add_last_node_to_name('@')
                     self._closure(block4)
                 self._error('no available options')
@@ -310,7 +311,7 @@ class ObsidianParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._non_tuple_expression_()
+                    self._expression_()
                 with self._option():
                     self._op_()
                 self._error('no available options')
@@ -344,7 +345,7 @@ class ObsidianParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._non_tuple_expression_()
+                    self._expression_()
                 with self._option():
                     self._op_()
                 self._error('no available options')
@@ -393,7 +394,7 @@ class ObsidianParser(Parser):
                 def block1():
                     self._eol_()
                 self._closure(block1)
-                self._non_tuple_expression_()
+                self._expression_()
                 self.name_last_node('first')
 
                 def block3():
@@ -434,7 +435,7 @@ class ObsidianParser(Parser):
                 def block1():
                     self._eol_()
                 self._closure(block1)
-                self._non_tuple_expression_()
+                self._expression_()
                 self.name_last_node('first')
 
                 def block3():
@@ -475,7 +476,7 @@ class ObsidianParser(Parser):
                 def block1():
                     self._eol_()
                 self._closure(block1)
-                self._non_tuple_expression_()
+                self._expression_()
                 self.name_last_node('first')
 
                 def block3():
@@ -502,7 +503,7 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _collection_rest_(self):  # noqa
-        self._non_tuple_expression_()
+        self._expression_()
         self.add_last_node_to_name('@')
 
         def block1():
@@ -515,7 +516,7 @@ class ObsidianParser(Parser):
             def block3():
                 self._eol_()
             self._closure(block3)
-            self._non_tuple_expression_()
+            self._expression_()
             self.add_last_node_to_name('@')
         self._closure(block1)
 
@@ -534,7 +535,6 @@ class ObsidianParser(Parser):
     @tatsumasu()
     def _identifier_(self):  # noqa
         self._pattern(r'[_a-zA-Z][_a-zA-Z0-9]*[?!]?')
-        self._check_name()
 
     @tatsumasu()
     def _binary_identifier_(self):  # noqa
@@ -574,48 +574,36 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _interpolated_string_(self):  # noqa
-        self._pattern(r'"[ \t]*')
-        self.name_last_node('head')
+        self._token('"')
+
+        def block1():
+            with self._choice():
+                with self._option():
+                    self._STRING_BODY_()
+                with self._option():
+                    self._INTERPOLATED_BODY_()
+                self._error('no available options')
+        self._closure(block1)
+        self.name_last_node('@')
+        self._token('"')
+
+    @tatsumasu()
+    def _INTERPOLATED_BODY_(self):  # noqa
+        self._token('{')
+
+        def block0():
+            self._eol_()
+        self._closure(block0)
+        self._expression_()
+        self.name_last_node('@')
 
         def block2():
-            self._interpolated_body_()
+            self._eol_()
         self._closure(block2)
-        self.name_last_node('body')
-        self._pattern(r'"')
-        self.ast._define(
-            ['body', 'head'],
-            []
-        )
+        self._token('}')
 
     @tatsumasu()
-    def _interpolated_body_(self):  # noqa
-        with self._choice():
-            with self._option():
-                self._pattern(r'{')
-
-                def block0():
-                    self._eol_()
-                self._closure(block0)
-                self._expression_()
-                self.name_last_node('expression')
-
-                def block2():
-                    self._eol_()
-                self._closure(block2)
-                self._pattern(r'[ \t]*')
-                self._pattern(r'}[ \t]*')
-                self.name_last_node('tail')
-            with self._option():
-                self._string_body_()
-                self.name_last_node('@')
-            self._error('no available options')
-        self.ast._define(
-            ['expression', 'tail'],
-            []
-        )
-
-    @tatsumasu()
-    def _string_body_(self):  # noqa
+    def _STRING_BODY_(self):  # noqa
         self._pattern(r'([^"\\{}]|\\.)+')
 
     @tatsumasu()
@@ -639,16 +627,13 @@ class ObsidianSemantics(object):
     def block(self, ast):  # noqa
         return ast
 
+    def block_expression(self, ast):  # noqa
+        return ast
+
+    def block_slurp(self, ast):  # noqa
+        return ast
+
     def expression(self, ast):  # noqa
-        return ast
-
-    def tuple_slurp(self, ast):  # noqa
-        return ast
-
-    def inline_tuple(self, ast):  # noqa
-        return ast
-
-    def non_tuple_expression(self, ast):  # noqa
         return ast
 
     def binary_slurp(self, ast):  # noqa
@@ -717,10 +702,10 @@ class ObsidianSemantics(object):
     def interpolated_string(self, ast):  # noqa
         return ast
 
-    def interpolated_body(self, ast):  # noqa
+    def INTERPOLATED_BODY(self, ast):  # noqa
         return ast
 
-    def string_body(self, ast):  # noqa
+    def STRING_BODY(self, ast):  # noqa
         return ast
 
     def op(self, ast):  # noqa

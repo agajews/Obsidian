@@ -8,37 +8,10 @@ fileTypes: [ # An array of file extensions.
 ]
 patterns: [
   {
-    match: '(^|;)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*[?!]?)([ \t]*[+\\-=/*&|^%!<>.:]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*([ \t]+(?=[^+\\-=/*&|^%!<>.:,\\s]))'
+    match: '(^|;)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*+[?!]?)([ \t]*\\.[ \t]*([_a-zA-Z][_a-zA-Z0-9]*[?!]?))*+[ \t]*+(?=[^+\\-=/*&|^%!<>.:])'
     captures:
       2: name: 'keyword.call.obsidian'
-      3: name: 'keyword.call.obsidian'
-      # 4: name: 'test.string.obsidian'
-  }
-  {
-    begin: '(^|;)[ \t]*\\([ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?!]?|[+\\-=/*&|^%!<>.:]+)([ \t]*[+\\-=/*&|^%!<>.:]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*(?=([ \t]+[^,~\\s])|([ \t]*\\))|([^,]*(\\)|)))'
-    beginCaptures:
-      2: name: 'entity.name.function.obsidian'
-      3: name: 'entity.name.function.obsidian'
-    end: '\\)(([ \t]*[+\\-=/*&|^%!<>.:]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)+([ \t]+(?=[^+\\-=/*&|^%!<>.:,\\s])))?'
-    endCaptures:
-      1: name: 'keyword.call.obsidian'
-    patterns: [
-      {
-        include: '#constants'
-      }
-      {
-        include: '#comment'
-      }
-      {
-        include: '#call'
-      }
-      {
-        include: '#partial_call'
-      }
-      {
-        include: '#collection'
-      }
-    ]
+      4: name: 'string.call.obsidian'
   }
   {
     include: '#call'
@@ -152,9 +125,6 @@ repository:
     end: "'"
     endCaptures:
       1: name: 'string.quoted.single.obsidian'
-  keyword:
-    match: '(do|end)(?![_a-zA-Z0-9?!])'
-    name: 'keyword.control.obsidian'
   symbol:
     match: '(@[_a-zA-Z][_a-zA-Z0-9]*[?!]?)'
     name: 'constant.other.obsidian'
@@ -207,9 +177,6 @@ repository:
         include: '#binary_ident'
       }
       {
-        include: '#keyword'
-      }
-      {
         include: '#lang_const'
       }
       {
@@ -227,7 +194,7 @@ repository:
     ]
 
   call:
-    begin: '\\([ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?!]?|[+\\-=/*&|^%!<>.:]+)([ \t]*[+\\-=/*&|^%!<>.:]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*(?=([ \t]+[^+\\-=/*&|^%!<>.:,~\\s])|([ \t]*\\))|([^,]*(\\)|$)))'
+    begin: '\\([ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?!]?|[+\\-=/*&|^%!<>.:]+)(([ \t]*([+\\-=/*&|^%!<>.:]+|~[_a-zA-Z][_a-zA-Z0-9]*[?!]?[ \t])[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*)(?=[ \t]+[^+\\-=/*&|^%!<>.:,~\\s]|[ \t]*\\)|[^,]*(\\)|$))'
     beginCaptures:
       1: name: 'entity.name.function.obsidian'
       2: name: 'entity.name.function.obsidian'
@@ -251,7 +218,7 @@ repository:
     ]
 
   partial_call:
-    begin: '\\[[ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?!]?|[+\\-=/*&|^%!<>.:]+)([ \t]*[+\\-=/*&|^%!<>.:]+[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*(?=([ \t]+[^+\\-=/*&|^%!<>.:,~\\s])|([ \t]*\\])|([^,]*(\\]|$)))'
+    begin: '\\[[ \t]*(~?[_a-zA-Z][_a-zA-Z0-9]*[?!]?|[+\\-=/*&|^%!<>.:]+)(([ \t]*([+\\-=/*&|^%!<>.:]+|~[_a-zA-Z][_a-zA-Z0-9]*[?!]?[ \t])[ \t]*[_a-zA-Z][_a-zA-Z0-9]*[?!]?)*)(?=[ \t]+[^+\\-=/*&|^%!<>.:,~\\s]|[ \t]*\\]|[^,]*(\\]|$))'
     beginCaptures:
       1: name: 'support.function.partial_call.obsidian'
       2: name: 'support.function.partial_call.obsidian'

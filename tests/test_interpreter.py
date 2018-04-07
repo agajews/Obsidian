@@ -1,9 +1,11 @@
 from obsidian.parser import parse
 from obsidian.interpreter import load_module, prim
+from textwrap import dedent
 
 
 def get_output(source, capsys):
-    load_module(parse(source), 'test', {'prim': prim})
+    ast, source_map = parse(dedent(source))
+    load_module(ast, source_map, 'test', {'prim': prim})
     out, err = capsys.readouterr()
     return out.splitlines()
 
@@ -87,6 +89,22 @@ def test_string_name(capsys):
     (get_attr prim 'puts') (get_attr (get_attr prim 'String') 'name')
     '''
     target = ['String']
+    assert get_output(source, capsys) == target
+
+
+def test_meta_name(capsys):
+    source = '''
+    (get_attr prim 'puts') (get_attr (get_attr prim 'Meta') 'name')
+    '''
+    target = ['Meta']
+    assert get_output(source, capsys) == target
+
+
+def test_meta_type(capsys):
+    source = '''
+    (get_attr prim 'puts') (get_attr (get_attr (get_attr meta 'meta') 'type') 'name')
+    '''
+    target = ['Meta']
     assert get_output(source, capsys) == target
 
 

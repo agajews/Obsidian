@@ -1,6 +1,5 @@
 import re
 import codecs
-from pprint import pformat
 
 
 indent_spaces = 4
@@ -41,9 +40,9 @@ def clean_string(string, to_escape):
 
 
 class Node:
-    def __repr__(self):
-        # return self.show(0)
-        return str(type(self).__name__) + pformat(self.__dict__)
+    # def __repr__(self):
+    #     return self.show(0)
+    #     # return str(type(self).__name__) + pformat(self.__dict__)
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -54,6 +53,9 @@ class Node:
 class Ident(Node):
     def __init__(self, identifier):
         self.identifier = identifier
+
+    def __repr__(self):
+        return 'Ident({})'.format(self.identifier)
 
     def show(self, indent):
         return self.identifier
@@ -174,8 +176,8 @@ class Block(Node):
         self.statements = statements
 
     def show(self, indent):
-        return 'do ' + ('\n' + ' ' * (indent_spaces + 1)).join(s.show(indent + 1) for s in self.statements) + \
-            '\n' + ' ' * indent_spaces + 'end'
+        return '{' + ('\n' + ' ' * (indent_spaces + 1)).join(s.show(indent + 1) for s in self.statements) + \
+            '\n' + ' ' * indent_spaces + '}'
 
 
 class Semantics:
@@ -194,32 +196,14 @@ class Semantics:
     def float(float_str):
         return Float(float(float_str.replace('_', '')))
 
-    def interpolated_string(info):
-        newbody = [String(info['head'][1:])]
-        for elem in info['body']:
-            if isinstance(elem, String) and len(elem.string) > 0:
-                newbody.append(elem)
-            else:
-                expr = elem['expression']
-                if isinstance(expr, String):
-                    if len(expr.string) > 0:
-                        newbody.append(expr)
-                else:
-                    newbody.append(expr)
-                tail = elem['tail'][1:]
-                if len(tail) > 0:
-                    newbody.append(String(tail))
-        collapsed = [newbody[0]]
-        for elem in newbody[1:]:
-            if isinstance(collapsed[-1], String) and isinstance(elem, String):
-                collapsed[-1].string += elem.string
-            else:
-                collapsed.append(elem)
-        if len(collapsed) == 1:
-            return collapsed[0]
-        return InterpolatedString(collapsed)
+    def interpolated_string(bodies):
+        if len(bodies) == 0:
+            return String('')
+        if len(bodies) == 1:
+            return bodies[0]
+        return InterpolatedString(bodies)
 
-    def string_body(body):
+    def STRING_BODY(body):
         return String(clean_string(body, '"{}'))
 
     def single_string(string):
@@ -233,11 +217,6 @@ class Semantics:
 
     def symbol(symbol):
         return Symbol(symbol)
-
-    def inline_tuple(exprs):
-        if len(exprs) == 1:
-            return exprs[0]
-        return Tuple(exprs)
 
     def tuple(info):
         if info.get('first') is None:
@@ -262,7 +241,7 @@ class Semantics:
             return slurp[0]
         return BinarySlurp(slurp)
 
-    def tuple_slurp(slurp):
+    def block_slurp(slurp):
         if len(slurp) == 1:
             return slurp[0]
         return BinarySlurp(slurp)

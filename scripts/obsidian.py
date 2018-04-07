@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 def parse_from_file(fnm):
     with open(fnm, 'r') as f:
-        ast = parse(f.read())
+        ast, source_map = parse(f.read())
     print(ast)
 
 
