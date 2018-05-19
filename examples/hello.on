@@ -16,12 +16,29 @@ name = "John Smith"  # name
 occupation = @farmer
 num = 3e10
 float = 3.0
+int = 3i
 float = bob
 puts "Hello " * 3 + name; puts "Goodbye"
 
+puts r'hello'
+puts r"""hello"""
+
 $(unquote)
 
-puts "something {(function call) + "thing" other.thing}!"
+puts "something ${(function call) + "thing" other.thing}!"
+
+puts "call $(call thing)"
+
+puts "name $three"
+puts """hi $name"""
+
+puts "call $@thing"
+
+puts "num $3"
+
+puts "num $''"
+
+puts "partial call $[partial thing]"
 
 (something else)
 (something ~else thing)
@@ -136,11 +153,11 @@ import cpp showing: (runmain, argparse, lib, std)
 
 runmain
   argparse args =
-    filename = (arg type: std.string help: "Filename to read" aliased: ((-f), (--file)))
+    filename = (arg type: std.string help: "Filename to read" aliases: ((-f), (--file)))
     num = (arg type: int help: "Number of lines to print")
     help = "Prints the first `n` lines of a file"
 
   let lines = (lib.file args.filename)
   (lib.file args.filename).lines
-    |> [lib.take args.n]
-    |> [std.for_each line => (lib.puts line)]
+    |> (lib.take args.n (..))
+    |> (std.for_each line => (lib.puts line) (..))

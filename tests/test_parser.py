@@ -39,6 +39,13 @@ def test_simple_multiple_singleline_statements():
     ]
 
 
+def test_single_name():
+    source = '''
+    object
+    '''
+    assert parse(source) == [Ident('object')]
+
+
 def test_simple_call_statement():
     source = '''
     puts.("Hello, World!",)
@@ -193,6 +200,13 @@ def test_double_quote_escape():
     assert parse(source) == [Call(Ident('puts'), [String('Hello, "World!"')])]
 
 
+def test_double_quote_escape_unquote():
+    source = r'''
+    puts "Hello, \$World!"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [String('Hello, $World!')])]
+
+
 def test_single_quote_escape():
     source = r'''
     puts 'Hello, \'World!\''
@@ -256,15 +270,74 @@ def test_triple_single_quote():
 
 def test_string_interpolation():
     source = r'''
-    puts "Hello, {"John"}!"
+    puts "Hello, ${"John"}!"
     '''
     assert parse(source) == [Call(Ident('puts'), [
         InterpolatedString([String('Hello, '), String('John'), String('!')])])]
 
 
+def test_string_interpolation_single_inner():
+    source = r'''
+    puts "Hello, $'John'!"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('Hello, '), String('John'), String('!')])])]
+
+
+def test_triple_string_interpolation():
+    source = r'''
+    puts """Hello, ${"John"}!"""
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('Hello, '), String('John'), String('!')])])]
+
+
+def test_triple_string_interpolation_quote_before_dollar():
+    source = r'''
+    puts """Hello, "${"John"}!"""
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('Hello, "'), String('John'), String('!')])])]
+
+
+def test_triple_string_interpolation_two_quotes_before_dollar():
+    source = r'''
+    puts """Hello, ""${"John"}!"""
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('Hello, ""'), String('John'), String('!')])])]
+
+
+def test_string_interpolation_single():
+    source = r'''
+    puts "$greeting"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([Ident('greeting')])])]
+
+
+def test_triple_string_interpolation_single():
+    source = r'''
+    puts """$greeting"""
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([Ident('greeting')])])]
+
+
 def test_string_interpolation_nested():
     source = r'''
-    puts "Hello, {1 + {2}}"
+    puts "Hello, ${1 + {2}}"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([
+            String('Hello, '),
+            BinarySlurp([Int(1), Ident('+'), Int(2)])])
+    ])]
+
+
+def test_triple_string_interpolation_nested():
+    source = r'''
+    puts """Hello, ${1 + {2}}"""
     '''
     assert parse(source) == [Call(Ident('puts'), [
         InterpolatedString([
@@ -275,7 +348,15 @@ def test_string_interpolation_nested():
 
 def test_string_interpolation_empty():
     source = r'''
-    puts "Hello{""}!"
+    puts "Hello${""}!"
+    '''
+    assert parse(source) == [
+        Call(Ident('puts'), [InterpolatedString([String('Hello'), String(''), String('!')])])]
+
+
+def test_triple_string_interpolation_empty():
+    source = r'''
+    puts """Hello${""}!"""
     '''
     assert parse(source) == [
         Call(Ident('puts'), [InterpolatedString([String('Hello'), String(''), String('!')])])]
@@ -283,7 +364,15 @@ def test_string_interpolation_empty():
 
 def test_string_interpolation_leading_space():
     source = r'''
-    puts "  Hello, {"John"}"
+    puts "  Hello, ${"John"}"
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('  Hello, '), String('John')])])]
+
+
+def test_triple_string_interpolation_leading_space():
+    source = r'''
+    puts """  Hello, ${"John"}"""
     '''
     assert parse(source) == [Call(Ident('puts'), [
         InterpolatedString([String('  Hello, '), String('John')])])]
@@ -291,7 +380,15 @@ def test_string_interpolation_leading_space():
 
 def test_string_interpolation_trailing_space():
     source = r'''
-    puts "  Hello, {"John"}  "
+    puts "  Hello, ${"John"}  "
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        InterpolatedString([String('  Hello, '), String('John'), String('  ')])])]
+
+
+def test_triple_string_interpolation_trailing_space():
+    source = r'''
+    puts """  Hello, ${"John"}  """
     '''
     assert parse(source) == [Call(Ident('puts'), [
         InterpolatedString([String('  Hello, '), String('John'), String('  ')])])]
@@ -299,7 +396,20 @@ def test_string_interpolation_trailing_space():
 
 def test_string_interpolation_compound():
     source = r'''
-    puts "  Hello, { name  }  {  "!" }  "
+    puts "  Hello, $name  ${  "!" }  "
+    '''
+    assert parse(source) == [Call(Ident('puts'), [InterpolatedString([
+        String('  Hello, '),
+        Ident('name'),
+        String('  '),
+        String('!'),
+        String('  ')
+    ])])]
+
+
+def test_triple_string_interpolation_compound():
+    source = r'''
+    puts """  Hello, $name  ${  "!" }  """
     '''
     assert parse(source) == [Call(Ident('puts'), [InterpolatedString([
         String('  Hello, '),
@@ -312,7 +422,7 @@ def test_string_interpolation_compound():
 
 def test_string_interpolation_call():
     source = r'''
-    puts "  Hello, { (last name)  }  {  "!" }  "
+    puts "  Hello, $(last name)  ${  "!" }  "
     '''
     assert parse(source) == [Call(Ident('puts'), [InterpolatedString([
         String('  Hello, '),
@@ -321,6 +431,70 @@ def test_string_interpolation_call():
         String('!'),
         String('  ')
     ])])]
+
+
+def test_triple_string_interpolation_call():
+    source = r'''
+    puts """  Hello, $(last name)  ${  "!" }  """
+    '''
+    assert parse(source) == [Call(Ident('puts'), [InterpolatedString([
+        String('  Hello, '),
+        Call(Ident('last'), [Ident('name')]),
+        String('  '),
+        String('!'),
+        String('  ')
+    ])])]
+
+
+def test_int_sigil():
+    source = r'''
+    10 + 3i
+    '''
+    assert parse(source) == [BinarySlurp([Int(10), Ident('+'), Int(3, 'i')])]
+
+
+def test_int_nonsigil():
+    source = r'''
+    puts 10 + 3 i
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        BinarySlurp([Int(10), Ident('+'), Int(3)]), Ident('i')])]
+
+
+def test_float_sigil():
+    source = r'''
+    10 + 3.0i
+    '''
+    assert parse(source) == [BinarySlurp(
+        [Int(10), Ident('+'), Float(3.0, 'i')])]
+
+
+def test_single_quote_sigil():
+    source = r'''
+    r'hello'
+    '''
+    assert parse(source) == [String('hello', 'r')]
+
+
+def test_double_quote_sigil():
+    source = r'''
+    r"hello"
+    '''
+    assert parse(source) == [String('hello', 'r')]
+
+
+def test_single_triple_quote_sigil():
+    source = r"""
+    r'''hello'''
+    """
+    assert parse(source) == [String('hello', 'r')]
+
+
+def test_double_triple_quote_sigil():
+    source = r'''
+    r"""hello"""
+    '''
+    assert parse(source) == [String('hello', 'r')]
 
 
 def test_unary_in_call():
@@ -370,14 +544,6 @@ def test_bigint_small():
         [Ident('x'), Ident('='), Int(int(3e-10))])]
 
 
-def test_bigint_small_negative():
-    source = '''
-    x = -3e-10
-    '''
-    assert parse(source) == [BinarySlurp(
-        [Ident('x'), Ident('='), Int(int(-3e-10))])]
-
-
 def test_bigint_underscore():
     source = '''
     x = 3_00e1_0
@@ -408,14 +574,6 @@ def test_bigfloat_small():
     '''
     assert parse(source) == [BinarySlurp(
         [Ident('x'), Ident('='), Float(3e-10)])]
-
-
-def test_bigfloat_small_negative():
-    source = '''
-    x = -3.0e-10
-    '''
-    assert parse(source) == [BinarySlurp(
-        [Ident('x'), Ident('='), Float(-3e-10)])]
 
 
 def test_bigfloat_underscore():
@@ -628,6 +786,62 @@ def test_list_dot_slice():
     ])])]
 
 
+def test_trailer():
+    source = '''
+    puts list[3]
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        Trailed(Ident('list'), [Int(3)])])]
+
+
+def test_nontrailer_arg():
+    source = '''
+    puts list [3]
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        Ident('list'), List([Int(3)])])]
+
+
+def test_trailer_expression():
+    source = '''
+    list[3]
+    '''
+    assert parse(source) == [Trailed(Ident('list'), [Int(3)])]
+
+
+def test_nontrailer_call():
+    source = '''
+    list [3]
+    '''
+    assert parse(source) == [Call(Ident('list'), [List([Int(3)])])]
+
+
+def test_multiple_trailers():
+    source = '''
+    puts list[3][4][5]
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        Trailed(Ident('list'), [Int(3), Int(4), Int(5)])])]
+
+
+def test_multiple_trailers_arg():
+    source = '''
+    puts list [3][4][5]
+    '''
+    assert parse(source) == [Call(Ident('puts'), [
+        Ident('list'), Trailed(List([Int(3)]), [Int(4), Int(5)])])]
+
+
+def test_list_bracket_slice():
+    source = '''
+    puts list[3..5]
+    '''
+    assert parse(source) == [Call(Ident('puts'), [Trailed(
+        Ident('list'),
+        [BinarySlurp([Int(3), Ident('..'), Int(5)])],
+    )])]
+
+
 def test_toplevel_expression():
     source = '''
     3 + 4
@@ -670,6 +884,17 @@ def test_empty_list():
 
 
 def test_single_list():
+    source = '''
+    list = [1]
+    '''
+    assert parse(source) == [BinarySlurp([
+        Ident('list'),
+        Ident('='),
+        List([Int(1)])
+    ])]
+
+
+def test_single_list_trailing():
     source = '''
     list = [1, ]
     '''
@@ -805,14 +1030,6 @@ def test_call_expression():
     (puts "Hello, World!")
     '''
     assert parse(source) == [Call(Ident('puts'), [String('Hello, World!')])]
-
-
-def test_partial_call_expression():
-    source = '''
-    [replace "Hello, World!"]
-    '''
-    assert parse(source) == [PartialCall(
-        Ident('replace'), [String('Hello, World!')])]
 
 
 def test_unquote():

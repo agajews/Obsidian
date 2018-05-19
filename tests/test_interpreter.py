@@ -20,7 +20,7 @@ def test_hello(capsys):
 
 def test_let(capsys):
     source = '''
-    (let 'newputs' (get_attr prim 'puts'))
+    ((get_attr prim 'let') 'newputs' (get_attr prim 'puts'))
     newputs "Hello, World!"
     '''
     target = ['Hello, World!']

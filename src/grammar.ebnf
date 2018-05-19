@@ -10,7 +10,7 @@ statement_list = {eol | ';'} first:[statement] rest:{separated_statement} {eol |
 
 separated_statement = {eol | ';'}+ @:statement ;
 
-statement = head:block_expression args:{block_expression}* ;
+statement = head:block_expression args:{block_expression} ;
 
 block = {eol} '{-INDENT-}' {eol} @:statement_list {eol} '{-DEDENT-}' ;
 
@@ -26,17 +26,38 @@ binary_op = {eol} @:op {eol}
           | {eol} @:binary_identifier {eol}
           ;
 
-simple_expression = identifier
+
+TRAILER = /\[/ {eol} @:expression {eol} ']' ;
+
+simple_expression = expr:atomic_expression trailers:{TRAILER} ;
+
+atomic_expression =
+                  | triple_single_string
+                  | single_string
+                  | triple_interpolated_string
+                  | interpolated_string
+                  | nonstring_expression
+                  ;
+
+
+simple_single_expression = expr:atomic_single_expression trailers:{TRAILER} ;
+
+
+atomic_single_expression =
+                  | triple_single_string
+                  | single_string
+                  | nonstring_expression
+                  ;
+
+
+nonstring_expression =
+                  | identifier
                   | float
                   | integer
-                  | triple_double_string
-                  | triple_single_string
-                  | interpolated_string
-                  | single_string
                   | symbol
                   | curly_expression
                   | call_expression
-                  | partial_call_expression
+#                  | partial_call_expression
                   | tuple
                   | list
                   | map
@@ -47,7 +68,7 @@ curly_expression = '{' {eol} (@+:op | @+:binary_identifier | @+:expression {{eol
 
 call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ')' ;
 
-partial_call_expression = '[' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ']' ;
+# partial_call_expression = '[' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ']' ;
 
 call_expression_arg = @:expression {eol} ;
 
@@ -60,9 +81,7 @@ map = '{' {eol} '}'
     | '{' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
     ;
 
-list = '[' {eol} ']'
-    | '[' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} ']'
-    ;
+list = '[' {eol}  @:[collection_rest] {eol} ']' ;
 
 collection_rest = @+:expression {{eol} ',' {eol} @+:expression} {eol} [','] ;
 
@@ -70,18 +89,29 @@ unquote_expression = '$' @:simple_expression ;
 
 identifier = /[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
 binary_identifier = '~' @:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
-integer = /-?[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?/ ;
-float = /-?[0-9][_0-9]*\.[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?/ ;
-triple_double_string = /"""([^"\\]|\\.|"([^"\\]|\\.)|""([^"\\]|\\.))*"""/ ;
-triple_single_string = /'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''/ ;
-single_string = /'([^'\\]|\\.)*'/ ;
+integer = val:/[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?/ sigil:SIGIL ;
+float = val:/[0-9][_0-9]*\.[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?/ sigil:SIGIL ;
+# triple_double_string = sigil:sigil val:TDS_VAL ;
+# TDS_VAL = /"""([^"\\]|\\.|"([^"\\]|\\.)|""([^"\\]|\\.))*"""/ ;
+triple_single_string = sigil:sigil val:TSS_VAL ;
+TSS_VAL = /'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''/ ;
+single_string = sigil:sigil val:SS_VAL ;
+SS_VAL = /'([^'\\]|\\.)*'/ ;
 symbol = '@' @:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
+
+sigil = [/[a-zA-Z]+/] ;
+SIGIL = [/[a-zA-Z]+/] ;
 
 eol = '\n' ;
 
-interpolated_string = '"' @:{STRING_BODY | INTERPOLATED_BODY} '"';
-INTERPOLATED_BODY = '{' {eol} @:expression {eol} '}' ;
+interpolated_string = sigil:sigil bodies:INTERPOLATED_BODIES ;
+INTERPOLATED_BODIES = /"/ @:{STRING_BODY | INTERPOLATED_BODY} /"/;
+INTERPOLATED_BODY = /\$/ @:simple_single_expression ;
+STRING_BODY = /([^"\\$]|\\.)+/ ;
 
-STRING_BODY = /([^"\\{}]|\\.)+/ ;
+triple_interpolated_string = sigil:sigil bodies:TINTERPOLATED_BODIES ;
+TINTERPOLATED_BODIES = /"""/ @:{TSTRING_BODY | TINTERPOLATED_BODY} /"""/;
+TINTERPOLATED_BODY = /\$/ @:simple_single_expression ;
+TSTRING_BODY = /([^"\\$]|\\.|"(?=[^"\\]|\\.)|""(?=[^"\\]|\\.))+/ ;
 
 op = /[+\-=\/*&|^%!?<>.:]+/ ;

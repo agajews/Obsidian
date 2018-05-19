@@ -5,21 +5,21 @@ import codecs
 indent_spaces = 4
 
 
-ESCAPE_SEQUENCE_RE = re.compile(r'''
-    ( \\U........      # 8-digit hex escapes
-    | \\u....          # 4-digit hex escapes
-    | \\x..            # 2-digit hex escapes
-    | \\[0-7]{1,3}     # Octal escapes
-    | \\N\{[^}]+\}     # Unicode characters by name
-    | \\[\\'"abfnrtv]  # Single-character escapes
-    )''', re.UNICODE | re.VERBOSE)
-
-
-def decode_escapes(s):
-    def decode_match(match):
-        return codecs.decode(match.group(0), 'unicode-escape')
-
-    return ESCAPE_SEQUENCE_RE.sub(decode_match, s)
+# ESCAPE_SEQUENCE_RE = re.compile(r'''
+#     ( \\U........      # 8-digit hex escapes
+#     | \\u....          # 4-digit hex escapes
+#     | \\x..            # 2-digit hex escapes
+#     | \\[0-7]{1,3}     # Octal escapes
+#     | \\N\{[^}]+\}     # Unicode characters by name
+#     | \\[\\'"abfnrtv]  # Single-character escapes
+#     )''', re.UNICODE | re.VERBOSE)
+#
+#
+# def decode_escapes(s):
+#     def decode_match(match):
+#         return codecs.decode(match.group(0), 'unicode-escape')
+#
+#     return ESCAPE_SEQUENCE_RE.sub(decode_match, s)
 
 
 def clean_string(string, to_escape):
@@ -36,13 +36,14 @@ def clean_string(string, to_escape):
                 new_string += '\\' + char
         else:
             new_string += char
-    return decode_escapes(new_string)
+    # return decode_escapes(new_string)
+    return new_string
 
 
 class Node:
-    # def __repr__(self):
-    #     return self.show(0)
-    #     # return str(type(self).__name__) + pformat(self.__dict__)
+    def __repr__(self):
+        # return self.show(0)
+        return str(type(self).__name__) + str(self.__dict__)
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -62,34 +63,38 @@ class Ident(Node):
 
 
 class Int(Node):
-    def __init__(self, val):
+    def __init__(self, val, sigil=None):
         # TODO: Error handling
         self.val = val
+        self.sigil = sigil
 
     def show(self, indent):
         return str(self.val)
 
 
 class Float(Node):
-    def __init__(self, val):
+    def __init__(self, val, sigil=None):
         # TODO: Error handling
         self.val = val
+        self.sigil = sigil
 
     def show(self, indent):
         return str(self.val)
 
 
 class String(Node):
-    def __init__(self, string):
+    def __init__(self, string, sigil=None):
         self.string = string
+        self.sigil = sigil
 
     def show(self, indent):
         return '"' + self.string.replace('"', '\\"') + '"'
 
 
 class InterpolatedString(Node):
-    def __init__(self, body):
+    def __init__(self, body, sigil=None):
         self.body = body
+        self.sigil = sigil
 
     def show(self, indent):
         return '"' + ''.join(b.show(indent) for b in self.body) + '"'
@@ -136,13 +141,18 @@ class Call(Node):
         return '(' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ')'
 
 
-class PartialCall(Node):
-    def __init__(self, callable_expr, args=None):
-        self.callable_expr = callable_expr
-        self.args = args if args is not None else []
+class Trailed(Node):
+    def __init__(self, expr, trailers=None):
+        self.expr = expr
+        self.trailers = trailers if trailers is not None else []
 
-    def show(self, indent):
-        return '[' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ']'
+# class PartialCall(Node):
+#     def __init__(self, callable_expr, args=None):
+#         self.callable_expr = callable_expr
+#         self.args = args if args is not None else []
+#
+#     def show(self, indent):
+#         return '[' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ']'
 
 
 class Unquote(Node):
@@ -190,30 +200,44 @@ class Semantics:
     def op(op):
         return Ident(op)
 
-    def integer(int_str):
-        return Int(int(float(int_str.replace('_', ''))))
+    def integer(info):
+        return Int(int(float(info['val'].replace('_', ''))), info['sigil'])
 
-    def float(float_str):
-        return Float(float(float_str.replace('_', '')))
+    def float(info):
+        return Float(float(info['val'].replace('_', '')), info['sigil'])
 
-    def interpolated_string(bodies):
+    def interpolated_string(info):
+        bodies = info['bodies']
+        sigil = info['sigil']
         if len(bodies) == 0:
-            return String('')
-        if len(bodies) == 1:
-            return bodies[0]
-        return InterpolatedString(bodies)
+            return String('', sigil)
+        if len(bodies) == 1 and isinstance(bodies[0], String):
+            return String(bodies[0].string, sigil)
+        return InterpolatedString(bodies, sigil)
+
+    def triple_interpolated_string(info):
+        bodies = info['bodies']
+        sigil = info['sigil']
+        if len(bodies) == 0:
+            return String('', sigil)
+        if len(bodies) == 1 and isinstance(bodies[0], String):
+            return String(bodies[0].string, sigil)
+        return InterpolatedString(bodies, sigil)
 
     def STRING_BODY(body):
-        return String(clean_string(body, '"{}'))
+        return String(clean_string(body, '"$'))
 
-    def single_string(string):
-        return String(clean_string(string[1:-1], "'"))
+    def TSTRING_BODY(body):
+        return String(clean_string(body, '"$'))
 
-    def triple_double_string(string):
-        return String(clean_string(string[3:-3], '"'))
+    def single_string(info):
+        return String(clean_string(info['val'][1:-1], "'"), info['sigil'])
 
-    def triple_single_string(string):
-        return String(clean_string(string[3:-3], "'"))
+    # def triple_double_string(info):
+    #     return String(clean_string(info['val'][3:-3], '"'), info['sigil'])
+    #
+    def triple_single_string(info):
+        return String(clean_string(info['val'][3:-3], "'"), info['sigil'])
 
     def symbol(symbol):
         return Symbol(symbol)
@@ -230,11 +254,20 @@ class Semantics:
         rest = info['rest'] if info['rest'] is not None else []
         return Map([info['first']] + rest)
 
-    def list(info):
-        if info.get('first') is None:
+    def list(contents):
+        if contents is None:
             return List()
-        rest = info['rest'] if info['rest'] is not None else []
-        return List([info['first']] + rest)
+        return List(contents)
+
+    def simple_expression(info):
+        if len(info['trailers']) == 0:
+            return info['expr']
+        return Trailed(info['expr'], info['trailers'])
+
+    def simple_single_expression(info):
+        if len(info['trailers']) == 0:
+            return info['expr']
+        return Trailed(info['expr'], info['trailers'])
 
     def binary_slurp(slurp):
         if len(slurp) == 1:

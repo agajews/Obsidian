@@ -316,6 +316,8 @@ prim = Module('prim', {
     'Nil': NilType,
     'nil': nil,
 
+    'let': let,
+
     'puts': puts,
 })
 
@@ -359,7 +361,6 @@ prim.set('ast', Module('ast', {
 builtin_vars = {
     'get_attr': get_attr,
     'set_attr': set_attr,
-    'let': let,
 }
 
 

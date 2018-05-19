@@ -228,7 +228,76 @@ class ObsidianParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
+    def _TRAILER_(self):  # noqa
+        self._pattern(r'\[')
+
+        def block0():
+            self._eol_()
+        self._closure(block0)
+        self._expression_()
+        self.name_last_node('@')
+
+        def block2():
+            self._eol_()
+        self._closure(block2)
+        self._token(']')
+
+    @tatsumasu()
     def _simple_expression_(self):  # noqa
+        self._atomic_expression_()
+        self.name_last_node('expr')
+
+        def block2():
+            self._TRAILER_()
+        self._closure(block2)
+        self.name_last_node('trailers')
+        self.ast._define(
+            ['expr', 'trailers'],
+            []
+        )
+
+    @tatsumasu()
+    def _atomic_expression_(self):  # noqa
+        with self._choice():
+            with self._option():
+                self._triple_single_string_()
+            with self._option():
+                self._single_string_()
+            with self._option():
+                self._triple_interpolated_string_()
+            with self._option():
+                self._interpolated_string_()
+            with self._option():
+                self._nonstring_expression_()
+            self._error('no available options')
+
+    @tatsumasu()
+    def _simple_single_expression_(self):  # noqa
+        self._atomic_single_expression_()
+        self.name_last_node('expr')
+
+        def block2():
+            self._TRAILER_()
+        self._closure(block2)
+        self.name_last_node('trailers')
+        self.ast._define(
+            ['expr', 'trailers'],
+            []
+        )
+
+    @tatsumasu()
+    def _atomic_single_expression_(self):  # noqa
+        with self._choice():
+            with self._option():
+                self._triple_single_string_()
+            with self._option():
+                self._single_string_()
+            with self._option():
+                self._nonstring_expression_()
+            self._error('no available options')
+
+    @tatsumasu()
+    def _nonstring_expression_(self):  # noqa
         with self._choice():
             with self._option():
                 self._identifier_()
@@ -237,21 +306,11 @@ class ObsidianParser(Parser):
             with self._option():
                 self._integer_()
             with self._option():
-                self._triple_double_string_()
-            with self._option():
-                self._triple_single_string_()
-            with self._option():
-                self._interpolated_string_()
-            with self._option():
-                self._single_string_()
-            with self._option():
                 self._symbol_()
             with self._option():
                 self._curly_expression_()
             with self._option():
                 self._call_expression_()
-            with self._option():
-                self._partial_call_expression_()
             with self._option():
                 self._tuple_()
             with self._option():
@@ -330,40 +389,6 @@ class ObsidianParser(Parser):
             self._eol_()
         self._closure(block6)
         self._token(')')
-        self.ast._define(
-            ['args', 'head'],
-            []
-        )
-
-    @tatsumasu()
-    def _partial_call_expression_(self):  # noqa
-        self._token('[')
-
-        def block0():
-            self._eol_()
-        self._closure(block0)
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._expression_()
-                with self._option():
-                    self._op_()
-                self._error('no available options')
-        self.name_last_node('head')
-
-        def block3():
-            self._eol_()
-        self._closure(block3)
-
-        def block5():
-            self._call_expression_arg_()
-        self._closure(block5)
-        self.name_last_node('args')
-
-        def block6():
-            self._eol_()
-        self._closure(block6)
-        self._token(']')
         self.ast._define(
             ['args', 'head'],
             []
@@ -462,44 +487,19 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _list_(self):  # noqa
-        with self._choice():
-            with self._option():
-                self._token('[')
+        self._token('[')
 
-                def block0():
-                    self._eol_()
-                self._closure(block0)
-                self._token(']')
-            with self._option():
-                self._token('[')
+        def block0():
+            self._eol_()
+        self._closure(block0)
+        with self._optional():
+            self._collection_rest_()
+        self.name_last_node('@')
 
-                def block1():
-                    self._eol_()
-                self._closure(block1)
-                self._expression_()
-                self.name_last_node('first')
-
-                def block3():
-                    self._eol_()
-                self._closure(block3)
-                self._token(',')
-
-                def block4():
-                    self._eol_()
-                self._closure(block4)
-                with self._optional():
-                    self._collection_rest_()
-                self.name_last_node('rest')
-
-                def block6():
-                    self._eol_()
-                self._closure(block6)
-                self._token(']')
-            self._error('no available options')
-        self.ast._define(
-            ['first', 'rest'],
-            []
-        )
+        def block2():
+            self._eol_()
+        self._closure(block2)
+        self._token(']')
 
     @tatsumasu()
     def _collection_rest_(self):  # noqa
@@ -544,22 +544,54 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _integer_(self):  # noqa
-        self._pattern(r'-?[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?')
+        self._pattern(r'[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?')
+        self.name_last_node('val')
+        self._SIGIL_()
+        self.name_last_node('sigil')
+        self.ast._define(
+            ['sigil', 'val'],
+            []
+        )
 
     @tatsumasu()
     def _float_(self):  # noqa
-        self._pattern(r'-?[0-9][_0-9]*\.[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?')
-
-    @tatsumasu()
-    def _triple_double_string_(self):  # noqa
-        self._pattern(r'"""([^"\\]|\\.|"([^"\\]|\\.)|""([^"\\]|\\.))*"""')
+        self._pattern(r'[0-9][_0-9]*\.[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?')
+        self.name_last_node('val')
+        self._SIGIL_()
+        self.name_last_node('sigil')
+        self.ast._define(
+            ['sigil', 'val'],
+            []
+        )
 
     @tatsumasu()
     def _triple_single_string_(self):  # noqa
+        self._sigil_()
+        self.name_last_node('sigil')
+        self._TSS_VAL_()
+        self.name_last_node('val')
+        self.ast._define(
+            ['sigil', 'val'],
+            []
+        )
+
+    @tatsumasu()
+    def _TSS_VAL_(self):  # noqa
         self._pattern(r"'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''")
 
     @tatsumasu()
     def _single_string_(self):  # noqa
+        self._sigil_()
+        self.name_last_node('sigil')
+        self._SS_VAL_()
+        self.name_last_node('val')
+        self.ast._define(
+            ['sigil', 'val'],
+            []
+        )
+
+    @tatsumasu()
+    def _SS_VAL_(self):  # noqa
         self._pattern(r"'([^'\\]|\\.)*'")
 
     @tatsumasu()
@@ -569,12 +601,33 @@ class ObsidianParser(Parser):
         self.name_last_node('@')
 
     @tatsumasu()
+    def _sigil_(self):  # noqa
+        with self._optional():
+            self._pattern(r'[a-zA-Z]+')
+
+    @tatsumasu()
+    def _SIGIL_(self):  # noqa
+        with self._optional():
+            self._pattern(r'[a-zA-Z]+')
+
+    @tatsumasu()
     def _eol_(self):  # noqa
         self._token('\n')
 
     @tatsumasu()
     def _interpolated_string_(self):  # noqa
-        self._token('"')
+        self._sigil_()
+        self.name_last_node('sigil')
+        self._INTERPOLATED_BODIES_()
+        self.name_last_node('bodies')
+        self.ast._define(
+            ['bodies', 'sigil'],
+            []
+        )
+
+    @tatsumasu()
+    def _INTERPOLATED_BODIES_(self):  # noqa
+        self._pattern(r'"')
 
         def block1():
             with self._choice():
@@ -585,26 +638,53 @@ class ObsidianParser(Parser):
                 self._error('no available options')
         self._closure(block1)
         self.name_last_node('@')
-        self._token('"')
+        self._pattern(r'"')
 
     @tatsumasu()
     def _INTERPOLATED_BODY_(self):  # noqa
-        self._token('{')
-
-        def block0():
-            self._eol_()
-        self._closure(block0)
-        self._expression_()
+        self._pattern(r'\$')
+        self._simple_single_expression_()
         self.name_last_node('@')
-
-        def block2():
-            self._eol_()
-        self._closure(block2)
-        self._token('}')
 
     @tatsumasu()
     def _STRING_BODY_(self):  # noqa
-        self._pattern(r'([^"\\{}]|\\.)+')
+        self._pattern(r'([^"\\$]|\\.)+')
+
+    @tatsumasu()
+    def _triple_interpolated_string_(self):  # noqa
+        self._sigil_()
+        self.name_last_node('sigil')
+        self._TINTERPOLATED_BODIES_()
+        self.name_last_node('bodies')
+        self.ast._define(
+            ['bodies', 'sigil'],
+            []
+        )
+
+    @tatsumasu()
+    def _TINTERPOLATED_BODIES_(self):  # noqa
+        self._pattern(r'"""')
+
+        def block1():
+            with self._choice():
+                with self._option():
+                    self._TSTRING_BODY_()
+                with self._option():
+                    self._TINTERPOLATED_BODY_()
+                self._error('no available options')
+        self._closure(block1)
+        self.name_last_node('@')
+        self._pattern(r'"""')
+
+    @tatsumasu()
+    def _TINTERPOLATED_BODY_(self):  # noqa
+        self._pattern(r'\$')
+        self._simple_single_expression_()
+        self.name_last_node('@')
+
+    @tatsumasu()
+    def _TSTRING_BODY_(self):  # noqa
+        self._pattern(r'([^"\\$]|\\.|"(?=[^"\\]|\\.)|""(?=[^"\\]|\\.))+')
 
     @tatsumasu()
     def _op_(self):  # noqa
@@ -642,16 +722,28 @@ class ObsidianSemantics(object):
     def binary_op(self, ast):  # noqa
         return ast
 
+    def TRAILER(self, ast):  # noqa
+        return ast
+
     def simple_expression(self, ast):  # noqa
+        return ast
+
+    def atomic_expression(self, ast):  # noqa
+        return ast
+
+    def simple_single_expression(self, ast):  # noqa
+        return ast
+
+    def atomic_single_expression(self, ast):  # noqa
+        return ast
+
+    def nonstring_expression(self, ast):  # noqa
         return ast
 
     def curly_expression(self, ast):  # noqa
         return ast
 
     def call_expression(self, ast):  # noqa
-        return ast
-
-    def partial_call_expression(self, ast):  # noqa
         return ast
 
     def call_expression_arg(self, ast):  # noqa
@@ -684,16 +776,25 @@ class ObsidianSemantics(object):
     def float(self, ast):  # noqa
         return ast
 
-    def triple_double_string(self, ast):  # noqa
+    def triple_single_string(self, ast):  # noqa
         return ast
 
-    def triple_single_string(self, ast):  # noqa
+    def TSS_VAL(self, ast):  # noqa
         return ast
 
     def single_string(self, ast):  # noqa
         return ast
 
+    def SS_VAL(self, ast):  # noqa
+        return ast
+
     def symbol(self, ast):  # noqa
+        return ast
+
+    def sigil(self, ast):  # noqa
+        return ast
+
+    def SIGIL(self, ast):  # noqa
         return ast
 
     def eol(self, ast):  # noqa
@@ -702,10 +803,25 @@ class ObsidianSemantics(object):
     def interpolated_string(self, ast):  # noqa
         return ast
 
+    def INTERPOLATED_BODIES(self, ast):  # noqa
+        return ast
+
     def INTERPOLATED_BODY(self, ast):  # noqa
         return ast
 
     def STRING_BODY(self, ast):  # noqa
+        return ast
+
+    def triple_interpolated_string(self, ast):  # noqa
+        return ast
+
+    def TINTERPOLATED_BODIES(self, ast):  # noqa
+        return ast
+
+    def TINTERPOLATED_BODY(self, ast):  # noqa
+        return ast
+
+    def TSTRING_BODY(self, ast):  # noqa
         return ast
 
     def op(self, ast):  # noqa
