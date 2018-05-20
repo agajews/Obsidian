@@ -114,3 +114,19 @@ def test_module_name(capsys):
     '''
     target = ['test']
     assert get_output(source, capsys) == target
+
+
+def test_fun(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'ast' (get_attr prim 'ast'))
+    (let 'ASTCall' (get_attr ast 'Call'))
+    (let 'ASTIdent' (get_attr ast 'Ident'))
+    (let 'ASTString' (get_attr ast 'String'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'hello' (Fun [(ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!')])]))
+    (hello)
+    '''
+    target = ['Hello, World!']
+    assert get_output(source, capsys) == target

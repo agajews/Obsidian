@@ -40,6 +40,8 @@ puts "num $''"
 
 puts "partial call $[partial thing]"
 
+puts 3; puts 4
+
 (something else)
 (something ~else thing)
 (something
