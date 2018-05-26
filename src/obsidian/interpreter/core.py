@@ -1,77 +1,17 @@
-from . import semantics as sem
-
-
-class Panic(Exception):
-    pass
-
-
-class PrimObject:
-    def __init__(self, attrs):
-        self.attrs = attrs
-
-    def get(self, attr):
-        if not attr in self.attrs:
-            raise Panic(
-                'Object has no attribute {}'.format(attr))
-        return self.attrs[attr]
-
-    def set(self, name, obj):
-        self.attrs[name] = obj
-
-
-class Object(PrimObject):
-    def __init__(self, attrs, type):
-        super().__init__(attrs)
-        self.attrs['meta'] = PrimObject({'type': type, 'meta': meta_obj})
-
-    def call(self, caller_scope, args):
-        if 'call' not in self.attrs:
-            raise Panic('Object not callable')
-        return self.get('call').call(caller_scope, args)
-
-
-class PrimFun(Object):
-    def __init__(self, name, args, type=None):
-        super().__init__({'name': String(name)},
-                         prim_fun_type if type is None else type)
-        self.name = name
-        self.args = args
-
-    def call(self, caller_scope, args):
-        args = args.elems
-        if not len(args) == len(self.args):
-            raise Panic('PrimFun `{}` takes {} arguments, not {}'.format(
-                self.name, len(self.args), len(args)))
-        return self.macro(caller_scope, *args)
-
-    def macro(self, caller_scope, *args):
-        return self.fun(*[caller_scope.eval(arg) for arg in args])
-
-
-class Type(PrimFun):
-    def __init__(self, name, parent, args):
-        super().__init__(name, args, type_type)
-        self.set('parent', parent)
-
-    def fun(self, *args):
-        return nil
+from .. import semantics as sem
+from .bootstrap import (
+    Panic, PrimObject, Object, String, PrimFun, Type,
+    type_type, string_type, object_type, prim_fun_type, meta_type, nil_type,
+    nil
+)
 
 
 class FunType(Type):
-
     def __init__(self):
         super().__init__('Fun', object_type, ['body'])
 
     def macro(self, scope, body):
         return Fun(scope, scope.eval(body))
-
-
-class MetaType(Type):
-    def __init__(self):
-        super().__init__('Meta', object_type, [])
-
-    def fun(self):
-        return Meta()
 
 
 class ScopeType(Type):
@@ -92,14 +32,6 @@ class ModuleType(Type):
         if parent is nil:
             return Module(name)
         return Module(name, parent)
-
-
-class NilType(Type):
-    def __init__(self):
-        super().__init__('Nil', object_type, [])
-
-    def fun(self):
-        return nil
 
 
 class ASTNodeType(Type):
@@ -123,6 +55,14 @@ class ASTStringType(Type):
         return ASTString(string)
 
 
+class ASTIntType(Type):
+    def __init__(self):
+        super().__init__('Int', ast_node_type, ['int'])
+
+    def fun(self, val):
+        return ASTInt(val)
+
+
 class ASTListType(Type):
     def __init__(self):
         super().__init__('List', ast_node_type, ['list'])
@@ -131,28 +71,20 @@ class ASTListType(Type):
         return ASTList(lst)
 
 
+class ASTBinarySlurpType(Type):
+    def __init__(self):
+        super().__init__('BinarySlurp', ast_node_type, ['slurp'])
+
+    def fun(self, slurp):
+        return ASTBinarySlurp(slurp)
+
+
 class ASTCallType(Type):
     def __init__(self):
         super().__init__('Call', ast_node_type, ['callable', 'args'])
 
     def fun(self, callable_expr, args):
         return ASTCall(callable_expr, args)
-
-
-class StringTypeCall(PrimFun):
-    def __init__(self):
-        super().__init__('String', ['ast'])
-
-    def macro(self, scope, ast):
-        string = ast.get('str')
-        if not isinstance(string, String):
-            raise Panic('Invalid string')
-        sigil = ast.get('sigil')
-        if sigil is not nil and not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
-        if sigil is nil:
-            return string
-        raise Panic(f'Sigil {sigil.str} not implemented')
 
 
 class ListType(Type):
@@ -164,6 +96,26 @@ class ListType(Type):
         if not isinstance(elems, List):
             raise Panic('Invalid list')
         return List([scope.eval(elem) for elem in elems.elems])
+
+
+class IntType(Type):
+    def __init__(self):
+        super().__init__('Int', object_type, ['ast'],
+                         methods={'to_str': IntToStr()})
+
+    def macro(self, scope, ast):
+        int = ast.get('int')
+        if not isinstance(int, Int):
+            raise Panic('Invalid int')
+        return Int(int.int)
+
+
+class IntToStr(PrimFun):
+    def __init__(self):
+        super().__init__('to_str', ['int'])
+
+    def fun(self, int):
+        return String(str(int.int))
 
 
 class ReturnException(Exception):
@@ -188,7 +140,7 @@ class Fun(Object):
 
     def call(self, caller_scope, args):
         scope = Scope(self.get('defn_scope'))
-        scope.get('meta').set('args', args)
+        scope.get('meta').set('args', List(args))
         scope.set('return', ret)
         body = self.get('body')
         if not isinstance(body, List):
@@ -201,13 +153,7 @@ class Fun(Object):
             return e.obj
 
     def __repr__(self):
-        return f'Fun({self.body})'
-
-
-class Meta(Object):
-    def __init__(self, **attrs):
-        attrs['meta'] = meta_obj
-        super().__init__(attrs, meta_type)
+        return 'Fun({})'.format(self.body)
 
 
 class Scope(Object):
@@ -220,7 +166,7 @@ class Scope(Object):
     def eval(self, ast):
         if isinstance(ast, ASTCall):
             # print(f'Calling {ast}')
-            return self.eval(ast.get('callable')).call(self, ast.get('args'))
+            return self.eval(ast.get('callable')).call(self, ast.get('args').elems)
         elif isinstance(ast, ASTIdent):
             ident = ast.get('ident')
             if not isinstance(ident, String):
@@ -232,9 +178,13 @@ class Scope(Object):
                 return self.get('meta').get('parent').eval(ast)
             raise Panic('No such object `{}`'.format(ident))
         elif isinstance(ast, ASTString):
-            return string_type.call(self, List([ast]))
+            return string_type.call(self, [ast])
+        elif isinstance(ast, ASTInt):
+            return int_type.call(self, [ast])
         elif isinstance(ast, ASTList):
-            return list_type.call(self, List([ast]))
+            return list_type.call(self, [ast])
+        elif isinstance(ast, ASTBinarySlurp):
+            raise Panic('Got binary slurp {}'.format(ast))
         else:
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))
@@ -251,13 +201,13 @@ class Module(Scope):
         # self.set('self', self)
 
 
-class String(Object):
-    def __init__(self, string):
-        super().__init__({}, string_type)
-        self.str = string
+class Int(Object):
+    def __init__(self, val):
+        super().__init__({}, int_type)
+        self.int = val
 
     def __repr__(self):
-        return '"{}"'.format(self.str)
+        return str(self.int)
 
 
 class List(Object):
@@ -266,15 +216,7 @@ class List(Object):
         self.elems = elems
 
     def __repr__(self):
-        return f'{self.elems}'
-
-
-class Nil(Object):
-    def __init__(self):
-        super().__init__({}, nil_type)
-
-    def __repr__(self):
-        return 'nil'
+        return str(self.elems)
 
 
 class ASTIdent(Object):
@@ -284,7 +226,7 @@ class ASTIdent(Object):
         super().__init__({'ident': ident}, ast_ident_type)
 
     def __repr__(self):
-        return f'ASTIdent({self.get("ident")})'
+        return 'ASTIdent({})'.format(self.get("ident"))
 
 
 class ASTCall(Object):
@@ -293,7 +235,7 @@ class ASTCall(Object):
             {'callable': callable_expr, 'args': args}, ast_call_type)
 
     def __repr__(self):
-        return f'ASTCall({self.get("callable")}, {self.get("args")})'
+        return 'ASTCall({}, {})'.format(self.get("callable"), self.get("args"))
 
 
 class ASTString(Object):
@@ -306,7 +248,20 @@ class ASTString(Object):
             {'str': string, 'sigil': nil if sigil is None else sigil}, ast_string_type)
 
     def __repr__(self):
-        return f'ASTString({self.get("str")}, {self.get("sigil")})'
+        return 'ASTString({}, {})'.format(self.get("str"), self.get("sigil"))
+
+
+class ASTInt(Object):
+    def __init__(self, val, sigil=None):
+        if not isinstance(val, Int):
+            raise Panic('Invalid int')
+        if sigil is not None and not isinstance(sigil, String):
+            raise Panic('Invalid sigil')
+        super().__init__(
+            {'int': val, 'sigil': nil if sigil is None else sigil}, ast_int_type)
+
+    def __repr__(self):
+        return 'ASTInt({}, {})'.format(self.get("int"), self.get("sigil"))
 
 
 class ASTList(Object):
@@ -316,7 +271,14 @@ class ASTList(Object):
         super().__init__({'elems': elems}, ast_list_type)
 
     def __repr__(self):
-        return f'ASTList({self.get("elems")})'
+        return 'ASTList({})'.format(self.get("elems"))
+
+
+class ASTBinarySlurp(Object):
+    def __init__(self, slurp):
+        if not isinstance(slurp, List):
+            raise Panic('Invalid slurp')
+        super().__init__({'slurp': slurp}, ast_binary_slurp_type)
 
 
 def model_to_ast(model):
@@ -326,11 +288,27 @@ def model_to_ast(model):
         return ASTCall(model_to_ast(model.callable_expr), List([model_to_ast(arg) for arg in model.args]))
     elif isinstance(model, sem.String):
         return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else None)
+    elif isinstance(model, sem.Int):
+        return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else None)
     elif isinstance(model, sem.List):
         return ASTList(List([model_to_ast(elem) for elem in model.elements]))
+    elif isinstance(model, sem.BinarySlurp):
+        return ASTBinarySlurp(List([model_to_ast(elem) for elem in model.slurp]))
     else:
         raise NotImplementedError(
             'Translation of model node {} to AST not implemented'.format(model))
+
+
+class MethodFun(PrimFun):
+    def __init__(self, obj, method):
+        super().__init__('method_fun', variadic=True)
+        self.obj = obj
+        self.method = method
+
+    def macro(self, scope, *args):
+        obj_scope = Scope(scope)
+        obj_scope.set('__self__', self.obj)
+        return self.method.call(obj_scope, [ASTIdent(String('__self__'))] + list(args))
 
 
 class GetAttr(PrimFun):
@@ -340,6 +318,12 @@ class GetAttr(PrimFun):
     def fun(self, obj, attr):
         if not isinstance(attr, String):
             raise Panic('Attribute must be a string')
+        if not obj.has(attr.str):
+            obj_type = obj.get('meta').get('type')
+            if obj_type.get('methods').has(attr.str):
+                return MethodFun(obj, obj_type.get('methods').get(attr.str))
+            if obj_type.get('statics').has(attr.str):
+                return obj_type.get('statics').get(attr.str)
         return obj.get(attr.str)
 
 
@@ -370,17 +354,17 @@ class Eval(PrimFun):
         super().__init__('eval', ['ast'])
         self.scope = scope
 
-    def fun(self):
+    def fun(self, ast):
         return self.scope.eval(ast)
 
 
-class Identity(PrimFun):
-    def __init__(self):
-        super().__init__('identity', ['obj'])
-
-    def fun(self, obj):
-        return obj
-
+# class Identity(PrimFun):
+#     def __init__(self):
+#         super().__init__('identity', ['obj'])
+#
+#     def fun(self, obj):
+#         return obj
+#
 
 class Puts(PrimFun):
     def __init__(self):
@@ -392,48 +376,14 @@ class Puts(PrimFun):
         print(string.str)
 
 
-type_type = PrimObject({})
-
-meta_obj = PrimObject({})
-meta_obj.set('meta', meta_obj)
-
-string_type = Object({}, type_type)
-string_type.set('name', String('String'))
-type_type.set('name', String('Type'))
-type_type.set('meta', PrimObject(
-    {'name': String('Type'), 'type': type_type, 'meta': meta_obj}))
-
-object_type = Object({'name': String('Object')}, type_type)
-object_type.set('parent', object_type)
-type_type.set('parent', object_type)
-
-prim_fun_type = Object(
-    {'name': String('PrimFun'), 'parent': object_type}, type_type)
-string_type_call = StringTypeCall()
-string_type.set('call', string_type_call)
-
-identity = Identity()
-# type_type.set('call', identity)
-# object_type.set('call', identity)
-# prim_fun_type.set('call', identity)
-
-meta_type = MetaType()
-# meta_type = Type('Meta', type_type)
-meta_obj.set('type', meta_type)
-
 fun_type = FunType()
 scope_type = ScopeType()
-# ScopeType = Type('Scope', object_type)
 module_type = ModuleType()
-# module_type = Type('Module', scope_type)
 
 list_type = ListType()
-# list_type = Type('List', object_type)
+int_type = IntType()
 
 ret = Return()
-
-nil_type = NilType()
-nil = Nil()
 
 get_attr = GetAttr()
 set_attr = SetAttr()
@@ -452,8 +402,9 @@ prim = Module('prim', attrs={
 
     'String': string_type,
     'List': list_type,
+    'Int': int_type,
 
-    'Nil': NilType,
+    'Nil': nil_type,
     'nil': nil,
 
     'let': let,
@@ -464,7 +415,7 @@ prim = Module('prim', attrs={
 ast_node_type = ASTNodeType()
 ast_ident_type = ASTIdentType()
 ast_string_type = ASTStringType()
-# ASTIntType = Type('Int', ASTNodeType)
+ast_int_type = ASTIntType()
 # ASTFloatType = Type('Float', ASTNodeType)
 # ASTInterpolatedStringType = Type('InterpolatedString', ASTNodeType)
 # ASTSymbolType = Type('Symbol', ASTNodeType)
@@ -474,15 +425,14 @@ ast_list_type = ASTListType()
 ast_call_type = ASTCallType()
 # ASTPartialCallType = Type('PartialCall', ASTNodeType)
 # ASTUnquoteType = Type('Unquote', ASTNodeType)
-# ASTBinaryType = Type('Binary', ASTNodeType)
-# ASTBinarySlurpType = Type('BinarySlurp', ASTNodeType)
+ast_binary_slurp_type = ASTBinarySlurpType()
 # ASTBlockType = Type('Block', ASTNodeType)
 
 prim.set('ast', Module('ast', parent=prim, attrs={
     'Node': ast_node_type,
     'Ident': ast_ident_type,
     'String': ast_string_type,
-    # 'Int': ASTIntType,
+    'Int': ast_int_type,
     # 'Float': ASTFloatType,
     # 'InterpolatedString': ASTInterpolatedStringType,
     # 'Symbol': ASTSymbolType,
@@ -491,11 +441,9 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     # 'Map': ASTMapType,
     'Call': ast_call_type,
 
-
-    # 'PartialCall': ASTPartialCallType,
     # 'Unquote': ASTUnquoteType,
     # 'Binary': ASTBinaryType,
-    # 'BinarySlurp': ASTBinarySlurpType,
+    'BinarySlurp': ast_binary_slurp_type,
     # 'Block': ASTBlockType,
 }))
 

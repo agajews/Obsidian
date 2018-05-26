@@ -163,15 +163,15 @@ class Unquote(Node):
         return '$' + self.expr.show(indent)
 
 
-class Binary(Node):
-    def __init__(self, op, lhs, rhs):
-        self.op = op
-        self.lhs = lhs
-        self.rhs = rhs
-
-    def show(self, indent):
-        return self.lhs.show(indent) + ' ' + self.op + self.rhs.show(indent)
-
+# class Binary(Node):
+#     def __init__(self, op, lhs, rhs):
+#         self.op = op
+#         self.lhs = lhs
+#         self.rhs = rhs
+#
+#     def show(self, indent):
+#         return self.lhs.show(indent) + ' ' + self.op + self.rhs.show(indent)
+#
 
 class BinarySlurp(Node):
     def __init__(self, slurp):
@@ -279,9 +279,9 @@ class Semantics:
             return slurp[0]
         return BinarySlurp(slurp)
 
-    def block_binary_expression(info):
-        return Binary(info['op'], info['lhs'], info['rhs'])
-
+    # def block_binary_expression(info):
+    #     return Binary(info['op'], info['lhs'], info['rhs'])
+    #
     def block(statements):
         return Block([s for s in statements if s != '\n'])
 

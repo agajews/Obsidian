@@ -130,3 +130,42 @@ def test_fun(capsys):
     '''
     target = ['Hello, World!']
     assert get_output(source, capsys) == target
+
+
+def test_eval(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    (let 'ast' (get_attr prim 'ast'))
+    (let 'ASTCall' (get_attr ast 'Call'))
+    (let 'ASTIdent' (get_attr ast 'Ident'))
+    (let 'ASTString' (get_attr ast 'String'))
+    (let 'puts' (get_attr prim 'puts'))
+    (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!')])
+    '''
+    target = ['Hello, World!']
+    assert get_output(source, capsys) == target
+
+
+def test_scope(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 's' 'test_str'
+    puts (get_attr (get_attr meta 'scope') 's')
+    '''
+    target = ['test_str']
+    assert get_output(source, capsys) == target
+
+
+def test_int(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr 3 'to_str'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+# def test_binary_slurp(capsys):
+#     source = '''
