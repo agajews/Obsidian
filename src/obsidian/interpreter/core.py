@@ -4,12 +4,12 @@ from .bootstrap import (
 )
 from .types import (
     Module,
-    fun_type, scope_type, module_type, int_type, list_type,
+    fun_type, scope_type, module_type, int_type, list_type, symbol_type,
 )
 from .types.ast import (
     model_to_ast,
     ast_node_type, ast_ident_type, ast_string_type, ast_int_type, ast_list_type,
-    ast_call_type, ast_binary_slurp_type,
+    ast_call_type, ast_binary_slurp_type, ast_symbol_type,
 )
 from .funs import (
     get_attr, set_attr, let, puts
@@ -28,6 +28,7 @@ prim = Module('prim', attrs={
     'String': string_type,
     'List': list_type,
     'Int': int_type,
+    'Symbol': symbol_type,
 
     'Nil': nil_type,
     'nil': nil,
@@ -42,6 +43,7 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Ident': ast_ident_type,
     'String': ast_string_type,
     'Int': ast_int_type,
+    'Symbol': ast_symbol_type,
     # 'Float': ASTFloatType,
     # 'InterpolatedString': ASTInterpolatedStringType,
     # 'Symbol': ASTSymbolType,

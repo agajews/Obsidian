@@ -5,10 +5,11 @@ from ..bootstrap import (
     nil,
 )
 from .ast import (
-    ASTIdent, ASTString, ASTInt, ASTList, ASTCall, ASTBinarySlurp,
+    ASTIdent, ASTString, ASTInt, ASTList, ASTCall, ASTBinarySlurp, ASTSymbol,
 )
-from .int import int_type
+from .int import int_type, Int
 from .list import list_type
+from .symbol import symbol_type, Symbol
 
 
 class Scope(Object):
@@ -17,6 +18,72 @@ class Scope(Object):
         self.get('meta').set('eval', Eval(self))
         self.get('meta').set('scope', self)
         self.get('meta').set('parent', parent if parent is not None else nil)
+
+    def parse_binary_subexpr(self, slurp, lhs, min_precedence=-1, pos=0):
+        # pos always points to a terminal
+        def lookahead():
+            if pos >= len(slurp) - 1:
+                return None, None, None
+            return slurp[pos + 1]
+        next_op, next_precedence, next_associativity = lookahead()
+        while next_op is not None and next_precedence >= min_precedence:
+            op, precedence, associativity = next_op, next_precedence, next_associativity
+            pos += 2
+            rhs = slurp[pos]
+            next_op, next_precedence, next_associativity = lookahead()
+            if associativity in ['left', 'right']:
+                while next_op and (next_precedence > precedence or
+                                   (next_associativity == 'right' and
+                                    next_precedence == precedence)):
+                    pos, rhs = self.parse_binary_subexpr(
+                        slurp, rhs, next_precedence, pos)
+                    next_op, next_precedence, next_associativity = lookahead()
+                lhs = ASTCall(op, [lhs, rhs])
+            elif associativity == 'none':
+                args = [lhs]
+                pos, rhs = self.parse_binary_subexpr(
+                    slurp, rhs, precedence + 1, pos)
+                next_op, next_precedence, next_associativity = lookahead()
+                args.append(rhs)
+                while next_op is op:
+                    pos += 2
+                    rhs = slurp[pos]
+                    pos, rhs = self.parse_binary_subexpr(
+                        slurp, rhs, precedence + 1, pos)
+                    next_op, next_precedence, next_associativity = lookahead()
+                    args.append(rhs)
+                lhs = ASTCall(op, args)
+            else:
+                raise Exception(
+                    'Invalid associativity {}'.format(associativity))
+        return pos, lhs
+
+    def parse_binary_slurp(self, slurp):
+        slurp = list(slurp)  # copy
+        for i in range(1, len(slurp), 2):
+            op = self.eval(slurp[i])
+            precedence = 9
+            associativity = 'left'
+            if op.has('precedence'):
+                precedence = op.get('precedence')
+                if not isinstance(precedence, Int):
+                    raise Panic('Invalid precedence {}'.format(precedence))
+                precedence = precedence.int
+                if precedence < 0 or precedence > 9:
+                    raise Panic(
+                        'Precedence must be between 0 and 9, inclusive')
+            if op.has('associativity'):
+                associativity = op.get('associativity')
+                if not isinstance(associativity, Symbol):
+                    raise Panic(
+                        'Invalid associativity {}'.format(associativity))
+                associativity = associativity.symbol
+                if not associativity in ['left', 'none', 'right']:
+                    raise Panic(
+                        'Associativity must be either @left, @none, or @right')
+            slurp[i] = (op, precedence, associativity)
+            pos, expr = self.parse_binary_subexpr(slurp, slurp[0])
+            return expr
 
     def eval(self, ast):
         if isinstance(ast, ASTCall):
@@ -36,10 +103,12 @@ class Scope(Object):
             return string_type.call(self, [ast])
         elif isinstance(ast, ASTInt):
             return int_type.call(self, [ast])
+        elif isinstance(ast, ASTSymbol):
+            return symbol_type.call(self, [ast])
         elif isinstance(ast, ASTList):
             return list_type.call(self, [ast])
         elif isinstance(ast, ASTBinarySlurp):
-            raise Panic('Got binary slurp {}'.format(ast))
+            return self.eval(self.parse_binary_slurp(ast.slurp))
         else:
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))

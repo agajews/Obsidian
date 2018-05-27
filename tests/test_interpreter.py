@@ -125,7 +125,8 @@ def test_fun(capsys):
     (let 'ASTIdent' (get_attr ast 'Ident'))
     (let 'ASTString' (get_attr ast 'String'))
     (let 'puts' (get_attr prim 'puts'))
-    (let 'hello' (Fun [(ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!')])]))
+    (let 'nil' (get_attr prim 'nil'))
+    (let 'hello' (Fun [(ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])]))
     (hello)
     '''
     target = ['Hello, World!']
@@ -140,7 +141,8 @@ def test_eval(capsys):
     (let 'ASTIdent' (get_attr ast 'Ident'))
     (let 'ASTString' (get_attr ast 'String'))
     (let 'puts' (get_attr prim 'puts'))
-    (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!')])
+    (let 'nil' (get_attr prim 'nil'))
+    (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])
     '''
     target = ['Hello, World!']
     assert get_output(source, capsys) == target
@@ -167,5 +169,21 @@ def test_int(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_symbol(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr @hello 'to_str'))
+    '''
+    target = ['@hello']
+    assert get_output(source, capsys) == target
+
+
 # def test_binary_slurp(capsys):
 #     source = '''
+#     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+#     let 'puts' (get_attr prim 'puts')
+#     puts ((get_attr 1 + 2 'to_str'))
+#     '''
+#     target = ['3']
+#     assert get_output(source, capsys) == target

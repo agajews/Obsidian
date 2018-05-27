@@ -18,6 +18,14 @@ class PrimObject:
     def has(self, attr):
         return attr in self.attrs
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
+    def __repr__(self):
+        return 'PrimObject({})'.format(self.attrs)
+
 
 class Object(PrimObject):
     def __init__(self, attrs, type=None):
@@ -100,10 +108,10 @@ class MetaType(Type):
         return Meta()
 
 
-# class Meta(Object):
-#     def __init__(self, **attrs):
-#         attrs['meta'] = meta_obj
-#         super().__init__(attrs, meta_type)
+class Meta(Object):
+    def __init__(self, **attrs):
+        attrs['meta'] = meta_obj
+        super().__init__(attrs, meta_type)
 
 
 class NilType(Type):

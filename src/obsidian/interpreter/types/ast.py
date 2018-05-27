@@ -7,6 +7,7 @@ from ..bootstrap import (
 )
 from .int import Int
 from .list import List
+from .symbol import Symbol
 
 
 class ASTNodeType(Type):
@@ -21,7 +22,7 @@ class ASTIdent(Object):
         super().__init__({'ident': ident}, ast_ident_type)
 
     def __repr__(self):
-        return 'ASTIdent({})'.format(self.get("ident"))
+        return 'ASTIdent({})'.format(self.get('ident'))
 
 
 class ASTIdentType(Type):
@@ -36,42 +37,61 @@ class ASTString(Object):
     def __init__(self, string, sigil=None):
         if not isinstance(string, String):
             raise Panic('Invalid string')
-        if sigil is not None and not isinstance(sigil, String):
+        if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         super().__init__(
             {'str': string, 'sigil': nil if sigil is None else sigil}, ast_string_type)
 
     def __repr__(self):
-        return 'ASTString({}, {})'.format(self.get("str"), self.get("sigil"))
+        return 'ASTString({}, {})'.format(self.get('str'), self.get('sigil'))
 
 
 class ASTStringType(Type):
     def __init__(self):
-        super().__init__('String', ast_node_type, ['str'])
+        super().__init__('String', ast_node_type, ['str', 'sigil'])
 
-    def fun(self, string):
-        return ASTString(string)
+    def fun(self, string, sigil):
+        return ASTString(string, sigil)
 
 
 class ASTInt(Object):
     def __init__(self, val, sigil=None):
         if not isinstance(val, Int):
             raise Panic('Invalid int')
-        if sigil is not None and not isinstance(sigil, String):
+        if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         super().__init__(
             {'int': val, 'sigil': nil if sigil is None else sigil}, ast_int_type)
 
     def __repr__(self):
-        return 'ASTInt({}, {})'.format(self.get("int"), self.get("sigil"))
+        return 'ASTInt({}, {})'.format(self.get('int'), self.get('sigil'))
 
 
 class ASTIntType(Type):
     def __init__(self):
-        super().__init__('Int', ast_node_type, ['int'])
+        super().__init__('Int', ast_node_type, ['int', 'sigil'])
 
-    def fun(self, val):
-        return ASTInt(val)
+    def fun(self, val, sigil):
+        return ASTInt(val, sigil)
+
+
+class ASTSymbol(Object):
+    def __init__(self, symbol):
+        if not isinstance(symbol, Symbol):
+            raise Panic('Invalid symbol')
+        super().__init__(
+            {'symbol': symbol}, ast_symbol_type)
+
+    def __repr__(self):
+        return 'ASTSymbol({})'.format(self.get('symbol'))
+
+
+class ASTSymbolType(Type):
+    def __init__(self):
+        super().__init__('Symbol', ast_node_type, ['symbol'])
+
+    def fun(self, symbol):
+        return ASTSymbol(symbol)
 
 
 class ASTList(Object):
@@ -81,7 +101,7 @@ class ASTList(Object):
         super().__init__({'elems': elems}, ast_list_type)
 
     def __repr__(self):
-        return 'ASTList({})'.format(self.get("elems"))
+        return 'ASTList({})'.format(self.get('elems'))
 
 
 class ASTListType(Type):
@@ -98,7 +118,7 @@ class ASTCall(Object):
             {'callable': callable_expr, 'args': args}, ast_call_type)
 
     def __repr__(self):
-        return 'ASTCall({}, {})'.format(self.get("callable"), self.get("args"))
+        return 'ASTCall({}, {})'.format(self.get('callable'), self.get('args'))
 
 
 class ASTCallType(Type):
@@ -133,11 +153,13 @@ def model_to_ast(model):
     elif isinstance(model, sem.Call):
         return ASTCall(model_to_ast(model.callable_expr), List([model_to_ast(arg) for arg in model.args]))
     elif isinstance(model, sem.String):
-        return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else None)
+        return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else nil)
     elif isinstance(model, sem.Int):
-        return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else None)
+        return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else nil)
     elif isinstance(model, sem.List):
         return ASTList(List([model_to_ast(elem) for elem in model.elements]))
+    elif isinstance(model, sem.Symbol):
+        return ASTSymbol(Symbol(model.symbol))
     elif isinstance(model, sem.BinarySlurp):
         return ASTBinarySlurp(List([model_to_ast(elem) for elem in model.slurp]))
     else:
@@ -151,7 +173,7 @@ ast_string_type = ASTStringType()
 ast_int_type = ASTIntType()
 # ASTFloatType = Type('Float', ASTNodeType)
 # ASTInterpolatedStringType = Type('InterpolatedString', ASTNodeType)
-# ASTSymbolType = Type('Symbol', ASTNodeType)
+ast_symbol_type = ASTSymbolType()
 ast_list_type = ASTListType()
 # ASTMapType = Type('Map', ASTNodeType)
 # ASTTupleType = Type('Tuple', ASTNodeType)
