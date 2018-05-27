@@ -1,18 +1,15 @@
-from .bootstrap import (
-    type_type, string_type, object_type, prim_fun_type, meta_type, nil_type,
-    nil
-)
 from .types import (
     Module,
-    fun_type, scope_type, module_type, int_type, list_type, symbol_type,
+    fun_type, scope_type, module_type, int_type, float_type, list_type, bool_type, true, false,
+    symbol_type, type_type, string_type, object_type, prim_fun_type, meta_type, nil_type, nil
 )
 from .types.ast import (
     model_to_ast,
-    ast_node_type, ast_ident_type, ast_string_type, ast_int_type, ast_list_type,
+    ast_node_type, ast_ident_type, ast_string_type, ast_int_type, ast_float_type, ast_list_type,
     ast_call_type, ast_binary_slurp_type, ast_symbol_type,
 )
 from .funs import (
-    get_attr, set_attr, let, puts
+    get_attr, set_attr, let, puts, int, float,
 )
 
 
@@ -28,10 +25,11 @@ prim = Module('prim', attrs={
     'String': string_type,
     'List': list_type,
     'Int': int_type,
+    'Float': float_type,
     'Symbol': symbol_type,
+    'Bool': bool_type,
 
     'Nil': nil_type,
-    'nil': nil,
 
     'let': let,
 
@@ -43,8 +41,8 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Ident': ast_ident_type,
     'String': ast_string_type,
     'Int': ast_int_type,
+    'Float': ast_float_type,
     'Symbol': ast_symbol_type,
-    # 'Float': ASTFloatType,
     # 'InterpolatedString': ASTInterpolatedStringType,
     # 'Symbol': ASTSymbolType,
     'List': ast_list_type,
@@ -58,10 +56,37 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     # 'Block': ASTBlockType,
 }))
 
+prim.set('int', Module('int', parent=prim, attrs={
+    'add': int.add,
+    'sub': int.sub,
+    'mul': int.mul,
+    'floor_div': int.floor_div,
+    'mod': int.mod,
+    'pow': int.pow,
+    'eq': int.eq,
+    'neq': int.neq,
+}))
+
+
+prim.set('float', Module('float', parent=prim, attrs={
+    'add': float.add,
+    'sub': float.sub,
+    'mul': float.mul,
+    'div': float.div,
+    'floor_div': float.floor_div,
+    'mod': float.mod,
+    'pow': float.pow,
+    'eq': float.eq,
+    'neq': float.neq,
+}))
+
 
 builtin_vars = {
     'get_attr': get_attr,
     'set_attr': set_attr,
+    'nil': nil,
+    'true': true,
+    'false': false,
 }
 
 

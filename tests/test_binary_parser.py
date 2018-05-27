@@ -1,12 +1,11 @@
-from obsidian.interpreter.types.scope import Scope
-from obsidian.interpreter.types.ast import ASTCall
+from obsidian.interpreter.types.scope import Scope, DummyCall
 
 
 def test_simple():
     scope = Scope()
     slurp = ['x', ('+', 6, 'left'), 'y']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall('+', ['x', 'y'])
+    assert ast == DummyCall('+', ['x', 'y'])
 
 
 def test_multi():
@@ -14,8 +13,8 @@ def test_multi():
     slurp = ['w', ('+', 6, 'left'), 'x', ('+', 6, 'left'),
              'y', ('+', 6, 'left'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall(
-        '+', [ASTCall('+', [ASTCall('+', ['w', 'x']), 'y']), 'z'])
+    assert ast == DummyCall(
+        '+', [DummyCall('+', [DummyCall('+', ['w', 'x']), 'y']), 'z'])
 
 
 def test_noop():
@@ -30,8 +29,8 @@ def test_right():
     slurp = ['w', ('^', 6, 'right'), 'x', ('^', 6, 'right'),
              'y', ('^', 6, 'right'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall(
-        '^', ['w', ASTCall('^', ['x', ASTCall('^', ['y', 'z'])])])
+    assert ast == DummyCall(
+        '^', ['w', DummyCall('^', ['x', DummyCall('^', ['y', 'z'])])])
 
 
 def test_precedence():
@@ -39,8 +38,8 @@ def test_precedence():
     slurp = ['w', ('+', 6, 'left'), 'x', ('*', 7, 'left'),
              'y', ('+', 6, 'left'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall(
-        '+', [ASTCall('+', ['w', ASTCall('*', ['x', 'y'])]), 'z'])
+    assert ast == DummyCall(
+        '+', [DummyCall('+', ['w', DummyCall('*', ['x', 'y'])]), 'z'])
 
 
 def test_no_assoc():
@@ -49,7 +48,7 @@ def test_no_assoc():
     slurp = ['w', (op, 4, 'none'), 'x', (op, 4, 'none'),
              'y', (op, 4, 'none'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall('==', ['w', 'x', 'y', 'z'])
+    assert ast == DummyCall('==', ['w', 'x', 'y', 'z'])
 
 
 def test_no_assoc_single():
@@ -57,7 +56,7 @@ def test_no_assoc_single():
     op = '=='
     slurp = ['w', (op, 4, 'none'), 'x']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall('==', ['w', 'x'])
+    assert ast == DummyCall('==', ['w', 'x'])
 
 
 def test_no_assoc_precedence():
@@ -66,7 +65,7 @@ def test_no_assoc_precedence():
     slurp = ['w', (op, 4, 'none'), 'x', ('*', 7, 'left'),
              'y', (op, 4, 'none'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall('==', ['w', ASTCall('*', ['x', 'y']), 'z'])
+    assert ast == DummyCall('==', ['w', DummyCall('*', ['x', 'y']), 'z'])
 
 
 def test_multi_no_assoc():
@@ -75,8 +74,8 @@ def test_multi_no_assoc():
     slurp = ['w', (op, 4, 'none'), 'x', ('!=', 4, 'none'),
              'y', (op, 4, 'none'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall(
-        '==', [ASTCall('!=', [ASTCall('==', ['w', 'x']), 'y']), 'z'])
+    assert ast == DummyCall(
+        '==', [DummyCall('!=', [DummyCall('==', ['w', 'x']), 'y']), 'z'])
 
 
 def test_multi_no_assoc_precedence():
@@ -85,4 +84,4 @@ def test_multi_no_assoc_precedence():
     slurp = ['w', (op, 4, 'none'), 'x', ('!=', 7, 'none'),
              'y', (op, 4, 'none'), 'z']
     pos, ast = scope.parse_binary_subexpr(slurp, slurp[0])
-    assert ast == ASTCall('==', ['w', ASTCall('!=', ['x', 'y']), 'z'])
+    assert ast == DummyCall('==', ['w', DummyCall('!=', ['x', 'y']), 'z'])

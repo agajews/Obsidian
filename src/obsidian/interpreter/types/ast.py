@@ -6,6 +6,7 @@ from ..bootstrap import (
     nil
 )
 from .int import Int
+from .float import Float
 from .list import List
 from .symbol import Symbol
 
@@ -73,6 +74,27 @@ class ASTIntType(Type):
 
     def fun(self, val, sigil):
         return ASTInt(val, sigil)
+
+
+class ASTFloat(Object):
+    def __init__(self, val, sigil=None):
+        if not isinstance(val, Float):
+            raise Panic('Invalid float')
+        if sigil is not nil and not isinstance(sigil, String):
+            raise Panic('Invalid sigil')
+        super().__init__(
+            {'float': val, 'sigil': nil if sigil is None else sigil}, ast_float_type)
+
+    def __repr__(self):
+        return 'ASTFloat({}, {})'.format(self.get('float'), self.get('sigil'))
+
+
+class ASTFloatType(Type):
+    def __init__(self):
+        super().__init__('Float', ast_node_type, ['float', 'sigil'])
+
+    def fun(self, val, sigil):
+        return ASTFloat(val, sigil)
 
 
 class ASTSymbol(Object):
@@ -156,6 +178,8 @@ def model_to_ast(model):
         return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else nil)
     elif isinstance(model, sem.Int):
         return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else nil)
+    elif isinstance(model, sem.Float):
+        return ASTFloat(Float(model.val), String(model.sigil) if model.sigil is not None else nil)
     elif isinstance(model, sem.List):
         return ASTList(List([model_to_ast(elem) for elem in model.elements]))
     elif isinstance(model, sem.Symbol):
@@ -171,7 +195,7 @@ ast_node_type = ASTNodeType()
 ast_ident_type = ASTIdentType()
 ast_string_type = ASTStringType()
 ast_int_type = ASTIntType()
-# ASTFloatType = Type('Float', ASTNodeType)
+ast_float_type = ASTFloatType()
 # ASTInterpolatedStringType = Type('InterpolatedString', ASTNodeType)
 ast_symbol_type = ASTSymbolType()
 ast_list_type = ASTListType()

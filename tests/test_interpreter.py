@@ -125,7 +125,6 @@ def test_fun(capsys):
     (let 'ASTIdent' (get_attr ast 'Ident'))
     (let 'ASTString' (get_attr ast 'String'))
     (let 'puts' (get_attr prim 'puts'))
-    (let 'nil' (get_attr prim 'nil'))
     (let 'hello' (Fun [(ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])]))
     (hello)
     '''
@@ -141,7 +140,6 @@ def test_eval(capsys):
     (let 'ASTIdent' (get_attr ast 'Ident'))
     (let 'ASTString' (get_attr ast 'String'))
     (let 'puts' (get_attr prim 'puts'))
-    (let 'nil' (get_attr prim 'nil'))
     (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])
     '''
     target = ['Hello, World!']
@@ -169,6 +167,16 @@ def test_int(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_float(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr 3.0 'to_str'))
+    '''
+    target = ['3.0']
+    assert get_output(source, capsys) == target
+
+
 def test_symbol(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
@@ -176,6 +184,358 @@ def test_symbol(capsys):
     puts ((get_attr @hello 'to_str'))
     '''
     target = ['@hello']
+    assert get_output(source, capsys) == target
+
+
+def test_bool_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr true 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_bool_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr false 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_int_add(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_add' (get_attr int 'add')
+    puts ((get_attr (int_add 1 2) 'to_str'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_int_sub(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_sub' (get_attr int 'sub')
+    puts ((get_attr (int_sub 10 2) 'to_str'))
+    '''
+    target = ['8']
+    assert get_output(source, capsys) == target
+
+
+def test_int_mul(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_mul' (get_attr int 'mul')
+    puts ((get_attr (int_mul 2 2) 'to_str'))
+    '''
+    target = ['4']
+    assert get_output(source, capsys) == target
+
+
+def test_int_floor_div(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_floor_div' (get_attr int 'floor_div')
+    puts ((get_attr (int_floor_div 10 4) 'to_str'))
+    '''
+    target = ['2']
+    assert get_output(source, capsys) == target
+
+
+def test_int_mod(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_mod' (get_attr int 'mod')
+    puts ((get_attr (int_mod 11 4) 'to_str'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_int_pow(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_pow' (get_attr int 'pow')
+    puts ((get_attr (int_pow 2 5) 'to_str'))
+    '''
+    target = ['32']
+    assert get_output(source, capsys) == target
+
+
+def test_int_eq_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_eq' (get_attr int 'eq')
+    puts ((get_attr (int_eq 2 2 2) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_int_eq_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_eq' (get_attr int 'eq')
+    puts ((get_attr (int_eq 2 2 4) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_int_neq_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_neq' (get_attr int 'neq')
+    puts ((get_attr (int_neq 2 4 2) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_int_neq_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_neq' (get_attr int 'neq')
+    puts ((get_attr (int_neq 2 2 2) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_float_add(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_add' (get_attr float 'add')
+    puts ((get_attr (float_add 1.0 2.0) 'to_str'))
+    '''
+    target = ['3.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_sub(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_sub' (get_attr float 'sub')
+    puts ((get_attr (float_sub 10.0 2.0) 'to_str'))
+    '''
+    target = ['8.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_mul(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_mul' (get_attr float 'mul')
+    puts ((get_attr (float_mul 2.0 2.0) 'to_str'))
+    '''
+    target = ['4.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_div(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_div' (get_attr float 'div')
+    puts ((get_attr (float_div 4.0 2.0) 'to_str'))
+    '''
+    target = ['2.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_floor_div(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_floor_div' (get_attr float 'floor_div')
+    puts ((get_attr (float_floor_div 10.0 4.0) 'to_str'))
+    '''
+    target = ['2.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_mod(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_mod' (get_attr float 'mod')
+    puts ((get_attr (float_mod 11.0 4.0) 'to_str'))
+    '''
+    target = ['3.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_pow(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_pow' (get_attr float 'pow')
+    puts ((get_attr (float_pow 2.0 5.0) 'to_str'))
+    '''
+    target = ['32.0']
+    assert get_output(source, capsys) == target
+
+
+def test_float_eq_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_eq' (get_attr float 'eq')
+    puts ((get_attr (float_eq 2.0 2.0 2.0) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_float_eq_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_eq' (get_attr float 'eq')
+    puts ((get_attr (float_eq 2.0 2.0 4.0) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_float_neq_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_neq' (get_attr float 'neq')
+    puts ((get_attr (float_neq 2.0 4.0 2.0) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_float_neq_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_neq' (get_attr float 'neq')
+    puts ((get_attr (float_neq 2.0 2.0 2.0) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_binary_int_add(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_add' (get_attr int 'add')
+    puts ((get_attr 1 ~int_add 2 'to_str'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_binary_int_precedence(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_add' (get_attr int 'add')
+    let 'int_mul' (get_attr int 'mul')
+    puts ((get_attr 1 ~int_add 2 ~int_mul 2 ~int_add 5 'to_str'))
+    '''
+    target = ['10']
+    assert get_output(source, capsys) == target
+
+
+def test_binary_int_associativity(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_add' (get_attr int 'add')
+    let 'int_pow' (get_attr int 'pow')
+    puts ((get_attr 1 ~int_add 4 ~int_pow 2 ~int_pow 3 'to_str'))
+    '''
+    target = ['65537']
+    assert get_output(source, capsys) == target
+
+
+def test_binary_int_no_associativity(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'plus' (get_attr int 'add')
+    let 'pow' (get_attr int 'pow')
+    let 'eq' (get_attr int 'eq')
+    puts ((get_attr 2 ~plus 6 ~eq 2 ~pow 3 ~eq 8 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_binary_ops(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let '+' (get_attr int 'add')
+    let '^' (get_attr int 'pow')
+    let '==' (get_attr int 'eq')
+    puts ((get_attr 2 + 6 == 2^3 == 8 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_binary_op_neq(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let '+' (get_attr int 'add')
+    let '^' (get_attr int 'pow')
+    let '!=' (get_attr int 'neq')
+    puts ((get_attr 2 + 5 != 2^3 != 7 'to_str'))
+    '''
+    target = ['true']
     assert get_output(source, capsys) == target
 
 
