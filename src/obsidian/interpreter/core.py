@@ -10,7 +10,7 @@ from .types.ast import (
     ast_list_type, ast_tuple_type, ast_call_type, ast_binary_slurp_type, ast_symbol_type,
 )
 from .funs import (
-    get_attr, set_attr, let, puts, int, float, cond,
+    get_attr, set_attr, let, puts, cond, int, float, list, string,
 )
 
 
@@ -76,6 +76,16 @@ prim.set('float', Module('float', parent=prim, attrs={
     'pow': float.pow,
     'eq': float.eq,
     'neq': float.neq,
+}))
+
+
+prim.set('list', Module('list', parent=prim, attrs={
+    'get': list.get,
+}))
+
+
+prim.set('string', Module('string', parent=prim, attrs={
+    'concat': string.concat,
 }))
 
 

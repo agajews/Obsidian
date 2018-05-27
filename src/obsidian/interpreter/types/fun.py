@@ -15,6 +15,7 @@ class Fun(Object):
     def call(self, caller_scope, args):
         scope = Scope(self.get('defn_scope'))
         scope.get('meta').set('args', List(args))
+        scope.get('meta').set('caller', caller_scope)
         scope.get('meta').set('fun', self)
         scope.set('return', ret)
         body = self.get('body').get('elems')

@@ -1,6 +1,8 @@
 from obsidian.parser import parse
 from obsidian.interpreter import load_module, prim
+from obsidian.interpreter.types import Panic
 from textwrap import dedent
+import pytest
 
 
 def get_output(source, capsys):
@@ -151,6 +153,19 @@ def test_scope(capsys):
     puts (get_attr (get_attr meta 'scope') 's')
     '''
     target = ['test_str']
+    assert get_output(source, capsys) == target
+
+
+def test_list(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'l' [1, 2, 3]
+    let 'list' (get_attr prim 'list')
+    let 'list_get' (get_attr list 'get')
+    puts ((get_attr (list_get l 1) 'to_str'))
+    '''
+    target = ['2']
     assert get_output(source, capsys) == target
 
 
@@ -621,4 +636,77 @@ def test_inheritance(capsys):
     ((get_attr butch 'bark'))
     '''
     target = ['Woof!']
+    assert get_output(source, capsys) == target
+
+
+def test_statics(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Object' (get_attr prim 'Object')
+    let 'Type' (get_attr prim 'Type')
+    let 'Dog' (Type 'Dog' Object)
+    set_attr (get_attr Dog 'statics') 'species' 'C. lupus'
+    let 'butch' (Object Dog)
+    puts (get_attr butch 'species')
+    '''
+    target = ['C. lupus']
+    assert get_output(source, capsys) == target
+
+
+def test_statics_inheritance(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Object' (get_attr prim 'Object')
+    let 'Type' (get_attr prim 'Type')
+    let 'Dog' (Type 'Dog' Object)
+    set_attr (get_attr Dog 'statics') 'species' 'C. lupus'
+    let 'Beagle' (Type 'Beagle' Dog)
+    let 'butch' (Object Beagle)
+    puts (get_attr butch 'species')
+    '''
+    target = ['C. lupus']
+    assert get_output(source, capsys) == target
+
+
+def test_statics_inheritance_missing(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Object' (get_attr prim 'Object')
+    let 'Type' (get_attr prim 'Type')
+    let 'Dog' (Type 'Dog' Object)
+    let 'Beagle' (Type 'Beagle' Dog)
+    let 'butch' (Object Beagle)
+    puts (get_attr butch 'species')
+    '''
+    with pytest.raises(Panic):
+        get_output(source, capsys)
+
+
+def test_methods(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Object' (get_attr prim 'Object')
+    let 'Type' (get_attr prim 'Type')
+    let 'Dog' (Type 'Dog' Object)
+    let 'list' (get_attr prim 'list')
+    let 'list_get' (get_attr list 'get')
+    let 'string' (get_attr prim 'string')
+    let 'strcat' (get_attr string 'concat')
+    set_attr (get_attr Dog 'methods') 'greet' (Fun 'greet' [
+        (let 'raw_name' (list_get (get_attr meta 'args') 1)),
+        (let 'name' ((get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval') raw_name)),
+        (puts (strcat 'Woof ' name '!')),
+    ])
+    let 'butch' (Object Dog)
+    ((get_attr butch 'greet') 'Jim')
+    '''
+    target = ['Woof Jim!']
     assert get_output(source, capsys) == target
