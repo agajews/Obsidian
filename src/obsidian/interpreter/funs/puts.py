@@ -1,4 +1,4 @@
-from ..bootstrap import PrimFun, String, Panic
+from ..types import PrimFun, String, Panic
 
 
 class Puts(PrimFun):

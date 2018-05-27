@@ -8,30 +8,13 @@ from ..bootstrap import (
 from .int import Int
 from .float import Float
 from .list import List
+from .tuple import Tuple
 from .symbol import Symbol
 
 
 class ASTNodeType(Type):
     def __init__(self):
         super().__init__('Node', object_type, [])
-
-
-class ASTIdent(Object):
-    def __init__(self, ident):
-        if not isinstance(ident, String):
-            raise Panic('Invalid ident')
-        super().__init__({'ident': ident}, ast_ident_type)
-
-    def __repr__(self):
-        return 'ASTIdent({})'.format(self.get('ident'))
-
-
-class ASTIdentType(Type):
-    def __init__(self):
-        super().__init__('Ident', ast_node_type, ['ident'])
-
-    def fun(self, ident):
-        return ASTIdent(ident)
 
 
 class ASTString(Object):
@@ -53,6 +36,24 @@ class ASTStringType(Type):
 
     def fun(self, string, sigil):
         return ASTString(string, sigil)
+
+
+class ASTIdent(Object):
+    def __init__(self, ident):
+        if not isinstance(ident, String):
+            raise Panic('Invalid ident')
+        super().__init__({'ident': ident}, ast_ident_type)
+
+    def __repr__(self):
+        return 'ASTIdent({})'.format(self.get('ident'))
+
+
+class ASTIdentType(Type):
+    def __init__(self):
+        super().__init__('Ident', ast_node_type, ['ident'])
+
+    def fun(self, ident):
+        return ASTIdent(ident)
 
 
 class ASTInt(Object):
@@ -134,8 +135,28 @@ class ASTListType(Type):
         return ASTList(lst)
 
 
+class ASTTuple(Object):
+    def __init__(self, elems):
+        if not isinstance(elems, Tuple):
+            raise Panic('Invalid tuple')
+        super().__init__({'elems': elems}, ast_tuple_type)
+
+    def __repr__(self):
+        return 'ASTTuple({})'.format(self.get('elems'))
+
+
+class ASTTupleType(Type):
+    def __init__(self):
+        super().__init__('Tuple', ast_node_type, ['tuple'])
+
+    def fun(self, tup):
+        return ASTTuple(tup)
+
+
 class ASTCall(Object):
     def __init__(self, callable_expr, args):
+        if not isinstance(args, List):
+            raise Panic('Args must be a list')
         super().__init__(
             {'callable': callable_expr, 'args': args}, ast_call_type)
 
@@ -182,6 +203,8 @@ def model_to_ast(model):
         return ASTFloat(Float(model.val), String(model.sigil) if model.sigil is not None else nil)
     elif isinstance(model, sem.List):
         return ASTList(List([model_to_ast(elem) for elem in model.elements]))
+    elif isinstance(model, sem.Tuple):
+        return ASTTuple(Tuple([model_to_ast(elem) for elem in model.elements]))
     elif isinstance(model, sem.Symbol):
         return ASTSymbol(Symbol(model.symbol))
     elif isinstance(model, sem.BinarySlurp):
@@ -192,15 +215,15 @@ def model_to_ast(model):
 
 
 ast_node_type = ASTNodeType()
-ast_ident_type = ASTIdentType()
 ast_string_type = ASTStringType()
+ast_ident_type = ASTIdentType()
 ast_int_type = ASTIntType()
 ast_float_type = ASTFloatType()
 # ASTInterpolatedStringType = Type('InterpolatedString', ASTNodeType)
 ast_symbol_type = ASTSymbolType()
 ast_list_type = ASTListType()
+ast_tuple_type = ASTTupleType()
 # ASTMapType = Type('Map', ASTNodeType)
-# ASTTupleType = Type('Tuple', ASTNodeType)
 ast_call_type = ASTCallType()
 # ASTPartialCallType = Type('PartialCall', ASTNodeType)
 # ASTUnquoteType = Type('Unquote', ASTNodeType)

@@ -19,6 +19,8 @@ class SymbolToStr(PrimFun):
         super().__init__('to_str', ['symbol'])
 
     def fun(self, symbol):
+        if not isinstance(symbol, Symbol):
+            raise Panic('Argument must be a symbol')
         return String('@{}'.format(symbol.symbol))
 
 

@@ -1,4 +1,4 @@
-from ..bootstrap import PrimFun, Panic, String
+from ..types import PrimFun, Panic, String
 
 
 class Let(PrimFun):

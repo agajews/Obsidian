@@ -1,5 +1,4 @@
-from ..bootstrap import String, PrimFun, Panic
-from ..types import Scope
+from ..types import Scope, String, PrimFun, Panic
 from ..types.ast import ASTIdent
 
 
@@ -28,6 +27,12 @@ class GetAttr(PrimFun):
                 return MethodFun(obj, obj_type.get('methods').get(attr.str))
             if obj_type.get('statics').has(attr.str):
                 return obj_type.get('statics').get(attr.str)
+            while obj_type.get('parent') is not obj_type:
+                obj_type = obj_type.get('parent')
+                if obj_type.get('methods').has(attr.str):
+                    return MethodFun(obj, obj_type.get('methods').get(attr.str))
+                if obj_type.get('statics').has(attr.str):
+                    return obj_type.get('statics').get(attr.str)
         return obj.get(attr.str)
 
 

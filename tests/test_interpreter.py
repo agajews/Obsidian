@@ -121,11 +121,8 @@ def test_fun(capsys):
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'ast' (get_attr prim 'ast'))
-    (let 'ASTCall' (get_attr ast 'Call'))
-    (let 'ASTIdent' (get_attr ast 'Ident'))
-    (let 'ASTString' (get_attr ast 'String'))
     (let 'puts' (get_attr prim 'puts'))
-    (let 'hello' (Fun [(ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])]))
+    let 'hello' (Fun 'hello' [(puts 'Hello, World!')])
     (hello)
     '''
     target = ['Hello, World!']
@@ -184,6 +181,16 @@ def test_symbol(capsys):
     puts ((get_attr @hello 'to_str'))
     '''
     target = ['@hello']
+    assert get_output(source, capsys) == target
+
+
+def test_string_to_str(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr 'Hello, World!' 'to_str'))
+    '''
+    target = ['Hello, World!']
     assert get_output(source, capsys) == target
 
 
@@ -539,11 +546,79 @@ def test_binary_op_neq(capsys):
     assert get_output(source, capsys) == target
 
 
-# def test_binary_slurp(capsys):
-#     source = '''
-#     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
-#     let 'puts' (get_attr prim 'puts')
-#     puts ((get_attr 1 + 2 'to_str'))
-#     '''
-#     target = ['3']
-#     assert get_output(source, capsys) == target
+def test_cond(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'cond' (get_attr prim 'cond')
+    let 'int' (get_attr prim 'int')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    puts (cond (1 + 1 == 2, 'Math works'))
+    '''
+    target = ['Math works']
+    assert get_output(source, capsys) == target
+
+
+def test_cond_multi(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'cond' (get_attr prim 'cond')
+    let 'int' (get_attr prim 'int')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '!=' (get_attr int 'neq')
+    puts (cond (1 + 1 != 2, 'Math is broken') (2 + 2 == 4,
+          'Math works') (1 + 1 == 2, 'Math still works'))
+    '''
+    target = ['Math works']
+    assert get_output(source, capsys) == target
+
+
+def test_cond_lazy(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'cond' (get_attr prim 'cond')
+    let 'int' (get_attr prim 'int')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '!=' (get_attr int 'neq')
+    cond (1 + 1 != 2, (puts 'Math is broken')) (2 + 2 == 4, (puts 'Math works')) (1 + 1 == 2, (puts 'Math still works'))
+    '''
+    target = ['Math works']
+    assert get_output(source, capsys) == target
+
+
+def test_types(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Object' (get_attr prim 'Object')
+    let 'Type' (get_attr prim 'Type')
+    let 'Dog' (Type 'Dog' Object)
+    set_attr (get_attr Dog 'methods') 'bark' (Fun 'bark' [(puts 'Woof!')])
+    let 'butch' (Object Dog)
+    ((get_attr butch 'bark'))
+    '''
+    target = ['Woof!']
+    assert get_output(source, capsys) == target
+
+
+def test_inheritance(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Object' (get_attr prim 'Object')
+    let 'Type' (get_attr prim 'Type')
+    let 'Dog' (Type 'Dog' Object)
+    set_attr (get_attr Dog 'methods') 'bark' (Fun 'bark' [(puts 'Woof!')])
+    let 'Beagle' (Type 'Beagle' Dog)
+    let 'butch' (Object Beagle)
+    ((get_attr butch 'bark'))
+    '''
+    target = ['Woof!']
+    assert get_output(source, capsys) == target

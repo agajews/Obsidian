@@ -26,6 +26,11 @@ class PrimObject:
     def __repr__(self):
         return 'PrimObject({})'.format(self.attrs)
 
+    def call(self, caller_scope, args):
+        if 'call' not in self.attrs:
+            raise Panic('Object not callable')
+        return self.get('call').call(caller_scope, args)
+
 
 class Object(PrimObject):
     def __init__(self, attrs, type=None):
@@ -33,11 +38,6 @@ class Object(PrimObject):
         if type is None:
             type = object_type
         self.attrs['meta'] = PrimObject({'type': type, 'meta': meta_obj})
-
-    def call(self, caller_scope, args):
-        if 'call' not in self.attrs:
-            raise Panic('Object not callable')
-        return self.get('call').call(caller_scope, args)
 
 
 class PrimFun(Object):
@@ -60,6 +60,24 @@ class PrimFun(Object):
         return self.fun(*[caller_scope.eval(arg) for arg in args])
 
 
+class ObjectTypeCall(PrimFun):
+    def __init__(self):
+        super().__init__('Object', ['type'])
+
+    def fun(self, type):
+        return Object({}, type)
+
+
+class TypeTypeCall(PrimFun):
+    def __init__(self):
+        super().__init__('Object', ['name', 'parent'])
+
+    def fun(self, name, parent):
+        return Object({'name': name, 'parent': parent,
+                       'methods': Object({}, object_type),
+                       'statics': Object({}, object_type)}, type_type)
+
+
 class StringTypeCall(PrimFun):
     def __init__(self):
         super().__init__('String', ['ast'])
@@ -74,6 +92,16 @@ class StringTypeCall(PrimFun):
         if sigil is nil:
             return string
         raise Panic('Sigil {} not implemented'.format(sigil.str))
+
+
+class StringToStr(PrimFun):
+    def __init__(self):
+        super().__init__('to_str', ['str'])
+
+    def fun(self, string):
+        if not isinstance(string, String):
+            raise Panic('Argument must be a string')
+        return string
 
 
 class String(Object):
@@ -97,7 +125,7 @@ class Type(PrimFun):
         self.set('statics', Object(statics))
 
     def fun(self, *args):
-        return nil
+        raise Panic('Type {} cannot be instantiated'.format(self.get('name')))
 
 
 class MetaType(Type):
@@ -143,14 +171,25 @@ type_type.set('meta', PrimObject(
 
 object_type = Object({'name': String('Object')}, type_type)
 object_type.set('parent', object_type)
+object_type.set('methods', Object({}, object_type))
+object_type.set('statics', Object({}, object_type))
 type_type.set('parent', object_type)
+type_type.set('methods', Object({}, object_type))
+type_type.set('statics', Object({}, object_type))
+string_type.set('statics', Object({}, object_type))
 
 prim_fun_type = Object(
     {'name': String('PrimFun'), 'parent': object_type}, type_type)
-string_type_call = StringTypeCall()
-string_type.set('call', string_type_call)
+prim_fun_type.set('methods', Object({}, object_type))
+prim_fun_type.set('statics', Object({}, object_type))
+string_type.set('call', StringTypeCall())
+object_type.set('call', ObjectTypeCall())
+type_type.set('call', TypeTypeCall())
+string_type.set('methods', Object({'to_str': StringToStr()}, object_type))
 
 meta_type = MetaType()
+meta_type.set('methods', Object({}, object_type))
+meta_type.set('statics', Object({}, object_type))
 meta_obj.set('type', meta_type)
 
 nil_type = NilType()

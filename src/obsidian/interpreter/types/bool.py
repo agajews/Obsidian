@@ -19,6 +19,8 @@ class BoolToStr(PrimFun):
         super().__init__('to_str', ['bool'])
 
     def fun(self, bool):
+        if not isinstance(bool, Bool):
+            raise Panic('Argument must be a bool')
         return String('true' if bool.bool else 'false')
 
 

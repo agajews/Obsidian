@@ -1,4 +1,4 @@
-from ..bootstrap import String, PrimFun, Panic
+from ..types import String, PrimFun, Panic
 
 
 class SetAttr(PrimFun):

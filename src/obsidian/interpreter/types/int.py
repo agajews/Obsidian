@@ -11,7 +11,7 @@ class Int(Object):
         self.int = val
 
     def __repr__(self):
-        return str(self.int)
+        return 'Int({})'.format(str(self.int))
 
 
 class IntToStr(PrimFun):
@@ -19,6 +19,8 @@ class IntToStr(PrimFun):
         super().__init__('to_str', ['int'])
 
     def fun(self, int):
+        if not isinstance(int, Int):
+            raise Panic('Argument must be an int')
         return String(str(int.int))
 
 

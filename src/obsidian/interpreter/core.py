@@ -1,15 +1,16 @@
 from .types import (
     Module,
-    fun_type, scope_type, module_type, int_type, float_type, list_type, bool_type, true, false,
+    fun_type, scope_type, module_type, int_type, float_type, list_type, tuple_type,
+    bool_type, true, false,
     symbol_type, type_type, string_type, object_type, prim_fun_type, meta_type, nil_type, nil
 )
 from .types.ast import (
     model_to_ast,
-    ast_node_type, ast_ident_type, ast_string_type, ast_int_type, ast_float_type, ast_list_type,
-    ast_call_type, ast_binary_slurp_type, ast_symbol_type,
+    ast_node_type, ast_ident_type, ast_string_type, ast_int_type, ast_float_type,
+    ast_list_type, ast_tuple_type, ast_call_type, ast_binary_slurp_type, ast_symbol_type,
 )
 from .funs import (
-    get_attr, set_attr, let, puts, int, float,
+    get_attr, set_attr, let, puts, int, float, cond,
 )
 
 
@@ -21,18 +22,17 @@ prim = Module('prim', attrs={
     'Fun': fun_type,
     'Module': module_type,
     'Scope': scope_type,
-
     'String': string_type,
     'List': list_type,
+    'Tuple': tuple_type,
     'Int': int_type,
     'Float': float_type,
     'Symbol': symbol_type,
     'Bool': bool_type,
-
     'Nil': nil_type,
 
     'let': let,
-
+    'cond': cond,
     'puts': puts,
 })
 
@@ -44,14 +44,12 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Float': ast_float_type,
     'Symbol': ast_symbol_type,
     # 'InterpolatedString': ASTInterpolatedStringType,
-    # 'Symbol': ASTSymbolType,
     'List': ast_list_type,
-    # 'Tuple': ASTTupleType,
+    'Tuple': ast_tuple_type,
     # 'Map': ASTMapType,
     'Call': ast_call_type,
 
     # 'Unquote': ASTUnquoteType,
-    # 'Binary': ASTBinaryType,
     'BinarySlurp': ast_binary_slurp_type,
     # 'Block': ASTBlockType,
 }))

@@ -5,11 +5,13 @@ from ..bootstrap import (
     nil,
 )
 from .ast import (
-    ASTIdent, ASTString, ASTInt, ASTFloat, ASTList, ASTCall, ASTBinarySlurp, ASTSymbol,
+    ASTIdent, ASTString, ASTInt, ASTFloat, ASTList, ASTTuple,
+    ASTCall, ASTBinarySlurp, ASTSymbol,
 )
 from .int import int_type, Int
 from .float import float_type
 from .list import list_type, List
+from .tuple import tuple_type
 from .symbol import symbol_type, Symbol
 
 
@@ -125,6 +127,8 @@ class Scope(Object):
             return symbol_type.call(self, [ast])
         elif isinstance(ast, ASTList):
             return list_type.call(self, [ast])
+        elif isinstance(ast, ASTTuple):
+            return tuple_type.call(self, [ast])
         elif isinstance(ast, ASTBinarySlurp):
             slurp = ast.get('slurp')
             if not isinstance(slurp, List):

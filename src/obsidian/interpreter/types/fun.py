@@ -7,9 +7,9 @@ from .list import List
 
 
 class Fun(Object):
-    def __init__(self, defn_scope, body):
+    def __init__(self, defn_scope, name, body):
         super().__init__(
-            {'body': body, 'defn_scope': defn_scope}, fun_type)
+            {'name': name, 'body': body, 'defn_scope': defn_scope}, fun_type)
         # print(f'Created fun with body {body}')
 
     def call(self, caller_scope, args):
@@ -17,7 +17,7 @@ class Fun(Object):
         scope.get('meta').set('args', List(args))
         scope.get('meta').set('fun', self)
         scope.set('return', ret)
-        body = self.get('body')
+        body = self.get('body').get('elems')
         if not isinstance(body, List):
             raise Panic('Function body must be a list')
         try:
@@ -33,10 +33,10 @@ class Fun(Object):
 
 class FunType(Type):
     def __init__(self):
-        super().__init__('Fun', object_type, ['body'])
+        super().__init__('Fun', object_type, ['name', 'body'])
 
-    def macro(self, scope, body):
-        return Fun(scope, scope.eval(body))
+    def macro(self, scope, name, body):
+        return Fun(scope, name, body)
 
 
 class ReturnException(Exception):

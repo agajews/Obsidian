@@ -19,6 +19,8 @@ class FloatToStr(PrimFun):
         super().__init__('to_str', ['float'])
 
     def fun(self, float):
+        if not isinstance(float, Float):
+            raise Panic('Argument must be a float')
         return String(str(float.float))
 
 
