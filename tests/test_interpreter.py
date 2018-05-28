@@ -158,19 +158,17 @@ def test_return_nested(capsys):
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
-    let 'fn1' (Fun 'fn1' [(puts 'All'), (return 'You'), (puts 'Yay!')])
+    let 'fn1' (Fun 'fn1' [(puts 'You'), (return 'All'), (puts 'Yay!')])
     let 'fn2' (Fun 'fn2' [(puts 'Hello'), (return (fn1)), (puts 'Yay!')])
     puts (fn2)
-    puts 'People'
     '''
-    target = ['Hello', 'All', 'You', 'People']
+    target = ['Hello', 'You', 'All']
     assert get_output(source, capsys) == target
 
 
 def test_is(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
-    (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'is' (get_attr prim 'is'))
     let 'x' 3
@@ -179,6 +177,20 @@ def test_is(capsys):
     puts x ~is y
     '''
     target = ['true', 'false']
+    assert get_output(source, capsys) == target
+
+
+def test_attrs(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'attrs' (get_attr prim 'attrs'))
+    puts (attrs 'str')
+    let 'x' 3
+    (set_attr x 'a' 'b')
+    puts (attrs x)
+    '''
+    target = ['[meta]', '[meta, a]']
     assert get_output(source, capsys) == target
 
 
