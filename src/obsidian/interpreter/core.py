@@ -44,6 +44,7 @@ from .funs import (
     set_attr,
     let,
     assign,
+    panic,
     puts,
     cond,
     while_fn,
@@ -77,6 +78,7 @@ prim = Module('prim', attrs={
 
     'let': let,
     'assign': assign,
+    'panic': panic,
     'cond': cond,
     'while': while_fn,
     'puts': puts,
@@ -162,10 +164,10 @@ builtin_vars = {
 }
 
 
-def load_module(statements, source_map, name, preload=None):
+def load_module(statements, source_map, module_name, preload=None):
     if preload is None:
         preload = {}
-    module = Module(name)
+    module = Module(module_name)
     for name, obj in builtin_vars.items():
         module.set(name, obj)
     for name, obj in preload.items():
@@ -178,7 +180,7 @@ def load_module(statements, source_map, name, preload=None):
     except Panic as p:
         if p.parseinfo is not None:
             print('Module `{}` panicked at line {}:'.format(
-                name, p.parseinfo.line + 1))
+                module_name, p.parseinfo.line + 1))
             print('Panic: {}'.format(p.msg))
         else:
             print('Panic: {}'.format(p.msg))

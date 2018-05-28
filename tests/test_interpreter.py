@@ -128,6 +128,19 @@ def test_fun(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_panic(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic 'Panicking')])
+    (danger)
+    '''
+    target = ['Module `test` panicked at line 7:', 'Panic: Panicking']
+    assert get_output(source, capsys) == target
+
+
 def test_eval(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
@@ -1369,7 +1382,7 @@ def test_statics_inheritance_missing(capsys):
     puts (get_attr butch 'species')
     '''
     output = get_output(source, capsys)
-    assert output == ['Module `prim` panicked at line 10:',
+    assert output == ['Module `test` panicked at line 10:',
                       'Panic: Object has no attribute species']
 
 
