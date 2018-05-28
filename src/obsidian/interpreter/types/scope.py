@@ -27,20 +27,6 @@ from .tuple import tuple_type, Tuple
 from .symbol import symbol_type, Symbol
 
 
-# class DummyCall:
-#     def __init__(self, callable_expr, args):
-#         self.callable_expr = callable_expr  # already evaluated
-#         self.args = args
-#
-#     def __repr__(self):
-#         return 'DummyCall({}, {})'.format(self.callable_expr, self.args)
-#
-#     def __eq__(self, other):
-#         if type(other) is type(self):
-#             return self.__dict__ == other.__dict__
-#         return False
-#
-
 class Scope(Object):
     def __init__(self, parent=None):
         super().__init__({}, scope_type)
@@ -145,8 +131,6 @@ class Scope(Object):
     def eval(self, ast):
         if isinstance(ast, ASTCall):
             return self.eval(ast.get('callable')).call(self, ast.get('args').elems)
-        # elif isinstance(ast, DummyCall):
-        #     return ast.callable_expr.call(self, ast.args)
         elif isinstance(ast, ASTIdent):
             ident = ast.get('ident')
             if not isinstance(ident, String):
@@ -166,8 +150,6 @@ class Scope(Object):
             strings = [get_attr.call(self, [elem, ASTString(String('to_str'))]).call(self, [])
                        for elem in body.elems]
             return String(''.join(s.str for s in strings))
-            # return concat.call(self, [ASTCall(DummyCall(get_attr, [elem, ASTString(String('to_str'))]), List([]))
-            #                           for elem in ast.get('body').elems])
         elif isinstance(ast, ASTInt):
             return int_type.call(self, [ast])
         elif isinstance(ast, ASTFloat):
@@ -178,11 +160,6 @@ class Scope(Object):
             return list_type.call(self, [ast])
         elif isinstance(ast, ASTTuple):
             return tuple_type.call(self, [ast])
-        # elif isinstance(ast, ASTBinarySlurp):
-        #     slurp = ast.get('slurp')
-        #     if not isinstance(slurp, List):
-        #         raise Panic('Invalid binary slurp {}'.format(slurp))
-        #     return self.eval(self.parse_binary_slurp(slurp.elems))
         else:
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))
