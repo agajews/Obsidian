@@ -1275,6 +1275,37 @@ def test_float_sigil(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_string_sigil(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Object' (get_attr prim 'Object')
+    let 'String' (get_attr prim 'String')
+    let 'Type' (get_attr prim 'Type')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'FunnyString' (Type 'FunnyString' Object)
+    set_attr FunnyString 'call' (Fun 'FunnyString' [
+        (let 'self' (Object FunnyString)),
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'string' (eval (get_attr meta 'args')[0])),
+        (set_attr self 'string' string),
+        self,
+    ])
+    set_attr (get_attr FunnyString 'methods') 'to_str' (Fun 'FunnyString.to_str' [
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'self' (eval (get_attr meta 'args')[0])),
+        "haha $(get_attr self 'string')"
+    ])
+    let 's' (FunnyString 'I like cheese')
+    puts s
+    ((get_attr (get_attr String 'sigils') 'set') 'f' FunnyString)
+    let 's2' f'I also like cheese'
+    puts s2
+    '''
+    target = ['haha I like cheese', 'haha I also like cheese']
+    assert get_output(source, capsys) == target
+
+
 def test_inheritance(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
