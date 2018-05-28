@@ -1,6 +1,7 @@
 from .get_attr import get_attr
 from .set_attr import set_attr
 from .let import let
+from .assign import assign
 from .puts import puts
 from .cond import cond
 from .while_fn import while_fn
@@ -8,3 +9,4 @@ from . import int
 from . import float
 from . import list
 from . import map
+from . import object

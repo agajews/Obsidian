@@ -144,12 +144,27 @@ def test_eval(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_assign(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'assign' (get_attr prim 'assign')
+    let 'x' 'hi'
+    puts x
+    assign 'x' 'bye'
+    puts x
+    '''
+    target = ['hi', 'bye']
+    assert get_output(source, capsys) == target
+
+
 def test_block(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     let 'Fun' (get_attr prim 'Fun')
     let 'puts' (get_attr prim 'puts')
     let 'while' (get_attr prim 'while')
+    let 'assign' (get_attr prim 'assign')
     let '-' (get_attr (get_attr prim 'int') 'sub')
     let '>=' (get_attr (get_attr prim 'int') 'gte')
     let 'run' (Fun 'run' [
@@ -159,7 +174,7 @@ def test_block(capsys):
         (let 'i' n_args - 1),
         (while i >= 0 [
             (eval ((get_attr statements 'get') i)),
-            (let 'i' i - 1)
+            (assign 'i' i - 1)
         ]),
     ])
     run
@@ -167,6 +182,34 @@ def test_block(capsys):
         puts 'Hi again'
     '''
     target = ['Hi again', 'Hello, World!']
+    assert get_output(source, capsys) == target
+
+
+def test_block_global_i(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'Fun' (get_attr prim 'Fun')
+    let 'puts' (get_attr prim 'puts')
+    let 'while' (get_attr prim 'while')
+    let 'assign' (get_attr prim 'assign')
+    let '+' (get_attr (get_attr prim 'int') 'add')
+    let '<' (get_attr (get_attr prim 'int') 'lt')
+    let 'i' 0
+    let 'run' (Fun 'run' [
+        (let 'statements' (get_attr ((get_attr (get_attr meta 'args') 'get') 0) 'statements')),
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'n_args' ((get_attr statements 'len'))),
+        (while i < n_args [
+            (eval ((get_attr statements 'get') i)),
+            (assign 'i' i + 1)
+        ]),
+    ])
+    run
+        puts 'Hello, World!'
+        puts 'Hi again'
+    puts ((get_attr i 'to_str'))
+    '''
+    target = ['Hello, World!', 'Hi again', '2']
     assert get_output(source, capsys) == target
 
 

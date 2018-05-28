@@ -170,6 +170,7 @@ type_type.set('parent', object_type)
 type_type.set('methods', Object({}, object_type))
 type_type.set('statics', Object({}, object_type))
 string_type.set('statics', Object({}, object_type))
+string_type.set('parent', object_type)
 
 prim_fun_type = Object(
     {'name': String('PrimFun'), 'parent': object_type}, type_type)
@@ -183,6 +184,7 @@ string_type.set('methods', Object({'to_str': StringToStr()}, object_type))
 meta_type = MetaType()
 meta_type.set('methods', Object({}, object_type))
 meta_type.set('statics', Object({}, object_type))
+meta_type.set('parent', object_type)
 meta_obj.set('type', meta_type)
 
 nil_type = NilType()

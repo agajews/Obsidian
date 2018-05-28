@@ -11,6 +11,8 @@ class Let(PrimFun):
         val = scope.eval(val)
         if not isinstance(name, String):
             raise Panic('Name must be a string')
+        if scope.has(name.str):
+            raise Panic('Redeclarations are not allowed')
         return scope.set(name.str, val)
 
 

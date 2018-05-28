@@ -153,6 +153,20 @@ class Scope(Object):
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))
 
+    def get_recursive(self, name):
+        if name in self.attrs:
+            return self.get(name)
+        if self.get('meta').get('parent') is not nil:
+            return self.get('meta').get('parent').get_recursive(name)
+        raise Panic('No such object `{}`'.format(name))
+
+    def assign_recursive(self, name, val):
+        if name in self.attrs:
+            return self.set(name, val)
+        if self.get('meta').get('parent') is not nil:
+            return self.get('meta').get('parent').assign_recursive(name, val)
+        raise Panic('No such object `{}`'.format(name))
+
     def eval(self, ast):
         if isinstance(ast, ASTCall):
             return self.eval(ast.get('callable')).call(self, ast.get('args').elems)
@@ -160,12 +174,7 @@ class Scope(Object):
             ident = ast.get('ident')
             if not isinstance(ident, String):
                 raise Panic('Invalid ident')
-            ident = ident.str
-            if ident in self.attrs:
-                return self.get(ident)
-            if self.get('meta').get('parent') is not nil:
-                return self.get('meta').get('parent').eval(ast)
-            raise Panic('No such object `{}`'.format(ident))
+            return self.get_recursive(ident.str)
         elif isinstance(ast, ASTString):
             return string_type.call(self, [ast])
         elif isinstance(ast, ASTInterpolatedString):
