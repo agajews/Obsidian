@@ -45,6 +45,7 @@ from .funs import (
     int,
     float,
     list,
+    tuple,
     string,
 )
 
@@ -117,6 +118,11 @@ prim.set('float', Module('float', parent=prim, attrs={
 
 prim.set('list', Module('list', parent=prim, attrs={
     'get': list.get,
+}))
+
+
+prim.set('tuple', Module('tuple', parent=prim, attrs={
+    'get': tuple.get,
 }))
 
 

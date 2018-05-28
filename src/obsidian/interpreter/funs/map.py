@@ -3,7 +3,7 @@ from ..bootstrap import (
     Panic,
 )
 from ..types import Map, List, Tuple, map_type
-from ..types.scope import get_attr
+from .get_attr import get_attr
 
 
 class MapConstructor(PrimFun):

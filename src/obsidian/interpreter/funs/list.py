@@ -1,4 +1,12 @@
-from ..types import PrimFun, Panic, List, Int
+from ..types import (
+    PrimFun,
+    Panic,
+    List,
+    Int,
+    String,
+    list_type
+)
+from .get_attr import get_attr
 
 
 class Get(PrimFun):
@@ -13,4 +21,21 @@ class Get(PrimFun):
         return lst.elems[idx.int]
 
 
+class ListToStr(PrimFun):
+    def __init__(self):
+        super().__init__('List', ['list'])
+
+    def macro(self, scope, lst):
+        lst = scope.eval(lst)
+        if not isinstance(lst, List):
+            raise Panic('Argument must be a list')
+        strings = [get_attr.fun(elem, String('to_str')).call(scope)
+                   for elem in lst.elems]
+        for string in strings:
+            if not isinstance(string, String):
+                raise Panic('to_str must return a string')
+        return String('[' + ', '.join(string.str for string in strings) + ']')
+
+
 get = Get()
+list_type.get('methods').set('to_str', ListToStr())
