@@ -199,6 +199,45 @@ def test_symbol(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_unquote(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    (let 'ast' (get_attr prim 'ast'))
+    (let 'ASTIdent' (get_attr ast 'Ident'))
+    $(ASTIdent 'puts') 'Hello, World!'
+    '''
+    target = ['Hello, World!']
+    assert get_output(source, capsys) == target
+
+
+def test_unquote_double(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    (let 'ast' (get_attr prim 'ast'))
+    (let 'ASTIdent' (get_attr ast 'Ident'))
+    let 'puts_node' (ASTIdent 'puts')
+    $$(ASTIdent 'puts_node') 'Hello, World!'
+    '''
+    target = ['Hello, World!']
+    assert get_output(source, capsys) == target
+
+
+def test_unquote_nested(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    (let 'ast' (get_attr prim 'ast'))
+    (let 'ASTIdent' (get_attr ast 'Ident'))
+    (let 'ASTString' (get_attr ast 'String'))
+    let 'puts_str' (ASTString 'puts' nil)
+    $(ASTIdent $puts_str) 'Hello, World!'
+    '''
+    target = ['Hello, World!']
+    assert get_output(source, capsys) == target
+
+
 def test_string_to_str(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let

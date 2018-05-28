@@ -32,6 +32,7 @@ from .types.ast import (
     ast_call_type,
     ast_binary_slurp_type,
     ast_symbol_type,
+    ast_unquote_type,
 )
 from .funs import (
     get_attr,
@@ -80,9 +81,10 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Tuple': ast_tuple_type,
     # 'Map': ASTMapType,
     'Call': ast_call_type,
-    # 'Unquote': ASTUnquoteType,
+    'Unquote': ast_unquote_type,
     'BinarySlurp': ast_binary_slurp_type,
     # 'Block': ASTBlockType,
+    # 'Trailed': ast_trailed_type
 }))
 
 prim.set('int', Module('int', parent=prim, attrs={

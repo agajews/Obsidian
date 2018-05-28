@@ -19,6 +19,7 @@ from .ast import (
     ASTCall,
     ASTBinarySlurp,
     ASTSymbol,
+    ASTUnquote,
 )
 from .int import int_type, Int
 from .float import float_type
@@ -124,6 +125,8 @@ class Scope(Object):
             if not isinstance(slurp, List):
                 raise Panic('Invalid binary slurp {}'.format(slurp))
             return self.parse_binary_slurp(slurp.elems)
+        elif isinstance(ast, ASTUnquote):
+            return self.eval(self.preprocess(ast.get('expr')))
         else:
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))

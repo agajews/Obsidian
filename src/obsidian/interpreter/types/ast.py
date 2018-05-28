@@ -207,7 +207,7 @@ class ASTBinarySlurp(Object):
         super().__init__({'slurp': slurp}, ast_binary_slurp_type)
 
     def __repr__(self):
-        return ' '.join(str(e) for e in self.get('slurp').elems)
+        return 'ASTBinarySlurp({})'.format(' '.join(str(e) for e in self.get('slurp').elems))
 
 
 class ASTBinarySlurpType(Type):
@@ -216,6 +216,22 @@ class ASTBinarySlurpType(Type):
 
     def fun(self, slurp):
         return ASTBinarySlurp(slurp)
+
+
+class ASTUnquote(Object):
+    def __init__(self, expr):
+        super().__init__({'expr': expr}, ast_unquote_type)
+
+    def __repr__(self):
+        return 'Unquote({})'.format(self.get('expr'))
+
+
+class ASTUnquoteType(Type):
+    def __init__(self):
+        super().__init__('Unquote', ast_node_type, ['expr'])
+
+    def fun(self, expr):
+        return ASTUnquote(expr)
 
 
 def model_to_ast(model):
@@ -239,6 +255,8 @@ def model_to_ast(model):
         return ASTSymbol(Symbol(model.symbol))
     elif isinstance(model, sem.BinarySlurp):
         return ASTBinarySlurp(List([model_to_ast(elem) for elem in model.slurp]))
+    elif isinstance(model, sem.Unquote):
+        return ASTUnquote(model_to_ast(model.expr))
     else:
         raise NotImplementedError(
             'Translation of model node {} to AST not implemented'.format(model))
@@ -255,8 +273,7 @@ ast_list_type = ASTListType()
 ast_tuple_type = ASTTupleType()
 # ASTMapType = Type('Map', ASTNodeType)
 ast_call_type = ASTCallType()
-# ASTPartialCallType = Type('PartialCall', ASTNodeType)
-# ASTUnquoteType = Type('Unquote', ASTNodeType)
+ast_unquote_type = ASTUnquoteType()
 ast_binary_slurp_type = ASTBinarySlurpType()
 # ASTBlockType = Type('Block', ASTNodeType)
 # ast_trailed_type = ASTTrailedType()
