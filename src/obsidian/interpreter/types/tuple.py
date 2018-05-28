@@ -9,7 +9,7 @@ from ..bootstrap import (
 class Tuple(Object):
     def __init__(self, elems):
         super().__init__({}, tuple_type)
-        self.elems = elems
+        self.elems = tuple(elems)
 
     def __repr__(self):
         return str(self.elems)

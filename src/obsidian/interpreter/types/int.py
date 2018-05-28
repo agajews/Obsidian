@@ -27,10 +27,21 @@ class IntToStr(PrimFun):
         return String(str(int.int))
 
 
+class IntHash(PrimFun):
+    def __init__(self):
+        super().__init__('hash', ['int'])
+
+    def fun(self, int):
+        if not isinstance(int, Int):
+            raise Panic('Argument must be an int')
+        return Int(hash(int.int))
+
+
 class IntType(Type):
     def __init__(self):
         super().__init__('Int', object_type, ['ast'],
-                         methods={'to_str': IntToStr()})
+                         methods={'to_str': IntToStr(),
+                                  'hash': IntHash()})
 
     def macro(self, scope, ast):
         int = ast.get('int')

@@ -6,6 +6,7 @@ from ..bootstrap import (
     String,
     object_type,
 )
+from .int import Int
 
 
 class Float(Object):
@@ -27,10 +28,21 @@ class FloatToStr(PrimFun):
         return String(str(float.float))
 
 
+class FloatHash(PrimFun):
+    def __init__(self):
+        super().__init__('hash', ['float'])
+
+    def fun(self, float):
+        if not isinstance(float, Float):
+            raise Panic('Argument must be a float')
+        return Int(hash(float.float))
+
+
 class FloatType(Type):
     def __init__(self):
         super().__init__('Float', object_type, ['ast'],
-                         methods={'to_str': FloatToStr()})
+                         methods={'to_str': FloatToStr(),
+                                  'hash': FloatHash()})
 
     def macro(self, scope, ast):
         float = ast.get('float')

@@ -1,4 +1,14 @@
-from ..types import PrimFun, Panic, String
+from ..types import PrimFun, Panic, String, string_type, Int
+
+
+class StringHash(PrimFun):
+    def __init__(self):
+        super().__init__('hash', ['string'])
+
+    def fun(self, string):
+        if not isinstance(string, String):
+            raise Panic('Argument must be a string')
+        return Int(hash(string.str))
 
 
 class Concat(PrimFun):
@@ -14,4 +24,5 @@ class Concat(PrimFun):
         return String(catted_string)
 
 
+string_type.get('methods').set('hash', StringHash())
 concat = Concat()

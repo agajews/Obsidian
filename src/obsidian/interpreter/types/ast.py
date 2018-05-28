@@ -181,6 +181,24 @@ class ASTTupleType(Type):
         return ASTTuple(tup)
 
 
+class ASTMap(Object):
+    def __init__(self, elems):
+        if not isinstance(elems, List):
+            raise Panic('Invalid map')
+        super().__init__({'elems': elems}, ast_map_type)
+
+    def __repr__(self):
+        return 'ASTMap({})'.format(self.get('elems'))
+
+
+class ASTMapType(Type):
+    def __init__(self):
+        super().__init__('Map', ast_node_type, ['map'])
+
+    def fun(self, lst):
+        return ASTMap(lst)
+
+
 class ASTCall(Object):
     def __init__(self, callable_expr, args):
         if not isinstance(args, List):
@@ -251,6 +269,8 @@ def model_to_ast(model):
         return ASTList(List([model_to_ast(elem) for elem in model.elements]))
     elif isinstance(model, sem.Tuple):
         return ASTTuple(Tuple([model_to_ast(elem) for elem in model.elements]))
+    elif isinstance(model, sem.Map):
+        return ASTMap(List([model_to_ast(elem) for elem in model.elements]))
     elif isinstance(model, sem.Symbol):
         return ASTSymbol(Symbol(model.symbol))
     elif isinstance(model, sem.BinarySlurp):
@@ -271,7 +291,7 @@ ast_float_type = ASTFloatType()
 ast_symbol_type = ASTSymbolType()
 ast_list_type = ASTListType()
 ast_tuple_type = ASTTupleType()
-# ASTMapType = Type('Map', ASTNodeType)
+ast_map_type = ASTMapType()
 ast_call_type = ASTCallType()
 ast_unquote_type = ASTUnquoteType()
 ast_binary_slurp_type = ASTBinarySlurpType()

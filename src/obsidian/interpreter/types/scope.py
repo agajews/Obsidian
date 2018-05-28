@@ -16,6 +16,7 @@ from .ast import (
     ASTFloat,
     ASTList,
     ASTTuple,
+    ASTMap,
     ASTCall,
     ASTBinarySlurp,
     ASTSymbol,
@@ -25,6 +26,7 @@ from .int import int_type, Int
 from .float import float_type
 from .list import list_type, List
 from .tuple import tuple_type, Tuple
+from .map import map_type
 from .symbol import symbol_type, Symbol
 
 
@@ -112,6 +114,8 @@ class Scope(Object):
             return ASTList(List([self.preprocess(elem) for elem in ast.get('elems').elems]))
         elif isinstance(ast, ASTTuple):
             return ASTTuple(Tuple([self.preprocess(elem) for elem in ast.get('elems').elems]))
+        elif isinstance(ast, ASTMap):
+            return ASTMap(List([self.preprocess(elem) for elem in ast.get('elems').elems]))
         elif isinstance(ast, (ASTIdent,
                               ASTString,
                               ASTInterpolatedString,
@@ -150,7 +154,7 @@ class Scope(Object):
             body = ast.get('body')
             if not isinstance(ast.get('body'), List):
                 raise Panic('Invalid interpolated string')
-            strings = [get_attr.call(self, [elem, ASTString(String('to_str'))]).call(self, [])
+            strings = [get_attr.fun(self.eval(elem), String('to_str')).call(self)
                        for elem in body.elems]
             return String(''.join(s.str for s in strings))
         elif isinstance(ast, ASTInt):
@@ -163,6 +167,8 @@ class Scope(Object):
             return list_type.call(self, [ast])
         elif isinstance(ast, ASTTuple):
             return tuple_type.call(self, [ast])
+        elif isinstance(ast, ASTMap):
+            return map_type.call(self, [ast])
         else:
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))

@@ -26,7 +26,9 @@ class PrimObject:
     def __repr__(self):
         return 'PrimObject({})'.format({k: v for k, v in self.attrs.items() if k != 'meta'})
 
-    def call(self, caller_scope, args):
+    def call(self, caller_scope, args=None):
+        if args is None:
+            args = []
         if 'call' not in self.attrs:
             raise Panic('Object not callable')
         return self.get('call').call(caller_scope, args)
@@ -49,7 +51,9 @@ class PrimFun(Object):
         self.args = args
         self.variadic = variadic
 
-    def call(self, caller_scope, args):
+    def call(self, caller_scope, args=None):
+        if args is None:
+            args = []
         if not self.variadic and not len(args) == len(self.args):
             raise Panic('PrimFun `{}` takes {} arguments, not {}'.format(
                 self.name, len(self.args), len(args)))
