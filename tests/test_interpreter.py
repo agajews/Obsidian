@@ -330,6 +330,16 @@ def test_list_to_str(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_list_to_str_implicit(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts [1, 2, 3]
+    '''
+    target = ['[1, 2, 3]']
+    assert get_output(source, capsys) == target
+
+
 def test_tuple_to_str(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
@@ -340,11 +350,31 @@ def test_tuple_to_str(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_tuple_to_str_implicit(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts (1, 2, 3)
+    '''
+    target = ['(1, 2, 3)']
+    assert get_output(source, capsys) == target
+
+
 def test_map_to_str(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     puts ((get_attr {(1, 'dogs'), (2, 'fish'), (3, 'horses')} 'to_str'))
+    '''
+    target = ['{1 -> dogs, 2 -> fish, 3 -> horses}']
+    assert get_output(source, capsys) == target
+
+
+def test_map_to_str_implicit(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts {(1, 'dogs'), (2, 'fish'), (3, 'horses')}
     '''
     target = ['{1 -> dogs, 2 -> fish, 3 -> horses}']
     assert get_output(source, capsys) == target
