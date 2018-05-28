@@ -37,17 +37,23 @@ class IntHash(PrimFun):
         return Int(hash(int.int))
 
 
-class IntType(Type):
+class IntConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Int', object_type, ['ast'],
-                         methods={'to_str': IntToStr(),
-                                  'hash': IntHash()})
+        super().__init__('Int', ['ast'])
 
     def macro(self, scope, ast):
         int = ast.get('int')
         if not isinstance(int, Int):
             raise Panic('Invalid int')
         return Int(int.int)
+
+
+class IntType(Type):
+    def __init__(self):
+        super().__init__('Int', object_type,
+                         methods={'to_str': IntToStr(),
+                                  'hash': IntHash()},
+                         constructor=IntConstructor())
 
 
 int_type = IntType()

@@ -220,14 +220,19 @@ class Eval(PrimFun):
         return self.scope.eval(ast)
 
 
-class ScopeType(Type):
+class ScopeConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Scope', object_type, ['parent'])
+        super().__init__('Scope', ['parent'])
 
     def fun(self, parent):
         if parent is nil:
             return Scope()
         return Scope(parent)
+
+
+class ScopeType(Type):
+    def __init__(self):
+        super().__init__('Scope', object_type, constructor=ScopeConstructor())
 
 
 scope_type = ScopeType()

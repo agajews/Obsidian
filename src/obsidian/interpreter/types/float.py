@@ -38,17 +38,23 @@ class FloatHash(PrimFun):
         return Int(hash(float.float))
 
 
-class FloatType(Type):
+class FloatConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Float', object_type, ['ast'],
-                         methods={'to_str': FloatToStr(),
-                                  'hash': FloatHash()})
+        super().__init__('Float', ['ast'])
 
     def macro(self, scope, ast):
         float = ast.get('float')
         if not isinstance(float, Float):
             raise Panic('Invalid float')
         return Float(float.float)
+
+
+class FloatType(Type):
+    def __init__(self):
+        super().__init__('Float', object_type,
+                         methods={'to_str': FloatToStr(),
+                                  'hash': FloatHash()},
+                         constructor=FloatConstructor())
 
 
 float_type = FloatType()

@@ -37,12 +37,17 @@ class Fun(Object):
         return 'Fun({})'.format(self.body)
 
 
-class FunType(Type):
+class FunConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Fun', object_type, ['name', 'body'])
+        super().__init__('Fun', ['name', 'body'])
 
     def macro(self, scope, name, body):
         return Fun(scope, name, body)
+
+
+class FunType(Type):
+    def __init__(self):
+        super().__init__('Fun', object_type, constructor=FunConstructor())
 
 
 class ReturnException(Exception):

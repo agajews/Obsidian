@@ -2,6 +2,7 @@ from ..bootstrap import (
     Panic,
     Object,
     Type,
+    PrimFun,
     object_type,
 )
 
@@ -15,15 +16,20 @@ class Tuple(Object):
         return str(self.elems)
 
 
-class TupleType(Type):
+class TupleConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Tuple', object_type, ['ast'])
+        super().__init__('Tuple', ['ast'])
 
     def macro(self, scope, ast):
         elems = ast.get('elems')
         if not isinstance(elems, Tuple):
             raise Panic('Invalid tuple')
         return Tuple([scope.eval(elem) for elem in elems.elems])
+
+
+class TupleType(Type):
+    def __init__(self):
+        super().__init__('Tuple', object_type, constructor=TupleConstructor())
 
 
 tuple_type = TupleType()

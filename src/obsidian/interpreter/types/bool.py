@@ -29,11 +29,8 @@ class BoolToStr(PrimFun):
 
 class BoolType(Type):
     def __init__(self):
-        super().__init__('Bool', object_type, ['ast'],
+        super().__init__('Bool', object_type,
                          methods={'to_str': BoolToStr()})
-
-    def macro(self, scope, ast):
-        raise Panic('Bools cannot be instantiated')
 
 
 bool_type = BoolType()

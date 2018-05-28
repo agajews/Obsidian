@@ -1,19 +1,26 @@
 from ..bootstrap import (
+    PrimFun,
     String,
     Type,
+    nil,
 )
 
 from .scope import Scope, scope_type
 
 
-class ModuleType(Type):
+class ModuleConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Module', scope_type, ['name', 'parent'])
+        super().__init__('Module', ['name', 'parent'])
 
     def fun(self, name, parent):
         if parent is nil:
             return Module(name)
         return Module(name, parent)
+
+
+class ModuleType(Type):
+    def __init__(self):
+        super().__init__('Module', scope_type, constructor=ModuleConstructor())
 
 
 class Module(Scope):

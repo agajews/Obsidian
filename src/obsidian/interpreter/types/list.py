@@ -1,4 +1,5 @@
 from ..bootstrap import (
+    PrimFun,
     Panic,
     Object,
     Type,
@@ -15,15 +16,20 @@ class List(Object):
         return str(self.elems)
 
 
-class ListType(Type):
+class ListConstructor(PrimFun):
     def __init__(self):
-        super().__init__('List', object_type, ['ast'])
+        super().__init__('List', ['ast'])
 
     def macro(self, scope, ast):
         elems = ast.get('elems')
         if not isinstance(elems, List):
             raise Panic('Invalid list')
         return List([scope.eval(elem) for elem in elems.elems])
+
+
+class ListType(Type):
+    def __init__(self):
+        super().__init__('List', object_type, constructor=ListConstructor())
 
 
 list_type = ListType()

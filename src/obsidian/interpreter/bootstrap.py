@@ -64,7 +64,7 @@ class PrimFun(Object):
         return self.fun(*[caller_scope.eval(arg) for arg in args])
 
 
-class ObjectTypeCall(PrimFun):
+class ObjectConstructor(PrimFun):
     def __init__(self):
         super().__init__('Object', ['type'])
 
@@ -72,17 +72,17 @@ class ObjectTypeCall(PrimFun):
         return Object({}, type)
 
 
-class TypeTypeCall(PrimFun):
+class TypeConstructor(PrimFun):
     def __init__(self):
         super().__init__('Object', ['name', 'parent'])
 
     def fun(self, name, parent):
-        return Object({'name': name, 'parent': parent,
-                       'methods': Object({}, object_type),
-                       'statics': Object({}, object_type)}, type_type)
+        if not isinstance(name, String):
+            raise Panic('Name must be a string')
+        return Type(name.str, parent)
 
 
-class StringTypeCall(PrimFun):
+class StringConstructor(PrimFun):
     def __init__(self):
         super().__init__('String', ['ast'])
 
@@ -117,41 +117,30 @@ class String(Object):
         return '"{}"'.format(self.str)
 
 
-class Type(PrimFun):
-    def __init__(self, name, parent, args, methods=None, statics=None):
-        super().__init__(name, args, type_type)
-        self.set('parent', parent)
+class Type(Object):
+    def __init__(self, name, parent, methods=None, statics=None, constructor=None):
         if methods is None:
             methods = {}
-        self.set('methods', Object(methods))
         if statics is None:
             statics = {}
-        self.set('statics', Object(statics))
-
-    def fun(self, *args):
-        raise Panic('Type {} cannot be instantiated'.format(self.get('name')))
+        super().__init__({
+            'name': String(name),
+            'parent': parent,
+            'methods': Object(methods),
+            'statics': Object(statics),
+        }, type_type)
+        if constructor is not None:
+            self.set('call', constructor)
 
 
 class MetaType(Type):
     def __init__(self):
-        super().__init__('Meta', object_type, [])
-
-    def fun(self):
-        return Meta()
-
-
-class Meta(Object):
-    def __init__(self, **attrs):
-        attrs['meta'] = meta_obj
-        super().__init__(attrs, meta_type)
+        super().__init__('Meta', object_type)
 
 
 class NilType(Type):
     def __init__(self):
-        super().__init__('Nil', object_type, [])
-
-    def fun(self):
-        return nil
+        super().__init__('Nil', object_type)
 
 
 class Nil(Object):
@@ -186,9 +175,9 @@ prim_fun_type = Object(
     {'name': String('PrimFun'), 'parent': object_type}, type_type)
 prim_fun_type.set('methods', Object({}, object_type))
 prim_fun_type.set('statics', Object({}, object_type))
-string_type.set('call', StringTypeCall())
-object_type.set('call', ObjectTypeCall())
-type_type.set('call', TypeTypeCall())
+string_type.set('call', StringConstructor())
+object_type.set('call', ObjectConstructor())
+type_type.set('call', TypeConstructor())
 string_type.set('methods', Object({'to_str': StringToStr()}, object_type))
 
 meta_type = MetaType()

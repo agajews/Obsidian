@@ -27,16 +27,22 @@ class SymbolToStr(PrimFun):
         return String('@{}'.format(symbol.symbol))
 
 
-class SymbolType(Type):
+class SymbolConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Symbol', object_type, ['ast'],
-                         methods={'to_str': SymbolToStr()})
+        super().__init__('Symbol', ['ast'])
 
     def macro(self, scope, ast):
         symbol = ast.get('symbol')
         if not isinstance(symbol, Symbol):
             raise Panic('Invalid symbol')
         return Symbol(symbol.symbol)
+
+
+class SymbolType(Type):
+    def __init__(self):
+        super().__init__('Symbol', object_type,
+                         methods={'to_str': SymbolToStr()},
+                         constructor=SymbolConstructor())
 
 
 symbol_type = SymbolType()

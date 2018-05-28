@@ -1,5 +1,6 @@
 from ... import semantics as sem
 from ..bootstrap import (
+    PrimFun,
     String,
     Object,
     Type,
@@ -16,7 +17,7 @@ from .symbol import Symbol
 
 class ASTNodeType(Type):
     def __init__(self):
-        super().__init__('Node', object_type, [])
+        super().__init__('Node', object_type)
 
 
 class ASTString(Object):
@@ -34,12 +35,17 @@ class ASTString(Object):
         return 'ASTString({}, {})'.format(self.get('str'), self.get('sigil'))
 
 
-class ASTStringType(Type):
+class ASTStringConstructor(PrimFun):
     def __init__(self):
-        super().__init__('String', ast_node_type, ['str', 'sigil'])
+        super().__init__('String', ['str', 'sigil'])
 
     def fun(self, string, sigil):
         return ASTString(string, sigil)
+
+
+class ASTStringType(Type):
+    def __init__(self):
+        super().__init__('String', ast_node_type, constructor=ASTStringConstructor())
 
 
 class ASTInterpolatedString(Object):
@@ -53,13 +59,18 @@ class ASTInterpolatedString(Object):
         return 'ASTInterpolatedString({})'.format(self.get('body'))
 
 
-class ASTInterpolatedStringType(Type):
+class ASTInterpolatedStringConstructor(PrimFun):
     def __init__(self):
-        super().__init__('InterpolatedString',
-                         ast_node_type, ['body'])
+        super().__init__('InterpolatedString', ['body'])
 
     def fun(self, body):
         return ASTInterpolatedString(body)
+
+
+class ASTInterpolatedStringType(Type):
+    def __init__(self):
+        super().__init__('InterpolatedString',
+                         ast_node_type, constructor=ASTInterpolatedStringConstructor())
 
 
 class ASTIdent(Object):
@@ -72,12 +83,17 @@ class ASTIdent(Object):
         return 'ASTIdent({})'.format(self.get('ident'))
 
 
-class ASTIdentType(Type):
+class ASTIdentConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Ident', ast_node_type, ['ident'])
+        super().__init__('Ident', ['ident'])
 
     def fun(self, ident):
         return ASTIdent(ident)
+
+
+class ASTIdentType(Type):
+    def __init__(self):
+        super().__init__('Ident', ast_node_type, constructor=ASTIdentConstructor())
 
 
 class ASTInt(Object):
@@ -95,12 +111,17 @@ class ASTInt(Object):
         return 'ASTInt({}, {})'.format(self.get('int'), self.get('sigil'))
 
 
-class ASTIntType(Type):
+class ASTIntConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Int', ast_node_type, ['int', 'sigil'])
+        super().__init__('Int', ['int', 'sigil'])
 
     def fun(self, val, sigil):
         return ASTInt(val, sigil)
+
+
+class ASTIntType(Type):
+    def __init__(self):
+        super().__init__('Int', ast_node_type, constructor=ASTIntConstructor())
 
 
 class ASTFloat(Object):
@@ -118,12 +139,17 @@ class ASTFloat(Object):
         return 'ASTFloat({}, {})'.format(self.get('float'), self.get('sigil'))
 
 
-class ASTFloatType(Type):
+class ASTFloatConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Float', ast_node_type, ['float', 'sigil'])
+        super().__init__('Float', ['float', 'sigil'])
 
     def fun(self, val, sigil):
         return ASTFloat(val, sigil)
+
+
+class ASTFloatType(Type):
+    def __init__(self):
+        super().__init__('Float', ast_node_type, constructor=ASTFloatConstructor())
 
 
 class ASTSymbol(Object):
@@ -137,12 +163,17 @@ class ASTSymbol(Object):
         return 'ASTSymbol({})'.format(self.get('symbol'))
 
 
-class ASTSymbolType(Type):
+class ASTSymbolConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Symbol', ast_node_type, ['symbol'])
+        super().__init__('Symbol', ['symbol'])
 
     def fun(self, symbol):
         return ASTSymbol(symbol)
+
+
+class ASTSymbolType(Type):
+    def __init__(self):
+        super().__init__('Symbol', ast_node_type, constructor=ASTSymbolConstructor())
 
 
 class ASTList(Object):
@@ -155,12 +186,17 @@ class ASTList(Object):
         return 'ASTList({})'.format(self.get('elems'))
 
 
-class ASTListType(Type):
+class ASTListConstructor(PrimFun):
     def __init__(self):
-        super().__init__('List', ast_node_type, ['list'])
+        super().__init__('List', ['list'])
 
     def fun(self, lst):
         return ASTList(lst)
+
+
+class ASTListType(Type):
+    def __init__(self):
+        super().__init__('List', ast_node_type, constructor=ASTListConstructor())
 
 
 class ASTTuple(Object):
@@ -173,12 +209,17 @@ class ASTTuple(Object):
         return 'ASTTuple({})'.format(self.get('elems'))
 
 
-class ASTTupleType(Type):
+class ASTTupleConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Tuple', ast_node_type, ['tuple'])
+        super().__init__('Tuple', ['tuple'])
 
     def fun(self, tup):
         return ASTTuple(tup)
+
+
+class ASTTupleType(Type):
+    def __init__(self):
+        super().__init__('Tuple', ast_node_type, constructor=ASTTupleConstructor())
 
 
 class ASTMap(Object):
@@ -191,12 +232,17 @@ class ASTMap(Object):
         return 'ASTMap({})'.format(self.get('elems'))
 
 
-class ASTMapType(Type):
+class ASTMapConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Map', ast_node_type, ['map'])
+        super().__init__('Map', ['map'])
 
     def fun(self, lst):
         return ASTMap(lst)
+
+
+class ASTMapType(Type):
+    def __init__(self):
+        super().__init__('Map', ast_node_type, constructor=ASTMapConstructor())
 
 
 class ASTCall(Object):
@@ -210,12 +256,17 @@ class ASTCall(Object):
         return 'ASTCall({}, {})'.format(self.get('callable'), self.get('args'))
 
 
-class ASTCallType(Type):
+class ASTCallConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Call', ast_node_type, ['callable', 'args'])
+        super().__init__('Call', ['callable', 'args'])
 
     def fun(self, callable_expr, args):
         return ASTCall(callable_expr, args)
+
+
+class ASTCallType(Type):
+    def __init__(self):
+        super().__init__('Call', ast_node_type, constructor=ASTCallConstructor())
 
 
 class ASTBinarySlurp(Object):
@@ -228,12 +279,18 @@ class ASTBinarySlurp(Object):
         return 'ASTBinarySlurp({})'.format(' '.join(str(e) for e in self.get('slurp').elems))
 
 
-class ASTBinarySlurpType(Type):
+class ASTBinarySlurpConstructor(PrimFun):
     def __init__(self):
-        super().__init__('BinarySlurp', ast_node_type, ['slurp'])
+        super().__init__('BinarySlurp', ['slurp'])
 
     def fun(self, slurp):
         return ASTBinarySlurp(slurp)
+
+
+class ASTBinarySlurpType(Type):
+    def __init__(self):
+        super().__init__('BinarySlurp', ast_node_type,
+                         constructor=ASTBinarySlurpConstructor())
 
 
 class ASTUnquote(Object):
@@ -244,12 +301,17 @@ class ASTUnquote(Object):
         return 'Unquote({})'.format(self.get('expr'))
 
 
-class ASTUnquoteType(Type):
+class ASTUnquoteConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Unquote', ast_node_type, ['expr'])
+        super().__init__('Unquote', ['expr'])
 
     def fun(self, expr):
         return ASTUnquote(expr)
+
+
+class ASTUnquoteType(Type):
+    def __init__(self):
+        super().__init__('Unquote', ast_node_type, constructor=ASTUnquoteConstructor())
 
 
 def model_to_ast(model):
