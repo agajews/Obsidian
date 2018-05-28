@@ -6,3 +6,4 @@ from .cond import cond
 from . import int
 from . import float
 from . import list
+from . import map

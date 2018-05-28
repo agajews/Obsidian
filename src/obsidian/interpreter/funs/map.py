@@ -3,6 +3,7 @@ from ..types import (
     List,
     Tuple,
     String,
+    Int,
     PrimFun,
     Panic,
     map_type
@@ -10,37 +11,43 @@ from ..types import (
 from .get_attr import get_attr
 
 
+def compute_hash(key, scope):
+    hash_code = get_attr.fun(key, String('hash')).call(scope)
+    if not isinstance(hash_code, Int):
+        raise Panic('hash must return an int')
+    return hash_code.int
+
+
 class MapConstructor(PrimFun):
     def __init__(self):
         super().__init__('Map', ['ast'])
 
     def macro(self, scope, ast):
-        ast = scope.eval(ast)
         elems = ast.get('elems')
         if not isinstance(elems, List):
             raise Panic('Invalid map')
         dictionary = {}
         for elem in elems.elems:
+            elem = scope.eval(elem)
             if not isinstance(elem, Tuple):
                 raise Panic('Arguments to map must be tuples')
             if not len(elem.elems) == 2:
                 raise Panic('Arguments to map must be pairs')
             key, value = elem.elems
-            hash_code = get_attr.fun(key, 'hash').call(scope)
-            dictionary[hash_code] = Tuple((key, value))
+            dictionary[compute_hash(key, scope)] = (key, value)
         return Map(dictionary)
 
 
 class MapGet(PrimFun):
     def __init__(self):
-        super().__init__('get', ['list', 'idx'])
+        super().__init__('get', ['map', 'idx'])
 
-    def fun(self, lst, idx):
-        if not isinstance(lst, List):
-            raise Panic('List must be a list')
-        if not isinstance(idx, Int):
-            raise Panic('Index must be a list')
-        return lst.elems[idx.int]
+    def macro(self, scope, map, key):
+        map = scope.eval(map)
+        key = scope.eval(key)
+        if not isinstance(map, Map):
+            raise Panic('Map must be a map')
+        return map.elems[compute_hash(key, scope)][1]
 
 
 class MapToStr(PrimFun):
@@ -53,7 +60,7 @@ class MapToStr(PrimFun):
             raise Panic('Argument must be a map')
         strings = [(get_attr.fun(key, String('to_str')).call(scope),
                     get_attr.fun(val, String('to_str')).call(scope))
-                   for key, val in map.elems]
+                   for hash_code, (key, val) in map.elems.items()]
         for key_str, val_str in strings:
             if not isinstance(key_str, String) or not isinstance(val_str, String):
                 raise Panic('to_str must return a string')
@@ -64,3 +71,4 @@ class MapToStr(PrimFun):
 
 map_type.set('call', MapConstructor())
 map_type.get('methods').set('to_str', MapToStr())
+map_type.get('methods').set('get', MapGet())

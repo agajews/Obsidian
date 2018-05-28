@@ -28,7 +28,7 @@ class TupleGet(PrimFun):
         if not isinstance(tup, Tuple):
             raise Panic('Tuple must be a tuple')
         if not isinstance(idx, Int):
-            raise Panic('Index must be a list')
+            raise Panic('Index must be an int')
         return tup.elems[idx.int]
 
 

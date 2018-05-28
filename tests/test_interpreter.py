@@ -178,6 +178,17 @@ def test_tuple_get(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_map_get(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {(1, 'dogs'), (2, 'fish'), (3, 'horses')}
+    puts ((get_attr map 'get') 3)
+    '''
+    target = ['horses']
+    assert get_output(source, capsys) == target
+
+
 def test_int(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
@@ -225,6 +236,16 @@ def test_tuple_to_str(capsys):
     puts ((get_attr (1, 2, 3) 'to_str'))
     '''
     target = ['(1, 2, 3)']
+    assert get_output(source, capsys) == target
+
+
+def test_map_to_str(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts ((get_attr {(1, 'dogs'), (2, 'fish'), (3, 'horses')} 'to_str'))
+    '''
+    target = ['{1 -> dogs, 2 -> fish, 3 -> horses}']
     assert get_output(source, capsys) == target
 
 

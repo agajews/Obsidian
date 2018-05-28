@@ -17,7 +17,7 @@ class ListGet(PrimFun):
         if not isinstance(lst, List):
             raise Panic('List must be a list')
         if not isinstance(idx, Int):
-            raise Panic('Index must be a list')
+            raise Panic('Index must be an int')
         return lst.elems[idx.int]
 
 

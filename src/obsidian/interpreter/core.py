@@ -45,6 +45,7 @@ from .funs import (
     int,
     float,
     list,
+    map,
     tuple,
     string,
 )
