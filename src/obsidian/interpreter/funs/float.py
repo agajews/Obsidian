@@ -5,13 +5,36 @@ from ..types import (
     Float,
     Symbol,
     true,
-    false
+    false,
+    float_type,
 )
+
+
+class FloatEq(PrimFun):
+    def __init__(self):
+        super().__init__('Float.eq', ['a', 'b'])
+
+    def fun(self, a, b):
+        if not isinstance(a, Float):
+            raise Panic('Argument `a` must be a float')
+        if not isinstance(b, Float):
+            raise Panic('Argument `b` must be a float')
+        return true if a.float == b.float else false
+
+
+class FloatHash(PrimFun):
+    def __init__(self):
+        super().__init__('Float.hash', ['float'])
+
+    def fun(self, float):
+        if not isinstance(float, Float):
+            raise Panic('Argument must be a float')
+        return Int(hash(float.float))
 
 
 class Add(PrimFun):
     def __init__(self):
-        super().__init__('add', ['a', 'b'])
+        super().__init__('float.add', ['a', 'b'])
         self.set('precedence', Int(6))
         self.set('associativity', Symbol('left'))
 
@@ -25,7 +48,7 @@ class Add(PrimFun):
 
 class Sub(PrimFun):
     def __init__(self):
-        super().__init__('sub', ['a', 'b'])
+        super().__init__('float.sub', ['a', 'b'])
         self.set('precedence', Int(6))
         self.set('associativity', Symbol('left'))
 
@@ -39,7 +62,7 @@ class Sub(PrimFun):
 
 class Mul(PrimFun):
     def __init__(self):
-        super().__init__('mul', ['a', 'b'])
+        super().__init__('float.mul', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -53,7 +76,7 @@ class Mul(PrimFun):
 
 class Div(PrimFun):
     def __init__(self):
-        super().__init__('div', ['a', 'b'])
+        super().__init__('float.div', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -67,7 +90,7 @@ class Div(PrimFun):
 
 class FloorDiv(PrimFun):
     def __init__(self):
-        super().__init__('floor_div', ['a', 'b'])
+        super().__init__('float.floor_div', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -81,7 +104,7 @@ class FloorDiv(PrimFun):
 
 class Mod(PrimFun):
     def __init__(self):
-        super().__init__('mod', ['a', 'b'])
+        super().__init__('float.mod', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -95,7 +118,7 @@ class Mod(PrimFun):
 
 class Pow(PrimFun):
     def __init__(self):
-        super().__init__('pow', ['a', 'b'])
+        super().__init__('float.pow', ['a', 'b'])
         self.set('precedence', Int(8))
         self.set('associativity', Symbol('right'))
 
@@ -109,7 +132,7 @@ class Pow(PrimFun):
 
 class Eq(PrimFun):
     def __init__(self):
-        super().__init__('eq', variadic=True)
+        super().__init__('float.eq', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -125,7 +148,7 @@ class Eq(PrimFun):
 
 class NEq(PrimFun):
     def __init__(self):
-        super().__init__('eq', variadic=True)
+        super().__init__('float.eq', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -141,7 +164,7 @@ class NEq(PrimFun):
 
 class LT(PrimFun):
     def __init__(self):
-        super().__init__('lt', variadic=True)
+        super().__init__('float.lt', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -157,7 +180,7 @@ class LT(PrimFun):
 
 class LTE(PrimFun):
     def __init__(self):
-        super().__init__('lte', variadic=True)
+        super().__init__('float.lte', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -173,7 +196,7 @@ class LTE(PrimFun):
 
 class GT(PrimFun):
     def __init__(self):
-        super().__init__('gt', variadic=True)
+        super().__init__('float.gt', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -189,7 +212,7 @@ class GT(PrimFun):
 
 class GTE(PrimFun):
     def __init__(self):
-        super().__init__('gte', variadic=True)
+        super().__init__('float.gte', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -203,6 +226,8 @@ class GTE(PrimFun):
         return true
 
 
+float_type.get('methods').set('eq', FloatEq())
+float_type.get('methods').set('hash', FloatHash())
 add = Add()
 sub = Sub()
 mul = Mul()

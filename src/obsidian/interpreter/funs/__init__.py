@@ -8,5 +8,7 @@ from .while_fn import while_fn
 from . import int
 from . import float
 from . import list
+from . import tuple
 from . import map
 from . import object
+from . import string

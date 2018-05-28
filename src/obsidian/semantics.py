@@ -69,7 +69,7 @@ class Ident(Node):
 
 
 class Int(Node):
-    def __init__(self, val, sigil=None, parseinfo=None):
+    def __init__(self, val, sigil='', parseinfo=None):
         super().__init__(parseinfo=parseinfo)
         # TODO: Error handling
         self.val = val
@@ -80,7 +80,7 @@ class Int(Node):
 
 
 class Float(Node):
-    def __init__(self, val, sigil=None, parseinfo=None):
+    def __init__(self, val, sigil='', parseinfo=None):
         super().__init__(parseinfo=parseinfo)
         # TODO: Error handling
         self.val = val
@@ -91,7 +91,7 @@ class Float(Node):
 
 
 class String(Node):
-    def __init__(self, string, sigil=None, parseinfo=None):
+    def __init__(self, string, sigil='', parseinfo=None):
         super().__init__(parseinfo=parseinfo)
         self.string = string
         self.sigil = sigil
@@ -207,14 +207,16 @@ class Semantics:
         return Ident(info['op'], parseinfo=info.parseinfo)
 
     def integer(info):
-        return Int(int(float(info['val'].replace('_', ''))), info['sigil'], parseinfo=info.parseinfo)
+        sigil = '' if info['sigil'] is None else info['sigil']
+        return Int(int(float(info['val'].replace('_', ''))), sigil, parseinfo=info.parseinfo)
 
     def float(info):
-        return Float(float(info['val'].replace('_', '')), info['sigil'], parseinfo=info.parseinfo)
+        sigil = '' if info['sigil'] is None else info['sigil']
+        return Float(float(info['val'].replace('_', '')), sigil, parseinfo=info.parseinfo)
 
     def interpolated_string(info):
         bodies = info['bodies']
-        sigil = info['sigil']
+        sigil = '' if info['sigil'] is None else info['sigil']
         if len(bodies) == 0:
             return String('', sigil, parseinfo=info.parseinfo)
         if len(bodies) == 1 and isinstance(bodies[0], StringBody):
@@ -226,7 +228,7 @@ class Semantics:
 
     def triple_interpolated_string(info):
         bodies = info['bodies']
-        sigil = info['sigil']
+        sigil = '' if info['sigil'] is None else info['sigil']
         if len(bodies) == 0:
             return String('', sigil, parseinfo=info.parseinfo)
         if len(bodies) == 1 and isinstance(bodies[0], StringBody):
@@ -243,10 +245,12 @@ class Semantics:
         return StringBody(clean_string(info['body'], '"$'), parseinfo=info.parseinfo)
 
     def single_string(info):
-        return String(clean_string(info['val'][1: -1], "'"), info['sigil'], parseinfo=info.parseinfo)
+        sigil = '' if info['sigil'] is None else info['sigil']
+        return String(clean_string(info['val'][1: -1], "'"), sigil, parseinfo=info.parseinfo)
 
     def triple_single_string(info):
-        return String(clean_string(info['val'][3: -3], "'"), info['sigil'], parseinfo=info.parseinfo)
+        sigil = '' if info['sigil'] is None else info['sigil']
+        return String(clean_string(info['val'][3: -3], "'"), sigil, parseinfo=info.parseinfo)
 
     def symbol(info):
         return Symbol(info['symbol'], parseinfo=info.parseinfo)

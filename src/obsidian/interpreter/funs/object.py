@@ -3,7 +3,7 @@ from ..types import PrimFun, Panic, String, object_type
 
 class ObjectAssign(PrimFun):
     def __init__(self):
-        super().__init__('=', ['object', 'val'])
+        super().__init__('Object.=', ['object', 'val'])
 
     def fun(self, obj, val):
         return val
@@ -11,7 +11,7 @@ class ObjectAssign(PrimFun):
 
 class ObjectToStr(PrimFun):
     def __init__(self):
-        super().__init__('to_str', ['object'])
+        super().__init__('Object.to_str', ['object'])
 
     def fun(self, obj):
         type_name = obj.get('meta').get('type').get('name')

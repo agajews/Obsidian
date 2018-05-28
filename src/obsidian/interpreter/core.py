@@ -178,7 +178,7 @@ def load_module(statements, source_map, name, preload=None):
     except Panic as p:
         if p.parseinfo is not None:
             print('Module `{}` panicked at line {}:'.format(
-                name, p.parseinfo.line))
+                name, p.parseinfo.line + 1))
             print('Panic: {}'.format(p.msg))
         else:
             print('Panic: {}'.format(p.msg))

@@ -138,7 +138,7 @@ def test_eval(capsys):
     (let 'ASTIdent' (get_attr ast 'Ident'))
     (let 'ASTString' (get_attr ast 'String'))
     (let 'puts' (get_attr prim 'puts'))
-    (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])
+    (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' '')])
     '''
     target = ['Hello, World!']
     assert get_output(source, capsys) == target
@@ -279,7 +279,7 @@ def test_tuple_trailed_get(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_map_trailed_get(capsys):
+def test_map_trailed_get_string_key(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
@@ -287,6 +287,57 @@ def test_map_trailed_get(capsys):
     puts ((get_attr map['fish'] 'to_str'))
     '''
     target = ['2']
+    assert get_output(source, capsys) == target
+
+
+def test_map_trailed_get_int_key(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {(1, 'dogs'), (2, 'fish'), (3, 'horses')}
+    puts map[1]
+    '''
+    target = ['dogs']
+    assert get_output(source, capsys) == target
+
+
+def test_map_trailed_get_float_key(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {(1.0, 'dogs'), (2.0, 'fish'), (3.0, 'horses')}
+    puts map[1.0]
+    '''
+    target = ['dogs']
+    assert get_output(source, capsys) == target
+
+
+def test_list_set(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'list' [1, 2, 3]
+    puts list
+    ((get_attr list 'set') 2 4)
+    puts list
+    '''
+    target = ['[1, 2, 3]', '[1, 2, 4]']
+    assert get_output(source, capsys) == target
+
+
+def test_map_set(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {('dogs', 1), ('fish', 2), ('horses', 3)}
+    puts map
+    ((get_attr map 'set') 'horses' 4)
+    puts map['horses']
+    puts map
+    '''
+    target = ['{dogs -> 1, fish -> 2, horses -> 3}',
+              '4',
+              '{dogs -> 1, fish -> 2, horses -> 4}']
     assert get_output(source, capsys) == target
 
 
@@ -310,11 +361,31 @@ def test_float(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_float_implicit_to_str(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts 3.0
+    '''
+    target = ['3.0']
+    assert get_output(source, capsys) == target
+
+
 def test_symbol(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     puts ((get_attr @hello 'to_str'))
+    '''
+    target = ['@hello']
+    assert get_output(source, capsys) == target
+
+
+def test_symbol_implicit_to_str(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts @hello
     '''
     target = ['@hello']
     assert get_output(source, capsys) == target
@@ -412,7 +483,7 @@ def test_unquote_nested(capsys):
     (let 'ast' (get_attr prim 'ast'))
     (let 'ASTIdent' (get_attr ast 'Ident'))
     (let 'ASTString' (get_attr ast 'String'))
-    let 'puts_str' (ASTString 'puts' nil)
+    let 'puts_str' (ASTString 'puts' '')
     $(ASTIdent $puts_str) 'Hello, World!'
     '''
     target = ['Hello, World!']
@@ -1087,8 +1158,9 @@ def test_types(capsys):
     set_attr (get_attr Dog 'methods') 'bark' (Fun 'bark' [(puts 'Woof!')])
     let 'butch' (Object Dog)
     ((get_attr butch 'bark'))
+    puts butch
     '''
-    target = ['Woof!']
+    target = ['Woof!', '<Dog>']
     assert get_output(source, capsys) == target
 
 
@@ -1155,7 +1227,7 @@ def test_statics_inheritance_missing(capsys):
     puts (get_attr butch 'species')
     '''
     output = get_output(source, capsys)
-    assert output == ['Module `prim` panicked at line 9:',
+    assert output == ['Module `prim` panicked at line 10:',
                       'Panic: Object has no attribute species']
 
 

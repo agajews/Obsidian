@@ -3,7 +3,7 @@ from ..types import PrimFun, Panic, String
 
 class Let(PrimFun):
     def __init__(self):
-        super().__init__('let', ['name', 'val'])
+        super().__init__('prim.let', ['name', 'val'])
 
     def macro(self, scope, name, val):
         # TODO name validation (for operators)

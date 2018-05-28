@@ -59,7 +59,10 @@ class PrimFun(Object):
         if not self.variadic and not len(args) == len(self.args):
             raise Panic('PrimFun `{}` takes {} arguments, not {}'.format(
                 self.name, len(self.args), len(args)))
-        return self.macro(caller_scope, *args)
+        res = self.macro(caller_scope, *args)
+        if res is None:
+            return nil
+        return res
 
     def macro(self, caller_scope, *args):
         # print('PrimFun {} got args {}'.format(self.name, args))
@@ -84,25 +87,9 @@ class TypeConstructor(PrimFun):
         return Type(name.str, parent)
 
 
-class StringConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('String', ['ast'])
-
-    def macro(self, scope, ast):
-        string = ast.get('str')
-        if not isinstance(string, String):
-            raise Panic('Invalid string')
-        sigil = ast.get('sigil')
-        if sigil is not nil and not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
-        if sigil is nil:
-            return string
-        raise Panic('Sigil {} not implemented'.format(sigil.str))
-
-
 class StringToStr(PrimFun):
     def __init__(self):
-        super().__init__('to_str', ['str'])
+        super().__init__('String.to_str', ['str'])
 
     def fun(self, string):
         if not isinstance(string, String):
@@ -178,7 +165,6 @@ prim_fun_type = Object(
     {'name': String('PrimFun'), 'parent': object_type}, type_type)
 prim_fun_type.set('methods', Object({}, object_type))
 prim_fun_type.set('statics', Object({}, object_type))
-string_type.set('call', StringConstructor())
 object_type.set('call', ObjectConstructor())
 type_type.set('call', TypeConstructor())
 string_type.set('methods', Object({'to_str': StringToStr()}, object_type))

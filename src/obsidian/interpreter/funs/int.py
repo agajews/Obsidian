@@ -4,13 +4,36 @@ from ..types import (
     Int,
     Symbol,
     true,
-    false
+    false,
+    int_type,
 )
+
+
+class IntEq(PrimFun):
+    def __init__(self):
+        super().__init__('Int.eq', ['a', 'b'])
+
+    def fun(self, a, b):
+        if not isinstance(a, Int):
+            raise Panic('Argument `a` must be an int')
+        if not isinstance(b, Int):
+            raise Panic('Argument `b` must be an int')
+        return true if a.int == b.int else false
+
+
+class IntHash(PrimFun):
+    def __init__(self):
+        super().__init__('Int.hash', ['int'])
+
+    def fun(self, int):
+        if not isinstance(int, Int):
+            raise Panic('Argument must be an int')
+        return Int(hash(int.int))
 
 
 class Add(PrimFun):
     def __init__(self):
-        super().__init__('add', ['a', 'b'])
+        super().__init__('int.add', ['a', 'b'])
         self.set('precedence', Int(6))
         self.set('associativity', Symbol('left'))
 
@@ -24,7 +47,7 @@ class Add(PrimFun):
 
 class Sub(PrimFun):
     def __init__(self):
-        super().__init__('sub', ['a', 'b'])
+        super().__init__('int.sub', ['a', 'b'])
         self.set('precedence', Int(6))
         self.set('associativity', Symbol('left'))
 
@@ -38,7 +61,7 @@ class Sub(PrimFun):
 
 class Mul(PrimFun):
     def __init__(self):
-        super().__init__('mul', ['a', 'b'])
+        super().__init__('int.mul', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -52,7 +75,7 @@ class Mul(PrimFun):
 
 class FloorDiv(PrimFun):
     def __init__(self):
-        super().__init__('floor_div', ['a', 'b'])
+        super().__init__('int.floor_div', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -66,7 +89,7 @@ class FloorDiv(PrimFun):
 
 class Mod(PrimFun):
     def __init__(self):
-        super().__init__('mod', ['a', 'b'])
+        super().__init__('int.mod', ['a', 'b'])
         self.set('precedence', Int(7))
         self.set('associativity', Symbol('left'))
 
@@ -80,7 +103,7 @@ class Mod(PrimFun):
 
 class Pow(PrimFun):
     def __init__(self):
-        super().__init__('pow', ['a', 'b'])
+        super().__init__('int.pow', ['a', 'b'])
         self.set('precedence', Int(8))
         self.set('associativity', Symbol('right'))
 
@@ -94,7 +117,7 @@ class Pow(PrimFun):
 
 class Eq(PrimFun):
     def __init__(self):
-        super().__init__('eq', variadic=True)
+        super().__init__('int.eq', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -110,7 +133,7 @@ class Eq(PrimFun):
 
 class NEq(PrimFun):
     def __init__(self):
-        super().__init__('eq', variadic=True)
+        super().__init__('int.eq', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -126,7 +149,7 @@ class NEq(PrimFun):
 
 class LT(PrimFun):
     def __init__(self):
-        super().__init__('lt', variadic=True)
+        super().__init__('int.lt', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -142,7 +165,7 @@ class LT(PrimFun):
 
 class LTE(PrimFun):
     def __init__(self):
-        super().__init__('lte', variadic=True)
+        super().__init__('int.lte', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -158,7 +181,7 @@ class LTE(PrimFun):
 
 class GT(PrimFun):
     def __init__(self):
-        super().__init__('gt', variadic=True)
+        super().__init__('int.gt', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -174,7 +197,7 @@ class GT(PrimFun):
 
 class GTE(PrimFun):
     def __init__(self):
-        super().__init__('gte', variadic=True)
+        super().__init__('int.gte', variadic=True)
         self.set('precedence', Int(4))
         self.set('associativity', Symbol('none'))
 
@@ -188,6 +211,8 @@ class GTE(PrimFun):
         return true
 
 
+int_type.get('methods').set('eq', IntEq())
+int_type.get('methods').set('hash', IntHash())
 add = Add()
 sub = Sub()
 mul = Mul()

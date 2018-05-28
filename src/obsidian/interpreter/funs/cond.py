@@ -10,7 +10,7 @@ from ..types.ast import ASTTuple
 
 class Cond(PrimFun):
     def __init__(self):
-        super().__init__('cond', variadic=True)
+        super().__init__('prim.cond', variadic=True)
 
     def macro(self, scope, *clauses):
         if len(clauses) == 0:

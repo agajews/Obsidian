@@ -4,7 +4,7 @@ from .get_attr import get_attr
 
 class Assign(PrimFun):
     def __init__(self):
-        super().__init__('assign', ['name', 'val'])
+        super().__init__('prim.assign', ['name', 'val'])
 
     def macro(self, scope, name, val):
         name = scope.eval(name)

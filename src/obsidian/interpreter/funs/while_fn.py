@@ -17,7 +17,7 @@ def check_condition(condition, scope):
 
 class While(PrimFun):
     def __init__(self):
-        super().__init__('while', ['cond', 'body'])
+        super().__init__('ast.while', ['cond', 'body'])
 
     def macro(self, scope, condition, body):
         if not isinstance(body, ASTList):

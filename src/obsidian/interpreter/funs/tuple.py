@@ -11,7 +11,7 @@ from .get_attr import get_attr
 
 class TupleHash(PrimFun):
     def __init__(self):
-        super().__init__('hash', ['tuple'])
+        super().__init__('Tuple.hash', ['tuple'])
 
     def macro(self, scope, tuple):
         tuple = scope.eval(tuple)
@@ -22,7 +22,7 @@ class TupleHash(PrimFun):
 
 class TupleGet(PrimFun):
     def __init__(self):
-        super().__init__('get', ['tup', 'idx'])
+        super().__init__('Tuple.get', ['tup', 'idx'])
 
     def fun(self, tup, idx):
         if not isinstance(tup, Tuple):
@@ -36,7 +36,7 @@ class TupleGet(PrimFun):
 
 class TupleToStr(PrimFun):
     def __init__(self):
-        super().__init__('to_str', ['tuple'])
+        super().__init__('Tuple.to_str', ['tuple'])
 
     def macro(self, scope, tup):
         tup = scope.eval(tup)

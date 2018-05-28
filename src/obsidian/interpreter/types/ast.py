@@ -6,7 +6,6 @@ from ..bootstrap import (
     Type,
     Panic,
     object_type,
-    nil
 )
 from .int import Int
 from .float import Float
@@ -17,7 +16,7 @@ from .symbol import Symbol
 
 class ASTNodeType(Type):
     def __init__(self):
-        super().__init__('Node', object_type)
+        super().__init__('ast.Node', object_type)
 
 
 class ASTString(Object):
@@ -25,12 +24,12 @@ class ASTString(Object):
         if not isinstance(string, String):
             raise Panic('Invalid string')
         if sigil is None:
-            sigil = nil
-        if sigil is not nil and not isinstance(sigil, String):
+            sigil = String('')
+        if not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         self.parseinfo = parseinfo
         super().__init__(
-            {'str': string, 'sigil': nil if sigil is None else sigil}, ast_string_type)
+            {'str': string, 'sigil': sigil}, ast_string_type)
 
     def __repr__(self):
         return 'ASTString({}, {})'.format(self.get('str'), self.get('sigil'))
@@ -38,7 +37,7 @@ class ASTString(Object):
 
 class ASTStringConstructor(PrimFun):
     def __init__(self):
-        super().__init__('String', ['str', 'sigil'])
+        super().__init__('ast.String', ['str', 'sigil'])
 
     def fun(self, string, sigil):
         return ASTString(string, sigil)
@@ -46,7 +45,7 @@ class ASTStringConstructor(PrimFun):
 
 class ASTStringType(Type):
     def __init__(self):
-        super().__init__('String', ast_node_type, constructor=ASTStringConstructor())
+        super().__init__('ast.String', ast_node_type, constructor=ASTStringConstructor())
 
 
 class ASTInterpolatedString(Object):
@@ -63,7 +62,7 @@ class ASTInterpolatedString(Object):
 
 class ASTInterpolatedStringConstructor(PrimFun):
     def __init__(self):
-        super().__init__('InterpolatedString', ['body'])
+        super().__init__('ast.InterpolatedString', ['body'])
 
     def fun(self, body):
         return ASTInterpolatedString(body)
@@ -71,7 +70,7 @@ class ASTInterpolatedStringConstructor(PrimFun):
 
 class ASTInterpolatedStringType(Type):
     def __init__(self):
-        super().__init__('InterpolatedString',
+        super().__init__('ast.InterpolatedString',
                          ast_node_type, constructor=ASTInterpolatedStringConstructor())
 
 
@@ -88,7 +87,7 @@ class ASTIdent(Object):
 
 class ASTIdentConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Ident', ['ident'])
+        super().__init__('ast.Ident', ['ident'])
 
     def fun(self, ident):
         return ASTIdent(ident)
@@ -96,7 +95,7 @@ class ASTIdentConstructor(PrimFun):
 
 class ASTIdentType(Type):
     def __init__(self):
-        super().__init__('Ident', ast_node_type, constructor=ASTIdentConstructor())
+        super().__init__('ast.Ident', ast_node_type, constructor=ASTIdentConstructor())
 
 
 class ASTInt(Object):
@@ -104,12 +103,12 @@ class ASTInt(Object):
         if not isinstance(val, Int):
             raise Panic('Invalid int')
         if sigil is None:
-            sigil = nil
-        if sigil is not nil and not isinstance(sigil, String):
+            sigil = String('')
+        if not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         self.parseinfo = parseinfo
         super().__init__(
-            {'int': val, 'sigil': nil if sigil is None else sigil}, ast_int_type)
+            {'int': val, 'sigil': sigil}, ast_int_type)
 
     def __repr__(self):
         return 'ASTInt({}, {})'.format(self.get('int'), self.get('sigil'))
@@ -117,7 +116,7 @@ class ASTInt(Object):
 
 class ASTIntConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Int', ['int', 'sigil'])
+        super().__init__('ast.Int', ['int', 'sigil'])
 
     def fun(self, val, sigil):
         return ASTInt(val, sigil)
@@ -125,7 +124,7 @@ class ASTIntConstructor(PrimFun):
 
 class ASTIntType(Type):
     def __init__(self):
-        super().__init__('Int', ast_node_type, constructor=ASTIntConstructor())
+        super().__init__('ast.Int', ast_node_type, constructor=ASTIntConstructor())
 
 
 class ASTFloat(Object):
@@ -133,12 +132,12 @@ class ASTFloat(Object):
         if not isinstance(val, Float):
             raise Panic('Invalid float')
         if sigil is None:
-            sigil = nil
-        if sigil is not nil and not isinstance(sigil, String):
+            sigil = String('')
+        if not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         self.parseinfo = parseinfo
         super().__init__(
-            {'float': val, 'sigil': nil if sigil is None else sigil}, ast_float_type)
+            {'float': val, 'sigil': sigil}, ast_float_type)
 
     def __repr__(self):
         return 'ASTFloat({}, {})'.format(self.get('float'), self.get('sigil'))
@@ -146,7 +145,7 @@ class ASTFloat(Object):
 
 class ASTFloatConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Float', ['float', 'sigil'])
+        super().__init__('ast.Float', ['float', 'sigil'])
 
     def fun(self, val, sigil):
         return ASTFloat(val, sigil)
@@ -154,7 +153,7 @@ class ASTFloatConstructor(PrimFun):
 
 class ASTFloatType(Type):
     def __init__(self):
-        super().__init__('Float', ast_node_type, constructor=ASTFloatConstructor())
+        super().__init__('ast.Float', ast_node_type, constructor=ASTFloatConstructor())
 
 
 class ASTSymbol(Object):
@@ -171,7 +170,7 @@ class ASTSymbol(Object):
 
 class ASTSymbolConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Symbol', ['symbol'])
+        super().__init__('ast.Symbol', ['symbol'])
 
     def fun(self, symbol):
         return ASTSymbol(symbol)
@@ -179,7 +178,7 @@ class ASTSymbolConstructor(PrimFun):
 
 class ASTSymbolType(Type):
     def __init__(self):
-        super().__init__('Symbol', ast_node_type, constructor=ASTSymbolConstructor())
+        super().__init__('ast.Symbol', ast_node_type, constructor=ASTSymbolConstructor())
 
 
 class ASTList(Object):
@@ -195,7 +194,7 @@ class ASTList(Object):
 
 class ASTListConstructor(PrimFun):
     def __init__(self):
-        super().__init__('List', ['list'])
+        super().__init__('ast.List', ['list'])
 
     def fun(self, lst):
         return ASTList(lst)
@@ -203,7 +202,7 @@ class ASTListConstructor(PrimFun):
 
 class ASTListType(Type):
     def __init__(self):
-        super().__init__('List', ast_node_type, constructor=ASTListConstructor())
+        super().__init__('ast.List', ast_node_type, constructor=ASTListConstructor())
 
 
 class ASTBlock(Object):
@@ -219,7 +218,7 @@ class ASTBlock(Object):
 
 class ASTBlockConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Block', ['statements'])
+        super().__init__('ast.Block', ['statements'])
 
     def fun(self, statements):
         return ASTBlock(statements)
@@ -227,7 +226,7 @@ class ASTBlockConstructor(PrimFun):
 
 class ASTBlockType(Type):
     def __init__(self):
-        super().__init__('Block', ast_node_type, constructor=ASTBlockConstructor())
+        super().__init__('ast.Block', ast_node_type, constructor=ASTBlockConstructor())
 
 
 class ASTTrailed(Object):
@@ -241,7 +240,7 @@ class ASTTrailed(Object):
 
 class ASTTrailedConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Trailed', ['expr', 'trailer'])
+        super().__init__('ast.Trailed', ['expr', 'trailer'])
 
     def fun(self, expr, trailer):
         return ASTBlock(expr, trailer)
@@ -249,7 +248,7 @@ class ASTTrailedConstructor(PrimFun):
 
 class ASTTrailedType(Type):
     def __init__(self):
-        super().__init__('Trailed', ast_node_type, constructor=ASTTrailedConstructor())
+        super().__init__('ast.Trailed', ast_node_type, constructor=ASTTrailedConstructor())
 
 
 class ASTTuple(Object):
@@ -265,7 +264,7 @@ class ASTTuple(Object):
 
 class ASTTupleConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Tuple', ['tuple'])
+        super().__init__('ast.Tuple', ['tuple'])
 
     def fun(self, tup):
         return ASTTuple(tup)
@@ -273,7 +272,7 @@ class ASTTupleConstructor(PrimFun):
 
 class ASTTupleType(Type):
     def __init__(self):
-        super().__init__('Tuple', ast_node_type, constructor=ASTTupleConstructor())
+        super().__init__('ast.Tuple', ast_node_type, constructor=ASTTupleConstructor())
 
 
 class ASTMap(Object):
@@ -289,7 +288,7 @@ class ASTMap(Object):
 
 class ASTMapConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Map', ['map'])
+        super().__init__('ast.Map', ['map'])
 
     def fun(self, lst):
         return ASTMap(lst)
@@ -297,7 +296,7 @@ class ASTMapConstructor(PrimFun):
 
 class ASTMapType(Type):
     def __init__(self):
-        super().__init__('Map', ast_node_type, constructor=ASTMapConstructor())
+        super().__init__('ast.Map', ast_node_type, constructor=ASTMapConstructor())
 
 
 class ASTCall(Object):
@@ -321,7 +320,7 @@ class ASTCall(Object):
 
 class ASTCallConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Call', ['callable', 'args'])
+        super().__init__('ast.Call', ['callable', 'args'])
 
     def fun(self, callable_expr, args):
         return ASTCall(callable_expr, args)
@@ -329,7 +328,7 @@ class ASTCallConstructor(PrimFun):
 
 class ASTCallType(Type):
     def __init__(self):
-        super().__init__('Call', ast_node_type, constructor=ASTCallConstructor())
+        super().__init__('ast.Call', ast_node_type, constructor=ASTCallConstructor())
 
 
 class ASTBinarySlurp(Object):
@@ -345,7 +344,7 @@ class ASTBinarySlurp(Object):
 
 class ASTBinarySlurpConstructor(PrimFun):
     def __init__(self):
-        super().__init__('BinarySlurp', ['slurp'])
+        super().__init__('ast.BinarySlurp', ['slurp'])
 
     def fun(self, slurp):
         return ASTBinarySlurp(slurp)
@@ -353,7 +352,7 @@ class ASTBinarySlurpConstructor(PrimFun):
 
 class ASTBinarySlurpType(Type):
     def __init__(self):
-        super().__init__('BinarySlurp', ast_node_type,
+        super().__init__('ast.BinarySlurp', ast_node_type,
                          constructor=ASTBinarySlurpConstructor())
 
 
@@ -368,7 +367,7 @@ class ASTUnquote(Object):
 
 class ASTUnquoteConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Unquote', ['expr'])
+        super().__init__('ast.Unquote', ['expr'])
 
     def fun(self, expr):
         return ASTUnquote(expr)
@@ -376,28 +375,25 @@ class ASTUnquoteConstructor(PrimFun):
 
 class ASTUnquoteType(Type):
     def __init__(self):
-        super().__init__('Unquote', ast_node_type, constructor=ASTUnquoteConstructor())
+        super().__init__('ast.Unquote', ast_node_type, constructor=ASTUnquoteConstructor())
 
 
 def model_to_ast(model):
     if isinstance(model, sem.Ident):
-        return ASTIdent(String(model.identifier),
-                        parseinfo=model.parseinfo)
+        return ASTIdent(String(model.identifier), parseinfo=model.parseinfo)
     elif isinstance(model, sem.Call):
         return ASTCall(model_to_ast(model.callable_expr), List([model_to_ast(arg) for arg in model.args]),
                        parseinfo=model.parseinfo)
     elif isinstance(model, sem.String):
-        return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else nil,
-                         parseinfo=model.parseinfo)
+        return ASTString(String(model.string), String(model.sigil), parseinfo=model.parseinfo)
     elif isinstance(model, sem.InterpolatedString):
         return ASTInterpolatedString(List([model_to_ast(elem) for elem in model.body]),
                                      parseinfo=model.parseinfo)
     elif isinstance(model, sem.Int):
-        return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else nil,
+        return ASTInt(Int(model.val), String(model.sigil),
                       parseinfo=model.parseinfo)
     elif isinstance(model, sem.Float):
-        return ASTFloat(Float(model.val), String(model.sigil) if model.sigil is not None else nil,
-                        parseinfo=model.parseinfo)
+        return ASTFloat(Float(model.val), String(model.sigil), parseinfo=model.parseinfo)
     elif isinstance(model, sem.List):
         return ASTList(List([model_to_ast(elem) for elem in model.elements]),
                        parseinfo=model.parseinfo)

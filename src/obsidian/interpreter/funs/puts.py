@@ -4,7 +4,7 @@ from .get_attr import get_attr
 
 class Puts(PrimFun):
     def __init__(self):
-        super().__init__('puts', variadic=True)
+        super().__init__('prim.puts', variadic=True)
 
     def macro(self, scope, *strings):
         # if not isinstance(string, String):
