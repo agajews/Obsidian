@@ -209,6 +209,64 @@ def test_string_to_str(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_interpolated_string(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'name' 'Alex'
+    puts "Hello, ${name}!"
+    '''
+    target = ['Hello, Alex!']
+    assert get_output(source, capsys) == target
+
+
+def test_triple_interpolated_string(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'name' 'Alex'
+    puts """Hello, ${name}!"""
+    '''
+    target = ['Hello, Alex!']
+    assert get_output(source, capsys) == target
+
+
+def test_interpolated_string_int(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'name' 'Alex'
+    let 'n_dogs' 3
+    puts "Hello $name, I have $n_dogs dogs!"
+    '''
+    target = ['Hello Alex, I have 3 dogs!']
+    assert get_output(source, capsys) == target
+
+
+def test_triple_interpolated_string_int(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'name' 'Alex'
+    let 'n_dogs' 3
+    puts """Hello $name, I have $n_dogs dogs!"""
+    '''
+    target = ['Hello Alex, I have 3 dogs!']
+    assert get_output(source, capsys) == target
+
+
+def test_interpolated_string_symbol(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'name' 'Alex'
+    let 'associativity' @left
+    puts "Hello $name, my associativity is ${associativity}!"
+    '''
+    target = ['Hello Alex, my associativity is @left!']
+    assert get_output(source, capsys) == target
+
+
 def test_bool_true(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let

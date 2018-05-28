@@ -1,7 +1,8 @@
 from ..bootstrap import (
     Panic,
-    Object, Type,
-    object_type
+    Object,
+    Type,
+    object_type,
 )
 
 

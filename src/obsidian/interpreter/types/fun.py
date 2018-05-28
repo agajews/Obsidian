@@ -1,6 +1,9 @@
 from ..bootstrap import (
-    Panic, Object, Type, PrimFun,
-    object_type
+    Panic,
+    Object,
+    Type,
+    PrimFun,
+    object_type,
 )
 from .scope import Scope
 from .list import List

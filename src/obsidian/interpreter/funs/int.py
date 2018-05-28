@@ -1,4 +1,11 @@
-from ..types import PrimFun, Panic, Int, Symbol, true, false
+from ..types import (
+    PrimFun,
+    Panic,
+    Int,
+    Symbol,
+    true,
+    false
+)
 
 
 class Add(PrimFun):

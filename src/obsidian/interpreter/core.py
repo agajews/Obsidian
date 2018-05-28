@@ -1,16 +1,48 @@
 from .types import (
     Module,
-    fun_type, scope_type, module_type, int_type, float_type, list_type, tuple_type,
-    bool_type, true, false,
-    symbol_type, type_type, string_type, object_type, prim_fun_type, meta_type, nil_type, nil
+    fun_type,
+    scope_type,
+    module_type,
+    int_type,
+    float_type,
+    list_type,
+    tuple_type,
+    bool_type,
+    true,
+    false,
+    symbol_type,
+    type_type,
+    string_type,
+    object_type,
+    prim_fun_type,
+    meta_type,
+    nil_type,
+    nil,
 )
 from .types.ast import (
     model_to_ast,
-    ast_node_type, ast_ident_type, ast_string_type, ast_int_type, ast_float_type,
-    ast_list_type, ast_tuple_type, ast_call_type, ast_binary_slurp_type, ast_symbol_type,
+    ast_node_type,
+    ast_ident_type,
+    ast_string_type,
+    ast_interpolated_string_type,
+    ast_int_type,
+    ast_float_type,
+    ast_list_type,
+    ast_tuple_type,
+    ast_call_type,
+    ast_binary_slurp_type,
+    ast_symbol_type,
 )
 from .funs import (
-    get_attr, set_attr, let, puts, cond, int, float, list, string,
+    get_attr,
+    set_attr,
+    let,
+    puts,
+    cond,
+    int,
+    float,
+    list,
+    string,
 )
 
 
@@ -43,12 +75,11 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Int': ast_int_type,
     'Float': ast_float_type,
     'Symbol': ast_symbol_type,
-    # 'InterpolatedString': ASTInterpolatedStringType,
+    'InterpolatedString': ast_interpolated_string_type,
     'List': ast_list_type,
     'Tuple': ast_tuple_type,
     # 'Map': ASTMapType,
     'Call': ast_call_type,
-
     # 'Unquote': ASTUnquoteType,
     'BinarySlurp': ast_binary_slurp_type,
     # 'Block': ASTBlockType,
@@ -107,4 +138,6 @@ def load_module(statements, source_map, name, preload=None):
     for name, obj in preload.items():
         module.set(name, obj)
     for statement in statements:
-        module.eval(model_to_ast(statement))
+        statement = model_to_ast(statement)
+        statement = module.preprocess(statement)
+        module.eval(statement)

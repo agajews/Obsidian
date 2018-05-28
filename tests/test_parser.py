@@ -1,4 +1,19 @@
-from obsidian.semantics import *
+from obsidian.semantics import (
+    Ident,
+    Int,
+    Float,
+    String,
+    InterpolatedString,
+    Symbol,
+    Map,
+    List,
+    Tuple,
+    Call,
+    Trailed,
+    Unquote,
+    BinarySlurp,
+    Block
+)
 from obsidian import parser
 from textwrap import dedent
 from beeprint import pp
@@ -483,6 +498,22 @@ def test_double_quote_sigil():
     assert parse(source) == [String('hello', 'r')]
 
 
+def test_interpolated_string_sigil():
+    source = r'''
+    r"hello ${"world"}"
+    '''
+    assert parse(source) == [InterpolatedString(
+        [String('hello ', 'r'), String('world')])]
+
+
+def test_triple_interpolated_string_sigil():
+    source = r'''
+    r"""hello ${"world"}"""
+    '''
+    assert parse(source) == [InterpolatedString(
+        [String('hello ', 'r'), String('world')])]
+
+
 def test_single_triple_quote_sigil():
     source = r"""
     r'''hello'''
@@ -655,7 +686,7 @@ def test_ident_exclamation():
         [Ident('works!'), Ident('='), Ident('true')])]
 
 
-def test_ident_question_nospace():
+def test_ident_neq_nospace():
     source = '''
     works!=true
     '''
@@ -663,7 +694,7 @@ def test_ident_question_nospace():
         [Ident('works!'), Ident('='), Ident('true')])]
 
 
-def test_question_op():
+def test_question_neq():
     source = '''
     works != true
     '''
@@ -671,7 +702,7 @@ def test_question_op():
         [Ident('works'), Ident('!='), Ident('true')])]
 
 
-def test_op_identifier():
+def test_op_def():
     source = '''
     def (+ x: int y: int)
         x.add_int y

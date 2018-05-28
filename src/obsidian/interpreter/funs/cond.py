@@ -1,4 +1,10 @@
-from ..types import Tuple, Bool, PrimFun, Panic, nil
+from ..types import (
+    Tuple,
+    Bool,
+    PrimFun,
+    Panic,
+    nil
+)
 from ..types.ast import ASTTuple
 
 

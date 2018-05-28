@@ -1,7 +1,9 @@
 from ... import semantics as sem
 from ..bootstrap import (
     String,
-    Object, Type, Panic,
+    Object,
+    Type,
+    Panic,
     object_type,
     nil
 )
@@ -21,6 +23,8 @@ class ASTString(Object):
     def __init__(self, string, sigil=None):
         if not isinstance(string, String):
             raise Panic('Invalid string')
+        if sigil is None:
+            sigil = nil
         if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         super().__init__(
@@ -36,6 +40,26 @@ class ASTStringType(Type):
 
     def fun(self, string, sigil):
         return ASTString(string, sigil)
+
+
+class ASTInterpolatedString(Object):
+    def __init__(self, body):
+        if not isinstance(body, List):
+            raise Panic('Body must be a list')
+        super().__init__(
+            {'body': body}, ast_interpolated_string_type)
+
+    def __repr__(self):
+        return 'ASTInterpolatedString({})'.format(self.get('body'))
+
+
+class ASTInterpolatedStringType(Type):
+    def __init__(self):
+        super().__init__('InterpolatedString',
+                         ast_node_type, ['body'])
+
+    def fun(self, body):
+        return ASTInterpolatedString(body)
 
 
 class ASTIdent(Object):
@@ -60,6 +84,8 @@ class ASTInt(Object):
     def __init__(self, val, sigil=None):
         if not isinstance(val, Int):
             raise Panic('Invalid int')
+        if sigil is None:
+            sigil = nil
         if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         super().__init__(
@@ -81,6 +107,8 @@ class ASTFloat(Object):
     def __init__(self, val, sigil=None):
         if not isinstance(val, Float):
             raise Panic('Invalid float')
+        if sigil is None:
+            sigil = nil
         if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
         super().__init__(
@@ -197,6 +225,8 @@ def model_to_ast(model):
         return ASTCall(model_to_ast(model.callable_expr), List([model_to_ast(arg) for arg in model.args]))
     elif isinstance(model, sem.String):
         return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else nil)
+    elif isinstance(model, sem.InterpolatedString):
+        return ASTInterpolatedString(List([model_to_ast(elem) for elem in model.body]))
     elif isinstance(model, sem.Int):
         return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else nil)
     elif isinstance(model, sem.Float):
@@ -216,10 +246,10 @@ def model_to_ast(model):
 
 ast_node_type = ASTNodeType()
 ast_string_type = ASTStringType()
+ast_interpolated_string_type = ASTInterpolatedStringType()
 ast_ident_type = ASTIdentType()
 ast_int_type = ASTIntType()
 ast_float_type = ASTFloatType()
-# ASTInterpolatedStringType = Type('InterpolatedString', ASTNodeType)
 ast_symbol_type = ASTSymbolType()
 ast_list_type = ASTListType()
 ast_tuple_type = ASTTupleType()
@@ -229,3 +259,4 @@ ast_call_type = ASTCallType()
 # ASTUnquoteType = Type('Unquote', ASTNodeType)
 ast_binary_slurp_type = ASTBinarySlurpType()
 # ASTBlockType = Type('Block', ASTNodeType)
+# ast_trailed_type = ASTTrailedType()

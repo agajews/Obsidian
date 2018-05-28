@@ -1,7 +1,10 @@
 from ..bootstrap import (
-    Panic, Object, Type, PrimFun,
+    Panic,
+    Object,
+    Type,
+    PrimFun,
+    String,
     object_type,
-    String
 )
 
 

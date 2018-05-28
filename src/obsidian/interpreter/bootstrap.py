@@ -24,7 +24,7 @@ class PrimObject:
         return False
 
     def __repr__(self):
-        return 'PrimObject({})'.format(self.attrs)
+        return 'PrimObject({})'.format({k: v for k, v in self.attrs.items() if k != 'meta'})
 
     def call(self, caller_scope, args):
         if 'call' not in self.attrs:

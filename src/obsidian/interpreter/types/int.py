@@ -1,5 +1,8 @@
 from ..bootstrap import (
-    Panic, Object, Type, PrimFun,
+    Panic,
+    Object,
+    Type,
+    PrimFun,
     object_type,
     String
 )

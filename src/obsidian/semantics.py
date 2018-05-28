@@ -1,5 +1,5 @@
-import re
-import codecs
+# import re
+# import codecs
 
 
 indent_spaces = 4
@@ -91,10 +91,14 @@ class String(Node):
         return '"' + self.string.replace('"', '\\"') + '"'
 
 
+class StringBody(Node):
+    def __init__(self, string):
+        self.string = string
+
+
 class InterpolatedString(Node):
-    def __init__(self, body, sigil=None):
+    def __init__(self, body):
         self.body = body
-        self.sigil = sigil
 
     def show(self, indent):
         return '"' + ''.join(b.show(indent) for b in self.body) + '"'
@@ -211,31 +215,34 @@ class Semantics:
         sigil = info['sigil']
         if len(bodies) == 0:
             return String('', sigil)
-        if len(bodies) == 1 and isinstance(bodies[0], String):
+        if len(bodies) == 1 and isinstance(bodies[0], StringBody):
             return String(bodies[0].string, sigil)
-        return InterpolatedString(bodies, sigil)
+        bodies = [String(body.string, sigil)
+                  if isinstance(body, StringBody) else body
+                  for body in bodies]
+        return InterpolatedString(bodies)
 
     def triple_interpolated_string(info):
         bodies = info['bodies']
         sigil = info['sigil']
         if len(bodies) == 0:
             return String('', sigil)
-        if len(bodies) == 1 and isinstance(bodies[0], String):
+        if len(bodies) == 1 and isinstance(bodies[0], StringBody):
             return String(bodies[0].string, sigil)
-        return InterpolatedString(bodies, sigil)
+        bodies = [String(body.string, sigil)
+                  if isinstance(body, StringBody) else body
+                  for body in bodies]
+        return InterpolatedString(bodies)
 
     def STRING_BODY(body):
-        return String(clean_string(body, '"$'))
+        return StringBody(clean_string(body, '"$'))
 
     def TSTRING_BODY(body):
-        return String(clean_string(body, '"$'))
+        return StringBody(clean_string(body, '"$'))
 
     def single_string(info):
         return String(clean_string(info['val'][1:-1], "'"), info['sigil'])
 
-    # def triple_double_string(info):
-    #     return String(clean_string(info['val'][3:-3], '"'), info['sigil'])
-    #
     def triple_single_string(info):
         return String(clean_string(info['val'][3:-3], "'"), info['sigil'])
 
@@ -279,9 +286,6 @@ class Semantics:
             return slurp[0]
         return BinarySlurp(slurp)
 
-    # def block_binary_expression(info):
-    #     return Binary(info['op'], info['lhs'], info['rhs'])
-    #
     def block(statements):
         return Block([s for s in statements if s != '\n'])
 
@@ -292,9 +296,6 @@ class Semantics:
 
     def call_expression(info):
         return Call(info['head'], info['args'])
-
-    def partial_call_expression(info):
-        return PartialCall(info['head'], info['args'])
 
     def unquote_expression(info):
         return Unquote(info)
