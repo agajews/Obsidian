@@ -60,7 +60,7 @@ class Return(PrimFun):
     def __init__(self):
         super().__init__('return', ['obj'])
 
-    def fun(obj):
+    def fun(self, obj):
         raise ReturnException(obj)
 
 

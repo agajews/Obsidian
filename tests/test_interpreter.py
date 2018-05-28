@@ -141,6 +141,32 @@ def test_panic(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_return(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    let 'fn' (Fun 'fn' [(puts 'Hello'), (return 'People'), (puts 'Yay!')])
+    puts (fn)
+    '''
+    target = ['Hello', 'People']
+    assert get_output(source, capsys) == target
+
+
+def test_return_nested(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    let 'fn1' (Fun 'fn1' [(puts 'All'), (return 'You'), (puts 'Yay!')])
+    let 'fn2' (Fun 'fn2' [(puts 'Hello'), (return (fn1)), (puts 'Yay!')])
+    puts (fn2)
+    puts 'People'
+    '''
+    target = ['Hello', 'All', 'You', 'People']
+    assert get_output(source, capsys) == target
+
+
 def test_is(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
