@@ -156,14 +156,23 @@ def test_scope(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_list(capsys):
+def test_list_get(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
-    let 'l' [1, 2, 3]
-    let 'list' (get_attr prim 'list')
-    let 'list_get' (get_attr list 'get')
-    puts ((get_attr (list_get l 1) 'to_str'))
+    let 'list' [1, 2, 3]
+    puts ((get_attr ((get_attr list 'get') 1) 'to_str'))
+    '''
+    target = ['2']
+    assert get_output(source, capsys) == target
+
+
+def test_tuple_get(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'tuple' (1, 2, 3)
+    puts ((get_attr ((get_attr tuple 'get') 1) 'to_str'))
     '''
     target = ['2']
     assert get_output(source, capsys) == target
@@ -813,12 +822,10 @@ def test_methods(capsys):
     let 'Object' (get_attr prim 'Object')
     let 'Type' (get_attr prim 'Type')
     let 'Dog' (Type 'Dog' Object)
-    let 'list' (get_attr prim 'list')
-    let 'list_get' (get_attr list 'get')
     let 'string' (get_attr prim 'string')
     let 'strcat' (get_attr string 'concat')
     set_attr (get_attr Dog 'methods') 'greet' (Fun 'greet' [
-        (let 'raw_name' (list_get (get_attr meta 'args') 1)),
+        (let 'raw_name' ((get_attr (get_attr meta 'args') 'get') 1)),
         (let 'name' ((get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval') raw_name)),
         (puts (strcat 'Woof ' name '!')),
     ])

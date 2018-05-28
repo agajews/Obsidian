@@ -117,12 +117,17 @@ prim.set('float', Module('float', parent=prim, attrs={
 
 
 prim.set('list', Module('list', parent=prim, attrs={
-    'get': list.get,
+    # 'get': list.get,
 }))
 
 
 prim.set('tuple', Module('tuple', parent=prim, attrs={
-    'get': tuple.get,
+    # 'get': tuple.get,
+}))
+
+
+prim.set('map', Module('map', parent=prim, attrs={
+    # 'get': tuple.get,
 }))
 
 

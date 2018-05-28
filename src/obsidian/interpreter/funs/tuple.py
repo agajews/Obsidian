@@ -20,7 +20,7 @@ class TupleHash(PrimFun):
         return Int(hash(tuple(get_attr.fun(elem, 'hash').call(scope) for elem in tuple.elems)))
 
 
-class Get(PrimFun):
+class TupleGet(PrimFun):
     def __init__(self):
         super().__init__('get', ['tup', 'idx'])
 
@@ -34,7 +34,7 @@ class Get(PrimFun):
 
 class TupleToStr(PrimFun):
     def __init__(self):
-        super().__init__('Tuple', ['tuple'])
+        super().__init__('to_str', ['tuple'])
 
     def macro(self, scope, tup):
         tup = scope.eval(tup)
@@ -48,6 +48,6 @@ class TupleToStr(PrimFun):
         return String('(' + ', '.join(string.str for string in strings) + ')')
 
 
-get = Get()
+tuple_type.get('methods').set('get', TupleGet())
 tuple_type.get('methods').set('to_str', TupleToStr())
 tuple_type.get('methods').set('hash', TupleHash())

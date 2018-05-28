@@ -9,7 +9,7 @@ from ..types import (
 from .get_attr import get_attr
 
 
-class Get(PrimFun):
+class ListGet(PrimFun):
     def __init__(self):
         super().__init__('get', ['list', 'idx'])
 
@@ -23,7 +23,7 @@ class Get(PrimFun):
 
 class ListToStr(PrimFun):
     def __init__(self):
-        super().__init__('List', ['list'])
+        super().__init__('to_str', ['list'])
 
     def macro(self, scope, lst):
         lst = scope.eval(lst)
@@ -37,5 +37,5 @@ class ListToStr(PrimFun):
         return String('[' + ', '.join(string.str for string in strings) + ']')
 
 
-get = Get()
+list_type.get('methods').set('get', ListGet())
 list_type.get('methods').set('to_str', ListToStr())
