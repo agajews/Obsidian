@@ -3,6 +3,7 @@ from .set_attr import set_attr
 from .let import let
 from .assign import assign
 from .panic import panic
+from .is_fn import is_fn
 from .puts import puts
 from .cond import cond
 from .while_fn import while_fn

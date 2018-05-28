@@ -141,6 +141,21 @@ def test_panic(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_is(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'is' (get_attr prim 'is'))
+    let 'x' 3
+    puts x ~is x
+    let 'y' 3
+    puts x ~is y
+    '''
+    target = ['true', 'false']
+    assert get_output(source, capsys) == target
+
+
 def test_eval(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let

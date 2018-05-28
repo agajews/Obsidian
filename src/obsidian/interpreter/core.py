@@ -21,6 +21,7 @@ from .types import (
     nil_type,
     nil,
 )
+
 from .types.ast import (
     model_to_ast,
     ast_node_type,
@@ -39,12 +40,14 @@ from .types.ast import (
     ast_block_type,
     ast_trailed_type,
 )
+
 from .funs import (
     get_attr,
     set_attr,
     let,
     assign,
     panic,
+    is_fn,
     puts,
     cond,
     while_fn,
@@ -79,6 +82,7 @@ prim = Module('prim', attrs={
     'let': let,
     'assign': assign,
     'panic': panic,
+    'is': is_fn,
     'cond': cond,
     'while': while_fn,
     'puts': puts,
