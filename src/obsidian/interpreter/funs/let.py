@@ -6,6 +6,7 @@ class Let(PrimFun):
         super().__init__('let', ['name', 'val'])
 
     def macro(self, scope, name, val):
+        # TODO name validation (for operators)
         name = scope.eval(name)
         val = scope.eval(val)
         if not isinstance(name, String):

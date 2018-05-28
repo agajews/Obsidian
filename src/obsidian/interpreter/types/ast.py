@@ -199,6 +199,29 @@ class ASTListType(Type):
         super().__init__('List', ast_node_type, constructor=ASTListConstructor())
 
 
+class ASTBlock(Object):
+    def __init__(self, statements):
+        if not isinstance(statements, List):
+            raise Panic('Invalid list')
+        super().__init__({'statements': statements}, ast_block_type)
+
+    def __repr__(self):
+        return 'ASTList({})'.format(self.get('elems'))
+
+
+class ASTBlockConstructor(PrimFun):
+    def __init__(self):
+        super().__init__('Block', ['statements'])
+
+    def fun(self, statements):
+        return ASTBlock(statements)
+
+
+class ASTBlockType(Type):
+    def __init__(self):
+        super().__init__('Block', ast_node_type, constructor=ASTBlockConstructor())
+
+
 class ASTTuple(Object):
     def __init__(self, elems):
         if not isinstance(elems, Tuple):
@@ -339,6 +362,8 @@ def model_to_ast(model):
         return ASTBinarySlurp(List([model_to_ast(elem) for elem in model.slurp]))
     elif isinstance(model, sem.Unquote):
         return ASTUnquote(model_to_ast(model.expr))
+    elif isinstance(model, sem.Block):
+        return ASTBlock(List([model_to_ast(statement) for statement in model.statements]))
     else:
         raise NotImplementedError(
             'Translation of model node {} to AST not implemented'.format(model))
@@ -357,5 +382,5 @@ ast_map_type = ASTMapType()
 ast_call_type = ASTCallType()
 ast_unquote_type = ASTUnquoteType()
 ast_binary_slurp_type = ASTBinarySlurpType()
-# ASTBlockType = Type('Block', ASTNodeType)
+ast_block_type = ASTBlockType()
 # ast_trailed_type = ASTTrailedType()

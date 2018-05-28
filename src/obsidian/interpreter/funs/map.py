@@ -47,7 +47,10 @@ class MapGet(PrimFun):
         key = scope.eval(key)
         if not isinstance(map, Map):
             raise Panic('Map must be a map')
-        return map.elems[compute_hash(key, scope)][1]
+        hash_code = compute_hash(key, scope)
+        if hash_code not in map.elems:
+            raise Panic('No such key in map')
+        return map.elems[hash_code][1]
 
 
 class MapToStr(PrimFun):

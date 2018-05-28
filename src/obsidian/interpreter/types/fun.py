@@ -12,13 +12,13 @@ from .list import List
 class Fun(Object):
     def __init__(self, defn_scope, name, body):
         super().__init__(
-            {'name': name, 'body': body, 'defn_scope': defn_scope}, fun_type)
+            {'name': name, 'body': body, 'definer': defn_scope}, fun_type)
         # print(f'Created fun with body {body}')
 
     def call(self, caller_scope, args=None):
         if args is None:
             args = []
-        scope = Scope(self.get('defn_scope'))
+        scope = Scope(self.get('definer'))
         scope.get('meta').set('args', List(args))
         scope.get('meta').set('caller', caller_scope)
         scope.get('meta').set('fun', self)

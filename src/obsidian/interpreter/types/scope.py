@@ -21,6 +21,7 @@ from .ast import (
     ASTBinarySlurp,
     ASTSymbol,
     ASTUnquote,
+    ASTBlock,
 )
 from .int import int_type, Int
 from .float import float_type
@@ -28,6 +29,18 @@ from .list import list_type, List
 from .tuple import tuple_type, Tuple
 from .map import map_type
 from .symbol import symbol_type, Symbol
+
+
+def list_elems(ast):
+    if not isinstance(ast, List):
+        raise Panic('Invalid list')
+    return ast.elems
+
+
+def tuple_elems(ast):
+    if not isinstance(ast, Tuple):
+        raise Panic('Invalid tuple')
+    return ast.elems
 
 
 class Scope(Object):
@@ -109,13 +122,15 @@ class Scope(Object):
     def preprocess(self, ast):
         if isinstance(ast, ASTCall):
             return ASTCall(self.preprocess(ast.get('callable')),
-                           List([self.preprocess(arg) for arg in ast.get('args').elems]))
+                           List([self.preprocess(arg) for arg in list_elems(ast.get('args'))]))
         elif isinstance(ast, ASTList):
-            return ASTList(List([self.preprocess(elem) for elem in ast.get('elems').elems]))
+            return ASTList(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]))
         elif isinstance(ast, ASTTuple):
-            return ASTTuple(Tuple([self.preprocess(elem) for elem in ast.get('elems').elems]))
+            return ASTTuple(Tuple([self.preprocess(elem) for elem in tuple_elems(ast.get('elems'))]))
         elif isinstance(ast, ASTMap):
-            return ASTMap(List([self.preprocess(elem) for elem in ast.get('elems').elems]))
+            return ASTMap(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]))
+        elif isinstance(ast, ASTBlock):
+            return ASTBlock(List([self.preprocess(elem) for elem in list_elems(ast.get('statements'))]))
         elif isinstance(ast, (ASTIdent,
                               ASTString,
                               ASTInterpolatedString,
@@ -165,6 +180,11 @@ class Scope(Object):
             return symbol_type.call(self, [ast])
         elif isinstance(ast, ASTList):
             return list_type.call(self, [ast])
+        elif isinstance(ast, ASTBlock):
+            statements = ast.get('statements')
+            if not isinstance(statements, List):
+                raise Panic('Invalid block')
+            return List([self.eval(statement) for statement in statements.elems])
         elif isinstance(ast, ASTTuple):
             return tuple_type.call(self, [ast])
         elif isinstance(ast, ASTMap):

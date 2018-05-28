@@ -122,7 +122,6 @@ def test_fun(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     (let 'Fun' (get_attr prim 'Fun'))
-    (let 'ast' (get_attr prim 'ast'))
     (let 'puts' (get_attr prim 'puts'))
     let 'hello' (Fun 'hello' [(puts 'Hello, World!')])
     (hello)
@@ -142,6 +141,32 @@ def test_eval(capsys):
     (get_attr meta 'eval') (ASTCall (ASTIdent 'puts') [(ASTString 'Hello, World!' nil)])
     '''
     target = ['Hello, World!']
+    assert get_output(source, capsys) == target
+
+
+def test_block(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'Fun' (get_attr prim 'Fun')
+    let 'puts' (get_attr prim 'puts')
+    let 'while' (get_attr prim 'while')
+    let '-' (get_attr (get_attr prim 'int') 'sub')
+    let '>=' (get_attr (get_attr prim 'int') 'gte')
+    let 'run' (Fun 'run' [
+        (let 'statements' (get_attr ((get_attr (get_attr meta 'args') 'get') 0) 'statements')),
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'n_args' ((get_attr statements 'len'))),
+        (let 'i' n_args - 1),
+        (while i >= 0 [
+            (eval ((get_attr statements 'get') i)),
+            (let 'i' i - 1)
+        ]),
+    ])
+    run
+        puts 'Hello, World!'
+        puts 'Hi again'
+    '''
+    target = ['Hi again', 'Hello, World!']
     assert get_output(source, capsys) == target
 
 
@@ -491,6 +516,102 @@ def test_int_neq_false(capsys):
     let 'int' (get_attr prim 'int')
     let 'int_neq' (get_attr int 'neq')
     puts ((get_attr (int_neq 2 2 2) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_int_lt_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_lt' (get_attr int 'lt')
+    puts ((get_attr (int_lt 2 3 4) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_int_lt_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_lt' (get_attr int 'lt')
+    puts ((get_attr (int_lt 2 3 3) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_int_lte_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_lte' (get_attr int 'lte')
+    puts ((get_attr (int_lte 2 3 3) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_int_lte_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_lte' (get_attr int 'lte')
+    puts ((get_attr (int_lte 2 3 2) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_int_gt_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_gt' (get_attr int 'gt')
+    puts ((get_attr (int_gt 4 3 2) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_int_gt_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_gt' (get_attr int 'gt')
+    puts ((get_attr (int_gt 4 4 3) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_int_gte_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_gte' (get_attr int 'gte')
+    puts ((get_attr (int_gte 4 4 3) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_int_gte_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'int_gte' (get_attr int 'gte')
+    puts ((get_attr (int_gte 4 4 5) 'to_str'))
     '''
     target = ['false']
     assert get_output(source, capsys) == target

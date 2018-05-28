@@ -29,6 +29,8 @@ class TupleGet(PrimFun):
             raise Panic('Tuple must be a tuple')
         if not isinstance(idx, Int):
             raise Panic('Index must be an int')
+        if idx.int >= len(tup.elems):
+            raise Panic('Index out of range')
         return tup.elems[idx.int]
 
 

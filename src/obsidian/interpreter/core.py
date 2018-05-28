@@ -35,6 +35,7 @@ from .types.ast import (
     ast_binary_slurp_type,
     ast_symbol_type,
     ast_unquote_type,
+    ast_block_type,
 )
 from .funs import (
     get_attr,
@@ -42,6 +43,7 @@ from .funs import (
     let,
     puts,
     cond,
+    while_fn,
     int,
     float,
     list,
@@ -71,6 +73,7 @@ prim = Module('prim', attrs={
 
     'let': let,
     'cond': cond,
+    'while': while_fn,
     'puts': puts,
 })
 
@@ -88,7 +91,7 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Call': ast_call_type,
     'Unquote': ast_unquote_type,
     'BinarySlurp': ast_binary_slurp_type,
-    # 'Block': ASTBlockType,
+    'Block': ast_block_type,
     # 'Trailed': ast_trailed_type
 }))
 
@@ -101,6 +104,10 @@ prim.set('int', Module('int', parent=prim, attrs={
     'pow': int.pow,
     'eq': int.eq,
     'neq': int.neq,
+    'lt': int.lt,
+    'lte': int.lte,
+    'gt': int.gt,
+    'gte': int.gte,
 }))
 
 

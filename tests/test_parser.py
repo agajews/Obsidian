@@ -176,6 +176,20 @@ def test_whitespace_map():
         [Ident('fn'), Ident('arg1'), Ident('arg2')])]
 
 
+def test_single_block():
+    source = '''
+    run
+        thing 1
+        thing 2
+    '''
+    assert parse(source) == [
+        Call(Ident('run'), [Block([
+            Call(Ident('thing'), [Int(1)]),
+            Call(Ident('thing'), [Int(2)]),
+        ])]),
+    ]
+
+
 def test_simple_if():
     source = '''
     if name ~is "John"
