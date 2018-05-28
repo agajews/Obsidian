@@ -36,6 +36,7 @@ from .types.ast import (
     ast_symbol_type,
     ast_unquote_type,
     ast_block_type,
+    ast_trailed_type,
 )
 from .funs import (
     get_attr,
@@ -92,7 +93,7 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Unquote': ast_unquote_type,
     'BinarySlurp': ast_binary_slurp_type,
     'Block': ast_block_type,
-    # 'Trailed': ast_trailed_type
+    'Trailed': ast_trailed_type,
 }))
 
 prim.set('int', Module('int', parent=prim, attrs={
@@ -121,6 +122,10 @@ prim.set('float', Module('float', parent=prim, attrs={
     'pow': float.pow,
     'eq': float.eq,
     'neq': float.neq,
+    'lt': float.lt,
+    'lte': float.lte,
+    'gt': float.gt,
+    'gte': float.gte,
 }))
 
 

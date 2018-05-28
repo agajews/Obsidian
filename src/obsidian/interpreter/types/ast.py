@@ -206,7 +206,7 @@ class ASTBlock(Object):
         super().__init__({'statements': statements}, ast_block_type)
 
     def __repr__(self):
-        return 'ASTList({})'.format(self.get('elems'))
+        return 'ASTBlock({})'.format(self.get('statements'))
 
 
 class ASTBlockConstructor(PrimFun):
@@ -220,6 +220,27 @@ class ASTBlockConstructor(PrimFun):
 class ASTBlockType(Type):
     def __init__(self):
         super().__init__('Block', ast_node_type, constructor=ASTBlockConstructor())
+
+
+class ASTTrailed(Object):
+    def __init__(self, expr, trailer):
+        super().__init__({'expr': expr, 'trailer': trailer}, ast_block_type)
+
+    def __repr__(self):
+        return 'ASTTrailed({}, {})'.format(self.get('expr'), self.get('trailer'))
+
+
+class ASTTrailedConstructor(PrimFun):
+    def __init__(self):
+        super().__init__('Trailed', ['expr', 'trailer'])
+
+    def fun(self, expr, trailer):
+        return ASTBlock(expr, trailer)
+
+
+class ASTTrailedType(Type):
+    def __init__(self):
+        super().__init__('Trailed', ast_node_type, constructor=ASTTrailedConstructor())
 
 
 class ASTTuple(Object):
@@ -364,6 +385,11 @@ def model_to_ast(model):
         return ASTUnquote(model_to_ast(model.expr))
     elif isinstance(model, sem.Block):
         return ASTBlock(List([model_to_ast(statement) for statement in model.statements]))
+    elif isinstance(model, sem.Trailed):
+        expr = model_to_ast(model.expr)
+        for trailer in model.trailers:
+            expr = ASTTrailed(expr, model_to_ast(trailer))
+        return expr
     else:
         raise NotImplementedError(
             'Translation of model node {} to AST not implemented'.format(model))
@@ -383,4 +409,4 @@ ast_call_type = ASTCallType()
 ast_unquote_type = ASTUnquoteType()
 ast_binary_slurp_type = ASTBinarySlurpType()
 ast_block_type = ASTBlockType()
-# ast_trailed_type = ASTTrailedType()
+ast_trailed_type = ASTTrailedType()

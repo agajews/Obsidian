@@ -214,6 +214,39 @@ def test_map_get(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_list_trailed_get(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'list' [1, 2, 3]
+    puts ((get_attr list[2] 'to_str'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_tuple_get(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'tuple' (1, 2, 3)
+    puts ((get_attr tuple[0] 'to_str'))
+    '''
+    target = ['1']
+    assert get_output(source, capsys) == target
+
+
+def test_map_get(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {('dogs', 1), ('fish', 2), ('horses', 3)}
+    puts ((get_attr map['fish'] 'to_str'))
+    '''
+    target = ['2']
+    assert get_output(source, capsys) == target
+
+
 def test_int(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
@@ -744,6 +777,102 @@ def test_float_neq_false(capsys):
     let 'float' (get_attr prim 'float')
     let 'float_neq' (get_attr float 'neq')
     puts ((get_attr (float_neq 2.0 2.0 2.0) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_float_lt_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_lt' (get_attr float 'lt')
+    puts ((get_attr (float_lt 2.0 3.0 4.0) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_float_lt_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_lt' (get_attr float 'lt')
+    puts ((get_attr (float_lt 2.0 3.0 3.0) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_float_lte_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_lte' (get_attr float 'lte')
+    puts ((get_attr (float_lte 2.0 3.0 3.0) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_float_lte_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_lte' (get_attr float 'lte')
+    puts ((get_attr (float_lte 2.0 3.0 2.0) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_float_gt_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_gt' (get_attr float 'gt')
+    puts ((get_attr (float_gt 4.0 3.0 2.0) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_float_gt_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_gt' (get_attr float 'gt')
+    puts ((get_attr (float_gt 4.0 4.0 3.0) 'to_str'))
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_float_gte_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_gte' (get_attr float 'gte')
+    puts ((get_attr (float_gte 4.0 4.0 3.0) 'to_str'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_float_gte_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'float' (get_attr prim 'float')
+    let 'float_gte' (get_attr float 'gte')
+    puts ((get_attr (float_gte 4.0 4.0 5.0) 'to_str'))
     '''
     target = ['false']
     assert get_output(source, capsys) == target

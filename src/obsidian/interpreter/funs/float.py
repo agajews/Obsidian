@@ -139,6 +139,70 @@ class NEq(PrimFun):
         return true
 
 
+class LT(PrimFun):
+    def __init__(self):
+        super().__init__('lt', variadic=True)
+        self.set('precedence', Int(4))
+        self.set('associativity', Symbol('none'))
+
+    def fun(self, *nums):
+        for i, num in enumerate(nums):
+            if not isinstance(num, Float):
+                raise Panic('Argument {} must be a float'.format(i))
+        for a, b in zip(nums[:-1], nums[1:]):
+            if a.float >= b.float:
+                return false
+        return true
+
+
+class LTE(PrimFun):
+    def __init__(self):
+        super().__init__('lte', variadic=True)
+        self.set('precedence', Int(4))
+        self.set('associativity', Symbol('none'))
+
+    def fun(self, *nums):
+        for i, num in enumerate(nums):
+            if not isinstance(num, Float):
+                raise Panic('Argument {} must be a float'.format(i))
+        for a, b in zip(nums[:-1], nums[1:]):
+            if a.float > b.float:
+                return false
+        return true
+
+
+class GT(PrimFun):
+    def __init__(self):
+        super().__init__('gt', variadic=True)
+        self.set('precedence', Int(4))
+        self.set('associativity', Symbol('none'))
+
+    def fun(self, *nums):
+        for i, num in enumerate(nums):
+            if not isinstance(num, Float):
+                raise Panic('Argument {} must be a float'.format(i))
+        for a, b in zip(nums[:-1], nums[1:]):
+            if a.float <= b.float:
+                return false
+        return true
+
+
+class GTE(PrimFun):
+    def __init__(self):
+        super().__init__('gte', variadic=True)
+        self.set('precedence', Int(4))
+        self.set('associativity', Symbol('none'))
+
+    def fun(self, *nums):
+        for i, num in enumerate(nums):
+            if not isinstance(num, Float):
+                raise Panic('Argument {} must be a float'.format(i))
+        for a, b in zip(nums[:-1], nums[1:]):
+            if a.float < b.float:
+                return false
+        return true
+
+
 add = Add()
 sub = Sub()
 mul = Mul()
@@ -148,3 +212,7 @@ mod = Mod()
 pow = Pow()
 eq = Eq()
 neq = NEq()
+lt = LT()
+lte = LTE()
+gt = GT()
+gte = GTE()

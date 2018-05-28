@@ -150,14 +150,6 @@ class Trailed(Node):
         self.expr = expr
         self.trailers = trailers if trailers is not None else []
 
-# class PartialCall(Node):
-#     def __init__(self, callable_expr, args=None):
-#         self.callable_expr = callable_expr
-#         self.args = args if args is not None else []
-#
-#     def show(self, indent):
-#         return '[' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ']'
-
 
 class Unquote(Node):
     def __init__(self, expr):
@@ -166,16 +158,6 @@ class Unquote(Node):
     def show(self, indent):
         return '$' + self.expr.show(indent)
 
-
-# class Binary(Node):
-#     def __init__(self, op, lhs, rhs):
-#         self.op = op
-#         self.lhs = lhs
-#         self.rhs = rhs
-#
-#     def show(self, indent):
-#         return self.lhs.show(indent) + ' ' + self.op + self.rhs.show(indent)
-#
 
 class BinarySlurp(Node):
     def __init__(self, slurp):

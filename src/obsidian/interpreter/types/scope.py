@@ -22,6 +22,7 @@ from .ast import (
     ASTSymbol,
     ASTUnquote,
     ASTBlock,
+    ASTTrailed,
 )
 from .int import int_type, Int
 from .float import float_type
@@ -131,6 +132,8 @@ class Scope(Object):
             return ASTMap(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]))
         elif isinstance(ast, ASTBlock):
             return ASTBlock(List([self.preprocess(elem) for elem in list_elems(ast.get('statements'))]))
+        elif isinstance(ast, ASTTrailed):
+            return ASTTrailed(self.preprocess(ast.get('expr')), self.preprocess(ast.get('trailer')))
         elif isinstance(ast, (ASTIdent,
                               ASTString,
                               ASTInterpolatedString,
@@ -180,6 +183,10 @@ class Scope(Object):
             return symbol_type.call(self, [ast])
         elif isinstance(ast, ASTList):
             return list_type.call(self, [ast])
+        elif isinstance(ast, ASTTrailed):
+            expr = self.eval(ast.get('expr'))
+            trailer = ast.get('trailer')
+            return get_attr.fun(expr, String('get')).call(self, [trailer])
         elif isinstance(ast, ASTBlock):
             statements = ast.get('statements')
             if not isinstance(statements, List):
