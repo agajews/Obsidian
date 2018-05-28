@@ -41,18 +41,24 @@ def clean_string(string, to_escape):
 
 
 class Node:
+    def __init__(self, parseinfo=None):
+        self.parseinfo = parseinfo
+
     def __repr__(self):
         # return self.show(0)
         return str(type(self).__name__) + str(self.__dict__)
 
     def __eq__(self, other):
+        def clean_dict(dictionary):
+            {k: v for k, v in dictionary.items() if k != 'parseinfo'}
         if type(other) is type(self):
-            return self.__dict__ == other.__dict__
+            return clean_dict(self.__dict__) == clean_dict(other.__dict__)
         return False
 
 
 class Ident(Node):
-    def __init__(self, identifier):
+    def __init__(self, identifier, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.identifier = identifier
 
     def __repr__(self):
@@ -63,7 +69,8 @@ class Ident(Node):
 
 
 class Int(Node):
-    def __init__(self, val, sigil=None):
+    def __init__(self, val, sigil=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         # TODO: Error handling
         self.val = val
         self.sigil = sigil
@@ -73,7 +80,8 @@ class Int(Node):
 
 
 class Float(Node):
-    def __init__(self, val, sigil=None):
+    def __init__(self, val, sigil=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         # TODO: Error handling
         self.val = val
         self.sigil = sigil
@@ -83,7 +91,8 @@ class Float(Node):
 
 
 class String(Node):
-    def __init__(self, string, sigil=None):
+    def __init__(self, string, sigil=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.string = string
         self.sigil = sigil
 
@@ -92,12 +101,14 @@ class String(Node):
 
 
 class StringBody(Node):
-    def __init__(self, string):
+    def __init__(self, string, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.string = string
 
 
 class InterpolatedString(Node):
-    def __init__(self, body):
+    def __init__(self, body, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.body = body
 
     def show(self, indent):
@@ -105,7 +116,8 @@ class InterpolatedString(Node):
 
 
 class Symbol(Node):
-    def __init__(self, symbol):
+    def __init__(self, symbol, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.symbol = symbol
 
     def show(self, indent):
@@ -113,7 +125,8 @@ class Symbol(Node):
 
 
 class Map(Node):
-    def __init__(self, elements=None):
+    def __init__(self, elements=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.elements = elements if elements is not None else []
 
     def show(self, indent):
@@ -121,7 +134,8 @@ class Map(Node):
 
 
 class List(Node):
-    def __init__(self, elements=None):
+    def __init__(self, elements=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.elements = elements if elements is not None else []
 
     def show(self, indent):
@@ -129,7 +143,8 @@ class List(Node):
 
 
 class Tuple(Node):
-    def __init__(self, elements=None):
+    def __init__(self, elements=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.elements = elements if elements is not None else []
 
     def show(self, indent):
@@ -137,7 +152,8 @@ class Tuple(Node):
 
 
 class Call(Node):
-    def __init__(self, callable_expr, args=None):
+    def __init__(self, callable_expr, args=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.callable_expr = callable_expr
         self.args = args if args is not None else []
 
@@ -146,13 +162,15 @@ class Call(Node):
 
 
 class Trailed(Node):
-    def __init__(self, expr, trailers=None):
+    def __init__(self, expr, trailers=None, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.expr = expr
         self.trailers = trailers if trailers is not None else []
 
 
 class Unquote(Node):
-    def __init__(self, expr):
+    def __init__(self, expr, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.expr = expr
 
     def show(self, indent):
@@ -160,7 +178,8 @@ class Unquote(Node):
 
 
 class BinarySlurp(Node):
-    def __init__(self, slurp):
+    def __init__(self, slurp, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.slurp = slurp
 
     def show(self, indent):
@@ -168,7 +187,8 @@ class BinarySlurp(Node):
 
 
 class Block(Node):
-    def __init__(self, statements):
+    def __init__(self, statements, parseinfo=None):
+        super().__init__(parseinfo=parseinfo)
         self.statements = statements
 
     def show(self, indent):
@@ -177,115 +197,118 @@ class Block(Node):
 
 
 class Semantics:
-    def identifier(identifier):
-        return Ident(identifier)
+    def identifier(info):
+        return Ident(info['ident'], parseinfo=info.parseinfo)
 
-    def binary_identifier(identifier):
-        return Ident(identifier)
+    def binary_identifier(info):
+        return Ident(info['ident'], parseinfo=info.parseinfo)
 
-    def op(op):
-        return Ident(op)
+    def op(info):
+        return Ident(info['op'], parseinfo=info.parseinfo)
 
     def integer(info):
-        return Int(int(float(info['val'].replace('_', ''))), info['sigil'])
+        return Int(int(float(info['val'].replace('_', ''))), info['sigil'], parseinfo=info.parseinfo)
 
     def float(info):
-        return Float(float(info['val'].replace('_', '')), info['sigil'])
+        return Float(float(info['val'].replace('_', '')), info['sigil'], parseinfo=info.parseinfo)
 
     def interpolated_string(info):
         bodies = info['bodies']
         sigil = info['sigil']
         if len(bodies) == 0:
-            return String('', sigil)
+            return String('', sigil, parseinfo=info.parseinfo)
         if len(bodies) == 1 and isinstance(bodies[0], StringBody):
-            return String(bodies[0].string, sigil)
-        bodies = [String(body.string, sigil)
+            return String(bodies[0].string, sigil, parseinfo=info.parseinfo)
+        bodies = [String(body.string, sigil, parseinfo=body.parseinfo)
                   if isinstance(body, StringBody) else body
                   for body in bodies]
-        return InterpolatedString(bodies)
+        return InterpolatedString(bodies, parseinfo=info.parseinfo)
 
     def triple_interpolated_string(info):
         bodies = info['bodies']
         sigil = info['sigil']
         if len(bodies) == 0:
-            return String('', sigil)
+            return String('', sigil, parseinfo=info.parseinfo)
         if len(bodies) == 1 and isinstance(bodies[0], StringBody):
-            return String(bodies[0].string, sigil)
-        bodies = [String(body.string, sigil)
+            return String(bodies[0].string, sigil, parseinfo=info.parseinfo)
+        bodies = [String(body.string, sigil, parseinfo=body.parseinfo)
                   if isinstance(body, StringBody) else body
                   for body in bodies]
-        return InterpolatedString(bodies)
+        return InterpolatedString(bodies, parseinfo=info.parseinfo)
 
-    def STRING_BODY(body):
-        return StringBody(clean_string(body, '"$'))
+    def STRING_BODY(info):
+        return StringBody(clean_string(info['body'], '"$'), parseinfo=info.parseinfo)
 
-    def TSTRING_BODY(body):
-        return StringBody(clean_string(body, '"$'))
+    def TSTRING_BODY(info):
+        return StringBody(clean_string(info['body'], '"$'), parseinfo=info.parseinfo)
 
     def single_string(info):
-        return String(clean_string(info['val'][1:-1], "'"), info['sigil'])
+        return String(clean_string(info['val'][1: -1], "'"), info['sigil'], parseinfo=info.parseinfo)
 
     def triple_single_string(info):
-        return String(clean_string(info['val'][3:-3], "'"), info['sigil'])
+        return String(clean_string(info['val'][3: -3], "'"), info['sigil'], parseinfo=info.parseinfo)
 
-    def symbol(symbol):
-        return Symbol(symbol)
+    def symbol(info):
+        return Symbol(info['symbol'], parseinfo=info.parseinfo)
 
     def tuple(info):
         if info.get('first') is None:
             return Tuple()
         rest = info['rest'] if info['rest'] is not None else []
-        return Tuple([info['first']] + rest)
+        return Tuple([info['first']] + rest, parseinfo=info.parseinfo)
 
     def map(info):
         if info.get('first') is None:
             return Map()
         rest = info['rest'] if info['rest'] is not None else []
-        return Map([info['first']] + rest)
+        return Map([info['first']] + rest, parseinfo=info.parseinfo)
 
-    def list(contents):
-        if contents is None:
+    def list(info):
+        if info['contents'] is None:
             return List()
-        return List(contents)
+        return List(info['contents'], parseinfo=info.parseinfo)
 
     def simple_expression(info):
         if len(info['trailers']) == 0:
             return info['expr']
-        return Trailed(info['expr'], info['trailers'])
+        return Trailed(info['expr'], info['trailers'], parseinfo=info.parseinfo)
 
     def simple_single_expression(info):
         if len(info['trailers']) == 0:
             return info['expr']
-        return Trailed(info['expr'], info['trailers'])
+        return Trailed(info['expr'], info['trailers'], parseinfo=info.parseinfo)
 
-    def binary_slurp(slurp):
+    def binary_slurp(info):
+        slurp = info['slurp']
         if len(slurp) == 1:
             return slurp[0]
-        return BinarySlurp(slurp)
+        return BinarySlurp(slurp, parseinfo=info.parseinfo)
 
-    def block_slurp(slurp):
+    def block_slurp(info):
+        slurp = info['slurp']
         if len(slurp) == 1:
             return slurp[0]
-        return BinarySlurp(slurp)
+        return BinarySlurp(slurp, parseinfo=info.parseinfo)
 
-    def block(statements):
-        return Block([s for s in statements if s != '\n'])
+    def block(info):
+        return Block([s for s in info['statements'] if s != '\n'], parseinfo=info.parseinfo)
 
     def statement(info):
         if len(info['args']) == 0:
             return info['head']
-        return Call(info['head'], info['args'])
+        return Call(info['head'], info['args'], parseinfo=info.parseinfo)
 
     def call_expression(info):
-        return Call(info['head'], info['args'])
+        return Call(info['head'], info['args'], parseinfo=info.parseinfo)
 
     def unquote_expression(info):
-        return Unquote(info)
+        return Unquote(info, parseinfo=info.parseinfo)
 
-    def curly_expression(exprs):
+    def curly_expression(info):
+        exprs = info['exprs']
         if len(exprs) == 1:
             return exprs[0]
-        return Block(exprs)
+        return Block(exprs, parseinfo=info.parseinfo)
 
     def statement_list(info):
         statements = []

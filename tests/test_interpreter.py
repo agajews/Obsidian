@@ -1154,8 +1154,9 @@ def test_statics_inheritance_missing(capsys):
     let 'butch' (Object Beagle)
     puts (get_attr butch 'species')
     '''
-    with pytest.raises(Panic):
-        get_output(source, capsys)
+    output = get_output(source, capsys)
+    assert output == ['Module `prim` panicked at line 9:',
+                      'Panic: Object has no attribute species']
 
 
 def test_methods(capsys):

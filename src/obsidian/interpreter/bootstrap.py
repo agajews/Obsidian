@@ -1,5 +1,7 @@
 class Panic(Exception):
-    pass
+    def __init__(self, msg, parseinfo=None):
+        self.msg = msg
+        self.parseinfo = parseinfo
 
 
 class PrimObject:

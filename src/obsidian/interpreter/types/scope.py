@@ -70,7 +70,11 @@ class Scope(Object):
                     pos, rhs = self.parse_binary_subexpr(
                         slurp, rhs, next_precedence, pos)
                     next_op, next_raw_op, next_precedence, next_associativity = lookahead()
-                lhs = ASTCall(raw_op, List([lhs, rhs]))
+                parseinfo = None
+                if hasattr(raw_op, 'parseinfo'):
+                    parseinfo = raw_op.parseinfo
+                lhs = ASTCall(raw_op, List(
+                    [lhs, rhs]), parseinfo=parseinfo)
             elif associativity == 'none':
                 args = [lhs]
                 pos, rhs = self.parse_binary_subexpr(
@@ -84,7 +88,10 @@ class Scope(Object):
                         slurp, rhs, precedence + 1, pos)
                     next_op, next_raw_op, next_precedence, next_associativity = lookahead()
                     args.append(rhs)
-                lhs = ASTCall(raw_op, List(args))
+                parseinfo = None
+                if hasattr(raw_op, 'parseinfo'):
+                    parseinfo = raw_op.parseinfo
+                lhs = ASTCall(raw_op, List(args), parseinfo=parseinfo)
             else:
                 raise Exception(
                     'Invalid associativity {}'.format(associativity))
@@ -121,19 +128,34 @@ class Scope(Object):
         return expr
 
     def preprocess(self, ast):
+        try:
+            return self._preprocess(ast)
+        except Panic as p:
+            if ast.parseinfo is not None:
+                raise Panic(p.msg, ast.parseinfo)
+            raise p
+
+    def _preprocess(self, ast):
         if isinstance(ast, ASTCall):
             return ASTCall(self.preprocess(ast.get('callable')),
-                           List([self.preprocess(arg) for arg in list_elems(ast.get('args'))]))
+                           List([self.preprocess(arg)
+                                 for arg in list_elems(ast.get('args'))]),
+                           parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTList):
-            return ASTList(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]))
+            return ASTList(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]),
+                           parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTTuple):
-            return ASTTuple(Tuple([self.preprocess(elem) for elem in tuple_elems(ast.get('elems'))]))
+            return ASTTuple(Tuple([self.preprocess(elem) for elem in tuple_elems(ast.get('elems'))]),
+                            parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTMap):
-            return ASTMap(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]))
+            return ASTMap(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]),
+                          parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTBlock):
-            return ASTBlock(List([self.preprocess(elem) for elem in list_elems(ast.get('statements'))]))
+            return ASTBlock(List([self.preprocess(elem) for elem in list_elems(ast.get('statements'))]),
+                            parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTTrailed):
-            return ASTTrailed(self.preprocess(ast.get('expr')), self.preprocess(ast.get('trailer')))
+            return ASTTrailed(self.preprocess(ast.get('expr')), self.preprocess(ast.get('trailer')),
+                              parseinfo=ast.parseinfo)
         elif isinstance(ast, (ASTIdent,
                               ASTString,
                               ASTInterpolatedString,
@@ -168,6 +190,17 @@ class Scope(Object):
         raise Panic('No such object `{}`'.format(name))
 
     def eval(self, ast):
+        try:
+            return self._eval(ast)
+        except Panic as p:
+            # print('Caught panic')
+            # print(ast)
+            # print(ast.parseinfo)
+            if ast.parseinfo is not None:
+                raise Panic(p.msg, ast.parseinfo)
+            raise p
+
+    def _eval(self, ast):
         if isinstance(ast, ASTCall):
             return self.eval(ast.get('callable')).call(self, ast.get('args').elems)
         elif isinstance(ast, ASTIdent):

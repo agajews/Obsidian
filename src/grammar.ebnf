@@ -4,6 +4,8 @@
 
 @@whitespace :: /[\t ]+/
 
+@@parseinfo :: True
+
 program = @:statement_list $ ;
 
 statement_list = {eol | ';'} first:[statement] rest:{separated_statement} {eol | ';'} ;
@@ -12,15 +14,15 @@ separated_statement = {eol | ';'}+ @:statement ;
 
 statement = head:block_expression args:{block_expression} ;
 
-block = {eol} '{-INDENT-}' {eol} @:statement_list {eol} '{-DEDENT-}' ;
+block = {eol} '{-INDENT-}' {eol} statements:statement_list {eol} '{-DEDENT-}' ;
 
 block_expression = block_slurp ;
 
-block_slurp = (binary_op)%{simple_expression | block}+ ;
+block_slurp = slurp:(binary_op)%{simple_expression | block}+ ;
 
 expression = binary_slurp ;
 
-binary_slurp = (binary_op)%{simple_expression}+ ;
+binary_slurp = slurp:(binary_op)%{simple_expression}+ ;
 
 binary_op = {eol} @:op {eol}
           | {eol} @:binary_identifier {eol}
@@ -64,7 +66,8 @@ nonstring_expression =
                   | unquote_expression
                   ;
 
-curly_expression = '{' {eol} (@+:op | @+:binary_identifier | @+:expression {{eol | ';'} @+:expression}) {eol} '}' ;
+curly_expression_list = '{' {eol} (@+:op | @+:binary_identifier | @+:expression {{eol | ';'} @+:expression}) {eol} '}' ;
+curly_expression = exprs:curly_expression_list ;
 
 call_expression = '(' {eol} head:(expression | op) {eol} args:{call_expression_arg} {eol} ')' ;
 
@@ -81,14 +84,14 @@ map = '{' {eol} '}'
     | '{' {eol} first:expression {eol} ',' {eol} rest:[collection_rest] {eol} '}'
     ;
 
-list = '[' {eol}  @:[collection_rest] {eol} ']' ;
+list = '[' {eol}  contents:[collection_rest] {eol} ']' ;
 
 collection_rest = @+:expression {{eol} ',' {eol} @+:expression} {eol} [','] ;
 
 unquote_expression = '$' @:simple_expression ;
 
-identifier = /[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
-binary_identifier = '~' @:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
+identifier = ident:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
+binary_identifier = '~' ident:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
 integer = val:/[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?/ sigil:SIGIL ;
 float = val:/[0-9][_0-9]*\.[0-9][_0-9]*([eE]-?[0-9][_0-9]*)?/ sigil:SIGIL ;
 # triple_double_string = sigil:sigil val:TDS_VAL ;
@@ -97,7 +100,7 @@ triple_single_string = sigil:sigil val:TSS_VAL ;
 TSS_VAL = /'''([^'\\]|\\.|'([^'\\]|\\.)|''([^'\\]|\\.))*'''/ ;
 single_string = sigil:sigil val:SS_VAL ;
 SS_VAL = /'([^'\\]|\\.)*'/ ;
-symbol = '@' @:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
+symbol = '@' symbol:/[_a-zA-Z][_a-zA-Z0-9]*[?!]?/ ;
 
 sigil = [/[a-zA-Z]+/] ;
 SIGIL = [/[a-zA-Z]+/] ;
@@ -107,11 +110,11 @@ eol = '\n' ;
 interpolated_string = sigil:sigil bodies:INTERPOLATED_BODIES ;
 INTERPOLATED_BODIES = /"/ @:{STRING_BODY | INTERPOLATED_BODY} /"/;
 INTERPOLATED_BODY = /\$/ @:simple_single_expression ;
-STRING_BODY = /([^"\\$]|\\.)+/ ;
+STRING_BODY = body:/([^"\\$]|\\.)+/ ;
 
 triple_interpolated_string = sigil:sigil bodies:TINTERPOLATED_BODIES ;
 TINTERPOLATED_BODIES = /"""/ @:{TSTRING_BODY | TINTERPOLATED_BODY} /"""/;
 TINTERPOLATED_BODY = /\$/ @:simple_single_expression ;
-TSTRING_BODY = /([^"\\$]|\\.|"(?=[^"\\]|\\.)|""(?=[^"\\]|\\.))+/ ;
+TSTRING_BODY = body:/([^"\\$]|\\.|"(?=[^"\\]|\\.)|""(?=[^"\\]|\\.))+/ ;
 
-op = /[+\-=\/*&|^%!?<>.:]+/ ;
+op = op:/[+\-=\/*&|^%!?<>.:]+/ ;

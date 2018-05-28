@@ -1,5 +1,6 @@
 from .types import (
     Module,
+    Panic,
     fun_type,
     scope_type,
     module_type,
@@ -169,7 +170,15 @@ def load_module(statements, source_map, name, preload=None):
         module.set(name, obj)
     for name, obj in preload.items():
         module.set(name, obj)
-    for statement in statements:
-        statement = model_to_ast(statement)
-        statement = module.preprocess(statement)
-        module.eval(statement)
+    try:
+        for statement in statements:
+            statement = model_to_ast(statement)
+            statement = module.preprocess(statement)
+            module.eval(statement)
+    except Panic as p:
+        if p.parseinfo is not None:
+            print('Module `{}` panicked at line {}:'.format(
+                name, p.parseinfo.line))
+            print('Panic: {}'.format(p.msg))
+        else:
+            print('Panic: {}'.format(p.msg))

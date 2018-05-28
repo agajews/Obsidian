@@ -21,13 +21,14 @@ class ASTNodeType(Type):
 
 
 class ASTString(Object):
-    def __init__(self, string, sigil=None):
+    def __init__(self, string, sigil=None, parseinfo=None):
         if not isinstance(string, String):
             raise Panic('Invalid string')
         if sigil is None:
             sigil = nil
         if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
+        self.parseinfo = parseinfo
         super().__init__(
             {'str': string, 'sigil': nil if sigil is None else sigil}, ast_string_type)
 
@@ -49,9 +50,10 @@ class ASTStringType(Type):
 
 
 class ASTInterpolatedString(Object):
-    def __init__(self, body):
+    def __init__(self, body, parseinfo=None):
         if not isinstance(body, List):
             raise Panic('Body must be a list')
+        self.parseinfo = parseinfo
         super().__init__(
             {'body': body}, ast_interpolated_string_type)
 
@@ -74,9 +76,10 @@ class ASTInterpolatedStringType(Type):
 
 
 class ASTIdent(Object):
-    def __init__(self, ident):
+    def __init__(self, ident, parseinfo=None):
         if not isinstance(ident, String):
             raise Panic('Invalid ident')
+        self.parseinfo = parseinfo
         super().__init__({'ident': ident}, ast_ident_type)
 
     def __repr__(self):
@@ -97,13 +100,14 @@ class ASTIdentType(Type):
 
 
 class ASTInt(Object):
-    def __init__(self, val, sigil=None):
+    def __init__(self, val, sigil=None, parseinfo=None):
         if not isinstance(val, Int):
             raise Panic('Invalid int')
         if sigil is None:
             sigil = nil
         if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
+        self.parseinfo = parseinfo
         super().__init__(
             {'int': val, 'sigil': nil if sigil is None else sigil}, ast_int_type)
 
@@ -125,13 +129,14 @@ class ASTIntType(Type):
 
 
 class ASTFloat(Object):
-    def __init__(self, val, sigil=None):
+    def __init__(self, val, sigil=None, parseinfo=None):
         if not isinstance(val, Float):
             raise Panic('Invalid float')
         if sigil is None:
             sigil = nil
         if sigil is not nil and not isinstance(sigil, String):
             raise Panic('Invalid sigil')
+        self.parseinfo = parseinfo
         super().__init__(
             {'float': val, 'sigil': nil if sigil is None else sigil}, ast_float_type)
 
@@ -153,9 +158,10 @@ class ASTFloatType(Type):
 
 
 class ASTSymbol(Object):
-    def __init__(self, symbol):
+    def __init__(self, symbol, parseinfo=None):
         if not isinstance(symbol, Symbol):
             raise Panic('Invalid symbol')
+        self.parseinfo = parseinfo
         super().__init__(
             {'symbol': symbol}, ast_symbol_type)
 
@@ -177,9 +183,10 @@ class ASTSymbolType(Type):
 
 
 class ASTList(Object):
-    def __init__(self, elems):
+    def __init__(self, elems, parseinfo=None):
         if not isinstance(elems, List):
             raise Panic('Invalid list')
+        self.parseinfo = parseinfo
         super().__init__({'elems': elems}, ast_list_type)
 
     def __repr__(self):
@@ -200,9 +207,10 @@ class ASTListType(Type):
 
 
 class ASTBlock(Object):
-    def __init__(self, statements):
+    def __init__(self, statements, parseinfo=None):
         if not isinstance(statements, List):
             raise Panic('Invalid list')
+        self.parseinfo = parseinfo
         super().__init__({'statements': statements}, ast_block_type)
 
     def __repr__(self):
@@ -223,7 +231,8 @@ class ASTBlockType(Type):
 
 
 class ASTTrailed(Object):
-    def __init__(self, expr, trailer):
+    def __init__(self, expr, trailer, parseinfo=None):
+        self.parseinfo = parseinfo
         super().__init__({'expr': expr, 'trailer': trailer}, ast_block_type)
 
     def __repr__(self):
@@ -244,9 +253,10 @@ class ASTTrailedType(Type):
 
 
 class ASTTuple(Object):
-    def __init__(self, elems):
+    def __init__(self, elems, parseinfo=None):
         if not isinstance(elems, Tuple):
             raise Panic('Invalid tuple')
+        self.parseinfo = parseinfo
         super().__init__({'elems': elems}, ast_tuple_type)
 
     def __repr__(self):
@@ -267,9 +277,10 @@ class ASTTupleType(Type):
 
 
 class ASTMap(Object):
-    def __init__(self, elems):
+    def __init__(self, elems, parseinfo=None):
         if not isinstance(elems, List):
             raise Panic('Invalid map')
+        self.parseinfo = parseinfo
         super().__init__({'elems': elems}, ast_map_type)
 
     def __repr__(self):
@@ -290,11 +301,19 @@ class ASTMapType(Type):
 
 
 class ASTCall(Object):
-    def __init__(self, callable_expr, args):
+    def __init__(self, callable_expr, args, parseinfo=None):
         if not isinstance(args, List):
             raise Panic('Args must be a list')
+        self.parseinfo = parseinfo
         super().__init__(
             {'callable': callable_expr, 'args': args}, ast_call_type)
+
+    def __eq__(self, other):
+        def clean_dict(dictionary):
+            {k: v for k, v in dictionary.items() if k != 'parseinfo'}
+        if type(other) is type(self):
+            return clean_dict(self.__dict__) == clean_dict(other.__dict__)
+        return False
 
     def __repr__(self):
         return 'ASTCall({}, {})'.format(self.get('callable'), self.get('args'))
@@ -314,9 +333,10 @@ class ASTCallType(Type):
 
 
 class ASTBinarySlurp(Object):
-    def __init__(self, slurp):
+    def __init__(self, slurp, parseinfo=None):
         if not isinstance(slurp, List):
             raise Panic('Invalid slurp')
+        self.parseinfo = parseinfo
         super().__init__({'slurp': slurp}, ast_binary_slurp_type)
 
     def __repr__(self):
@@ -338,7 +358,8 @@ class ASTBinarySlurpType(Type):
 
 
 class ASTUnquote(Object):
-    def __init__(self, expr):
+    def __init__(self, expr, parseinfo=None):
+        self.parseinfo = parseinfo
         super().__init__({'expr': expr}, ast_unquote_type)
 
     def __repr__(self):
@@ -360,35 +381,49 @@ class ASTUnquoteType(Type):
 
 def model_to_ast(model):
     if isinstance(model, sem.Ident):
-        return ASTIdent(String(model.identifier))
+        return ASTIdent(String(model.identifier),
+                        parseinfo=model.parseinfo)
     elif isinstance(model, sem.Call):
-        return ASTCall(model_to_ast(model.callable_expr), List([model_to_ast(arg) for arg in model.args]))
+        return ASTCall(model_to_ast(model.callable_expr), List([model_to_ast(arg) for arg in model.args]),
+                       parseinfo=model.parseinfo)
     elif isinstance(model, sem.String):
-        return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else nil)
+        return ASTString(String(model.string), String(model.sigil) if model.sigil is not None else nil,
+                         parseinfo=model.parseinfo)
     elif isinstance(model, sem.InterpolatedString):
-        return ASTInterpolatedString(List([model_to_ast(elem) for elem in model.body]))
+        return ASTInterpolatedString(List([model_to_ast(elem) for elem in model.body]),
+                                     parseinfo=model.parseinfo)
     elif isinstance(model, sem.Int):
-        return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else nil)
+        return ASTInt(Int(model.val), String(model.sigil) if model.sigil is not None else nil,
+                      parseinfo=model.parseinfo)
     elif isinstance(model, sem.Float):
-        return ASTFloat(Float(model.val), String(model.sigil) if model.sigil is not None else nil)
+        return ASTFloat(Float(model.val), String(model.sigil) if model.sigil is not None else nil,
+                        parseinfo=model.parseinfo)
     elif isinstance(model, sem.List):
-        return ASTList(List([model_to_ast(elem) for elem in model.elements]))
+        return ASTList(List([model_to_ast(elem) for elem in model.elements]),
+                       parseinfo=model.parseinfo)
     elif isinstance(model, sem.Tuple):
-        return ASTTuple(Tuple([model_to_ast(elem) for elem in model.elements]))
+        return ASTTuple(Tuple([model_to_ast(elem) for elem in model.elements]),
+                        parseinfo=model.parseinfo)
     elif isinstance(model, sem.Map):
-        return ASTMap(List([model_to_ast(elem) for elem in model.elements]))
+        return ASTMap(List([model_to_ast(elem) for elem in model.elements]),
+                      parseinfo=model.parseinfo)
     elif isinstance(model, sem.Symbol):
-        return ASTSymbol(Symbol(model.symbol))
+        return ASTSymbol(Symbol(model.symbol),
+                         parseinfo=model.parseinfo)
     elif isinstance(model, sem.BinarySlurp):
-        return ASTBinarySlurp(List([model_to_ast(elem) for elem in model.slurp]))
+        return ASTBinarySlurp(List([model_to_ast(elem) for elem in model.slurp]),
+                              parseinfo=model.parseinfo)
     elif isinstance(model, sem.Unquote):
-        return ASTUnquote(model_to_ast(model.expr))
+        return ASTUnquote(model_to_ast(model.expr),
+                          parseinfo=model.parseinfo)
     elif isinstance(model, sem.Block):
-        return ASTBlock(List([model_to_ast(statement) for statement in model.statements]))
+        return ASTBlock(List([model_to_ast(statement) for statement in model.statements]),
+                        parseinfo=model.parseinfo)
     elif isinstance(model, sem.Trailed):
         expr = model_to_ast(model.expr)
         for trailer in model.trailers:
-            expr = ASTTrailed(expr, model_to_ast(trailer))
+            expr = ASTTrailed(expr, model_to_ast(trailer),
+                              parseinfo=model.parseinfo)
         return expr
     else:
         raise NotImplementedError(
