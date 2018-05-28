@@ -225,7 +225,7 @@ def test_list_trailed_get(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_tuple_get(capsys):
+def test_tuple_trailed_get(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
@@ -236,7 +236,7 @@ def test_tuple_get(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_map_get(capsys):
+def test_map_trailed_get(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
