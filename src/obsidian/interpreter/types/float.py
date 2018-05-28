@@ -6,7 +6,6 @@ from ..bootstrap import (
     String,
     object_type,
 )
-from .int import Int
 
 
 class Float(Object):
@@ -20,7 +19,7 @@ class Float(Object):
 
 class FloatToStr(PrimFun):
     def __init__(self):
-        super().__init__('to_str', ['float'])
+        super().__init__('Float.to_str', ['float'])
 
     def fun(self, float):
         if not isinstance(float, Float):
@@ -28,33 +27,10 @@ class FloatToStr(PrimFun):
         return String(str(float.float))
 
 
-class FloatHash(PrimFun):
-    def __init__(self):
-        super().__init__('hash', ['float'])
-
-    def fun(self, float):
-        if not isinstance(float, Float):
-            raise Panic('Argument must be a float')
-        return Int(hash(float.float))
-
-
-class FloatConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('Float', ['ast'])
-
-    def macro(self, scope, ast):
-        float = ast.get('float')
-        if not isinstance(float, Float):
-            raise Panic('Invalid float')
-        return Float(float.float)
-
-
 class FloatType(Type):
     def __init__(self):
         super().__init__('Float', object_type,
-                         methods={'to_str': FloatToStr(),
-                                  'hash': FloatHash()},
-                         constructor=FloatConstructor())
+                         methods={'to_str': FloatToStr()})
 
 
 float_type = FloatType()

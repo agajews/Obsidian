@@ -3,14 +3,34 @@ from ..types import (
     Panic,
     String,
     Map,
-    string_type,
     Int,
+    Scope,
+    string_type,
     true,
     false,
 )
 from ..types.ast import ASTString
-# from .map import DummyKey
+from .map import MapKey
 from .get_attr import get_attr
+
+import re
+import codecs
+
+
+ESCAPE_SEQUENCE_RE = re.compile(r'''
+    ( \\U........      # 8-digit hex escapes
+    | \\u....          # 4-digit hex escapes
+    | \\x..            # 2-digit hex escapes
+    | \\[0-7]{1,3}     # Octal escapes
+    | \\N\{[^}]+\}     # Unicode characters by name
+    | \\[\\'"abfnrtv]  # Single-character escapes
+    )''', re.UNICODE | re.VERBOSE)
+
+
+def decode_escapes(s):
+    def decode_match(match):
+        return codecs.decode(match.group(0), 'unicode-escape')
+    return ESCAPE_SEQUENCE_RE.sub(decode_match, s)
 
 
 class StringConstructor(PrimFun):
@@ -24,12 +44,12 @@ class StringConstructor(PrimFun):
         sigil = ast.get('sigil')
         if not isinstance(sigil, String):
             raise Panic('Invalid sigil')
-        if sigil.str == '':
-            return string
+        if sigil.str == 'r':
+            return String(string.str)
         constructors = string_type.get('sigils')
         constructor = get_attr.fun(
-            constructors, String('get')).call(scope, [ASTString(sigil)])
-        return constructor.call(scope, [ASTString(string)])
+            constructors, String('get')).call(scope, [ASTString(sigil, String('r'))])
+        return constructor.call(scope, [ASTString(string, String('r'))])
 
 
 class StringDefaultConstructor(PrimFun):
@@ -37,7 +57,7 @@ class StringDefaultConstructor(PrimFun):
         super().__init__('String', ['string'])
 
     def fun(self, string):
-        return string
+        return String(decode_escapes(string.str))
 
 
 class StringHash(PrimFun):
@@ -76,9 +96,9 @@ class Concat(PrimFun):
 
 
 string_type.set('call', StringConstructor())
-string_type.set('sigils', Map({
-    # DummyKey(String(''), ''): StringDefaultConstructor(),
-}))
 string_type.get('methods').set('hash', StringHash())
 string_type.get('methods').set('eq', StringEq())
+string_type.set('sigils', Map({
+    MapKey(String(''), Scope()): StringDefaultConstructor(),
+}))
 concat = Concat()

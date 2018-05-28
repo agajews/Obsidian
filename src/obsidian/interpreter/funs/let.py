@@ -13,7 +13,8 @@ class Let(PrimFun):
             raise Panic('Name must be a string')
         if scope.has(name.str):
             raise Panic('Redeclarations are not allowed')
-        return scope.set(name.str, val)
+        scope.set(name.str, val)
+        return val
 
 
 let = Let()

@@ -4,10 +4,34 @@ from ..types import (
     Int,
     Float,
     Symbol,
+    Map,
+    String,
     true,
     false,
     float_type,
 )
+from ..types.ast import ASTString, ASTFloat
+from .get_attr import get_attr
+
+
+class FloatConstructor(PrimFun):
+    def __init__(self):
+        super().__init__('Float', ['ast'])
+
+    def macro(self, scope, ast):
+        float = ast.get('float')
+        if not isinstance(float, Float):
+            raise Panic('Invalid float')
+        sigil = ast.get('sigil')
+        if not isinstance(sigil, String):
+            raise Panic('Invalid sigil')
+        float = Float(float.float)
+        if sigil.str == '':
+            return float
+        constructors = float_type.get('sigils')
+        constructor = get_attr.fun(
+            constructors, String('get')).call(scope, [ASTString(sigil)])
+        return constructor.call(scope, [ASTFloat(float)])
 
 
 class FloatEq(PrimFun):
@@ -226,8 +250,10 @@ class GTE(PrimFun):
         return true
 
 
+float_type.set('call', FloatConstructor())
 float_type.get('methods').set('eq', FloatEq())
 float_type.get('methods').set('hash', FloatHash())
+float_type.set('sigils', Map({}))
 add = Add()
 sub = Sub()
 mul = Mul()

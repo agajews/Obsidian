@@ -13,7 +13,8 @@ class Assign(PrimFun):
         name = name.str
         new_val = get_attr.fun(scope.get_recursive(
             name), String('=')).call(scope, [val])
-        return scope.assign_recursive(name, new_val)
+        scope.assign_recursive(name, new_val)
+        return new_val
 
 
 assign = Assign()

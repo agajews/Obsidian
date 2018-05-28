@@ -127,9 +127,17 @@ class MetaType(Type):
         super().__init__('Meta', object_type)
 
 
+class NilToStr(PrimFun):
+    def __init__(self):
+        super().__init__('Nil.to_str', ['str'])
+
+    def fun(self, nil):
+        return String('nil')
+
+
 class NilType(Type):
     def __init__(self):
-        super().__init__('Nil', object_type)
+        super().__init__('Nil', object_type, methods={'to_str': NilToStr()})
 
 
 class Nil(Object):

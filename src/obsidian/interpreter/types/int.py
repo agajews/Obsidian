@@ -19,7 +19,7 @@ class Int(Object):
 
 class IntToStr(PrimFun):
     def __init__(self):
-        super().__init__('to_str', ['int'])
+        super().__init__('Int.to_str', ['int'])
 
     def fun(self, int):
         if not isinstance(int, Int):
@@ -27,33 +27,10 @@ class IntToStr(PrimFun):
         return String(str(int.int))
 
 
-class IntHash(PrimFun):
-    def __init__(self):
-        super().__init__('hash', ['int'])
-
-    def fun(self, int):
-        if not isinstance(int, Int):
-            raise Panic('Argument must be an int')
-        return Int(hash(int.int))
-
-
-class IntConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('Int', ['ast'])
-
-    def macro(self, scope, ast):
-        int = ast.get('int')
-        if not isinstance(int, Int):
-            raise Panic('Invalid int')
-        return Int(int.int)
-
-
 class IntType(Type):
     def __init__(self):
         super().__init__('Int', object_type,
-                         methods={'to_str': IntToStr(),
-                                  'hash': IntHash()},
-                         constructor=IntConstructor())
+                         methods={'to_str': IntToStr()})
 
 
 int_type = IntType()

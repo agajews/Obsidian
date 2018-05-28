@@ -12,18 +12,6 @@ from ..types import (
 )
 from ..types.ast import ASTIdent
 from .get_attr import get_attr
-#
-#
-# class DummyKey:
-#     def __init__(self, key, dummy_key):
-#         self.key = key
-#         self.dummy_key = dummy_key
-#
-#     def __hash__(self):
-#         return hash(self.dummy_key)
-#
-#     def __eq__(self, other):
-#         return self.dummy_key == other
 
 
 class MapKey:
@@ -94,8 +82,6 @@ class MapSet(PrimFun):
         if not isinstance(map, Map):
             raise Panic('Map must be a map')
         key = MapKey(key, scope)
-        if key not in map.elems:
-            raise Panic('No such key in map')
         map.elems[key] = val
 
 

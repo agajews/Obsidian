@@ -1,8 +1,6 @@
 from obsidian.parser import parse
 from obsidian.interpreter import load_module, prim
-from obsidian.interpreter.types import Panic
 from textwrap import dedent
-import pytest
 
 
 def get_output(source, capsys):
@@ -312,6 +310,17 @@ def test_map_trailed_get_float_key(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_map_trailed_get_symbol_key(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {(@fuzzy, 'dogs'), (@scaly, 'fish'), (@runny, 'horses')}
+    puts map[@fuzzy]
+    '''
+    target = ['dogs']
+    assert get_output(source, capsys) == target
+
+
 def test_list_set(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
@@ -338,6 +347,22 @@ def test_map_set(capsys):
     target = ['{dogs -> 1, fish -> 2, horses -> 3}',
               '4',
               '{dogs -> 1, fish -> 2, horses -> 4}']
+    assert get_output(source, capsys) == target
+
+
+def test_map_set_add(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'map' {('dogs', 1), ('fish', 2), ('horses', 3)}
+    puts map
+    ((get_attr map 'set') 'whales' 8)
+    puts map['whales']
+    puts map
+    '''
+    target = ['{dogs -> 1, fish -> 2, horses -> 3}',
+              '8',
+              '{dogs -> 1, fish -> 2, horses -> 3, whales -> 8}']
     assert get_output(source, capsys) == target
 
 
@@ -497,6 +522,26 @@ def test_string_to_str(capsys):
     puts ((get_attr 'Hello, World!' 'to_str'))
     '''
     target = ['Hello, World!']
+    assert get_output(source, capsys) == target
+
+
+def test_string_decoding(capsys):
+    source = r'''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts 'hello\nworld'
+    '''
+    target = ['hello', 'world']
+    assert get_output(source, capsys) == target
+
+
+def test_string_r_sigil(capsys):
+    source = r'''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts r'hello\nworld'
+    '''
+    target = [r'hello\nworld']
     assert get_output(source, capsys) == target
 
 
@@ -1161,6 +1206,72 @@ def test_types(capsys):
     puts butch
     '''
     target = ['Woof!', '<Dog>']
+    assert get_output(source, capsys) == target
+
+
+def test_int_sigil(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Object' (get_attr prim 'Object')
+    let 'Int' (get_attr prim 'Int')
+    let 'Type' (get_attr prim 'Type')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Im' (Type 'Im' Object)
+    let 'concat' (get_attr (get_attr prim 'string') 'concat')
+    set_attr Im 'call' (Fun 'Im' [
+        (let 'self' (Object Im)),
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'val' (eval (get_attr meta 'args')[0])),
+        (set_attr self 'val' val),
+        self,
+    ])
+    set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str' [
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'self' (eval (get_attr meta 'args')[0])),
+        (let 'val_str' ((get_attr (get_attr self 'val') 'to_str'))),
+        (concat val_str 'i'),
+    ])
+    let 'num' (Im 3)
+    puts num
+    ((get_attr (get_attr Int 'sigils') 'set') 'i' Im)
+    let 'num2' 4i
+    puts num2
+    '''
+    target = ['3i', '4i']
+    assert get_output(source, capsys) == target
+
+
+def test_float_sigil(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'Object' (get_attr prim 'Object')
+    let 'Float' (get_attr prim 'Float')
+    let 'Type' (get_attr prim 'Type')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'Im' (Type 'Im' Object)
+    let 'concat' (get_attr (get_attr prim 'string') 'concat')
+    set_attr Im 'call' (Fun 'Im' [
+        (let 'self' (Object Im)),
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'val' (eval (get_attr meta 'args')[0])),
+        (set_attr self 'val' val),
+        self,
+    ])
+    set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str' [
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+        (let 'self' (eval (get_attr meta 'args')[0])),
+        (let 'val_str' ((get_attr (get_attr self 'val') 'to_str'))),
+        (concat val_str 'i'),
+    ])
+    let 'num' (Im 3.0)
+    puts num
+    ((get_attr (get_attr Float 'sigils') 'set') 'i' Im)
+    let 'num2' 4.0i
+    puts num2
+    '''
+    target = ['3.0i', '4.0i']
     assert get_output(source, capsys) == target
 
 

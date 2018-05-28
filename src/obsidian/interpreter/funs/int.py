@@ -2,11 +2,35 @@ from ..types import (
     PrimFun,
     Panic,
     Int,
+    String,
     Symbol,
+    Map,
     true,
     false,
     int_type,
 )
+from ..types.ast import ASTString, ASTInt
+from .get_attr import get_attr
+
+
+class IntConstructor(PrimFun):
+    def __init__(self):
+        super().__init__('Int', ['ast'])
+
+    def macro(self, scope, ast):
+        int = ast.get('int')
+        if not isinstance(int, Int):
+            raise Panic('Invalid int')
+        sigil = ast.get('sigil')
+        if not isinstance(sigil, String):
+            raise Panic('Invalid sigil')
+        int = Int(int.int)
+        if sigil.str == '':
+            return int
+        constructors = int_type.get('sigils')
+        constructor = get_attr.fun(
+            constructors, String('get')).call(scope, [ASTString(sigil)])
+        return constructor.call(scope, [ASTInt(int)])
 
 
 class IntEq(PrimFun):
@@ -211,8 +235,11 @@ class GTE(PrimFun):
         return true
 
 
+int_type.set('call', IntConstructor())
 int_type.get('methods').set('eq', IntEq())
 int_type.get('methods').set('hash', IntHash())
+int_type.set('sigils', Map({}))
+
 add = Add()
 sub = Sub()
 mul = Mul()

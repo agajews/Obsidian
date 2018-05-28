@@ -19,7 +19,7 @@ class Bool(Object):
 
 class BoolToStr(PrimFun):
     def __init__(self):
-        super().__init__('to_str', ['bool'])
+        super().__init__('Bool.to_str', ['bool'])
 
     def fun(self, bool):
         if not isinstance(bool, Bool):
