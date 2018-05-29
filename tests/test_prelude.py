@@ -16,3 +16,20 @@ def test_dot(capsys):
     '''
     target = ['Hello, World!']
     assert get_output(source, capsys) == target
+
+
+def test_dot_multiple(capsys):
+    source = '''
+    prim.puts (prim.int.add 1 2)
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_let(capsys):
+    source = '''
+    let x = 3
+    prim.puts x
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target

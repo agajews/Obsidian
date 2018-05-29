@@ -1,7 +1,10 @@
 class Panic(Exception):
-    def __init__(self, msg, parseinfo=None):
+    def __init__(self, msg, parseinfo=None, stack=None):
         self.msg = msg
         self.parseinfo = parseinfo
+        if stack is None:
+            stack = []
+        self.stack = stack
 
 
 class PrimObject:
@@ -26,7 +29,11 @@ class PrimObject:
         return False
 
     def __repr__(self):
-        return 'PrimObject({})'.format({k: v for k, v in self.attrs.items() if k != 'meta'})
+        # return 'PrimObject({})'.format({k: v for k, v in self.attrs.items() if k != 'meta'})
+        type_name = self.get('meta').get('type').get('name')
+        if isinstance(type_name, String):
+            return '<{}>'.format(type_name.str)
+        return '<Object [meta.type.name not a String]>'
 
     def call(self, caller_scope, args=None):
         if args is None:
@@ -59,7 +66,10 @@ class PrimFun(Object):
         if not self.variadic and not len(args) == len(self.args):
             raise Panic('PrimFun `{}` takes {} arguments, not {}'.format(
                 self.name, len(self.args), len(args)))
-        res = self.macro(caller_scope, *args)
+        try:
+            res = self.macro(caller_scope, *args)
+        except Panic as p:
+            raise Panic(p.msg, p.parseinfo, p.stack + [(self, {'args': args})])
         if res is None:
             return nil
         return res

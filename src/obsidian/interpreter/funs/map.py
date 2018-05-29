@@ -3,15 +3,11 @@ from ..types import (
     List,
     Tuple,
     String,
-    Int,
     PrimFun,
     Panic,
-    Bool,
-    Scope,
     map_type,
 )
-from ..types.ast import ASTIdent
-from .get_attr import get_attr
+from ..types.scope import to_str, hash_obj, obj_eq
 
 
 class MapKey:
@@ -20,19 +16,10 @@ class MapKey:
         self.scope = scope
 
     def __hash__(self):
-        hash_code = get_attr.fun(self.key, String('hash')).call(self.scope)
-        if not isinstance(hash_code, Int):
-            raise Panic('hash must return an int')
-        return hash_code.int
+        return hash_obj(self.scope, self.key)
 
     def __eq__(self, other):
-        scope = Scope(self.scope)
-        scope.set('__other__', other.key)
-        res = get_attr.fun(self.key, String('eq')).call(
-            scope, [ASTIdent(String('__other__'))])
-        if not isinstance(res, Bool):
-            raise Panic('eq must return a bool')
-        return res.bool
+        return obj_eq(self.scope, self.key, other)
 
 
 class MapConstructor(PrimFun):
@@ -93,14 +80,10 @@ class MapToStr(PrimFun):
         map = scope.eval(map)
         if not isinstance(map, Map):
             raise Panic('Argument must be a map')
-        strings = [(get_attr.fun(map_key.key, String('to_str')).call(scope),
-                    get_attr.fun(val, String('to_str')).call(scope))
-                   for map_key, val in map.elems.items()]
-        for key_str, val_str in strings:
-            if not isinstance(key_str, String) or not isinstance(val_str, String):
-                raise Panic('to_str must return a string')
-        return String('{' + ', '.join('{} -> {}'.format(key_str.str, val_str.str)
-                                      for key_str, val_str in strings)
+        strs = [(to_str(scope, map_key.key), to_str(scope, val))
+                for map_key, val in map.elems.items()]
+        return String('{' + ', '.join('{} -> {}'.format(key_str, val_str)
+                                      for key_str, val_str in strs)
                       + '}')
 
 

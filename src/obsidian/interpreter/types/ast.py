@@ -56,6 +56,12 @@ class ASTInterpolatedString(Object):
         super().__init__(
             {'body': body}, ast_interpolated_string_type)
 
+    def body_list(self):
+        body = self.get('body')
+        if not isinstance(body, List):
+            raise Panic('`ast.InterpolatedString` body must be a `List`')
+        return body.elems
+
     def __repr__(self):
         return 'ASTInterpolatedString({})'.format(self.get('body'))
 
@@ -188,6 +194,12 @@ class ASTList(Object):
         self.parseinfo = parseinfo
         super().__init__({'elems': elems}, ast_list_type)
 
+    def elems_list(self):
+        elems = self.get('elems')
+        if not isinstance(elems, List):
+            raise Panic('`ast.List` elems must be a `List`')
+        return elems.elems
+
     def __repr__(self):
         return 'ASTList({})'.format(self.get('elems'))
 
@@ -212,6 +224,12 @@ class ASTBlock(Object):
         self.parseinfo = parseinfo
         super().__init__({'statements': statements}, ast_block_type)
 
+    def statements_list(self):
+        statements = self.get('statements')
+        if not isinstance(statements, List):
+            raise Panic('`ast.Block` statements must be a `List`')
+        return statements.elems
+
     def __repr__(self):
         return 'ASTBlock({})'.format(self.get('statements'))
 
@@ -232,7 +250,7 @@ class ASTBlockType(Type):
 class ASTTrailed(Object):
     def __init__(self, expr, trailer, parseinfo=None):
         self.parseinfo = parseinfo
-        super().__init__({'expr': expr, 'trailer': trailer}, ast_block_type)
+        super().__init__({'expr': expr, 'trailer': trailer}, ast_trailed_type)
 
     def __repr__(self):
         return 'ASTTrailed({}, {})'.format(self.get('expr'), self.get('trailer'))
@@ -243,7 +261,7 @@ class ASTTrailedConstructor(PrimFun):
         super().__init__('ast.Trailed', ['expr', 'trailer'])
 
     def fun(self, expr, trailer):
-        return ASTBlock(expr, trailer)
+        return ASTTrailed(expr, trailer)
 
 
 class ASTTrailedType(Type):
@@ -257,6 +275,12 @@ class ASTTuple(Object):
             raise Panic('Invalid tuple')
         self.parseinfo = parseinfo
         super().__init__({'elems': elems}, ast_tuple_type)
+
+    def elems_list(self):
+        elems = self.get('elems')
+        if not isinstance(elems, Tuple):
+            raise Panic('`ast.Tuple` elems must be a `Tuple`')
+        return elems.elems
 
     def __repr__(self):
         return 'ASTTuple({})'.format(self.get('elems'))
@@ -282,6 +306,12 @@ class ASTMap(Object):
         self.parseinfo = parseinfo
         super().__init__({'elems': elems}, ast_map_type)
 
+    def elems_list(self):
+        elems = self.get('elems')
+        if not isinstance(elems, List):
+            raise Panic('`ast.Map` elems must be a `List`')
+        return elems.elems
+
     def __repr__(self):
         return 'ASTMap({})'.format(self.get('elems'))
 
@@ -306,6 +336,12 @@ class ASTCall(Object):
         self.parseinfo = parseinfo
         super().__init__(
             {'callable': callable_expr, 'args': args}, ast_call_type)
+
+    def args_list(self):
+        args = self.get('args')
+        if not isinstance(args, List):
+            raise Panic('`ast.Call` arguments must be a `List`')
+        return args.elems
 
     def __eq__(self, other):
         def clean_dict(dictionary):

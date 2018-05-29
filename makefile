@@ -9,6 +9,10 @@ vtest: export PYTHONPATH=src
 vtest: src/obsidian/grammar.py
 	pytest -vv
 
+test_prelude: export PYTHONPATH=src
+test_prelude: src/obsidian/grammar.py
+	pytest -vv tests/test_prelude.py
+
 install: src/obsidian.vim
 	cp -f src/obsidian.vim ~/.config/nvim/syntax
 

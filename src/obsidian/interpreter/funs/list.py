@@ -6,7 +6,7 @@ from ..types import (
     String,
     list_type
 )
-from .get_attr import get_attr
+from ..types.scope import to_str
 
 
 class ListGet(PrimFun):
@@ -19,7 +19,7 @@ class ListGet(PrimFun):
         if not isinstance(idx, Int):
             raise Panic('Index must be an int')
         if idx.int >= len(lst.elems):
-            raise Panic('Index out of range')
+            raise Panic('Index `{}` out of range'.format(idx.int))
         return lst.elems[idx.int]
 
 
@@ -33,7 +33,7 @@ class ListSet(PrimFun):
         if not isinstance(idx, Int):
             raise Panic('Index must be an int')
         if idx.int >= len(lst.elems):
-            raise Panic('Index out of range')
+            raise Panic('Index `{}` out of range'.format(idx.int))
         lst.elems[idx.int] = val
 
 
@@ -45,12 +45,8 @@ class ListToStr(PrimFun):
         lst = scope.eval(lst)
         if not isinstance(lst, List):
             raise Panic('Argument must be a list')
-        strings = [get_attr.fun(elem, String('to_str')).call(scope)
-                   for elem in lst.elems]
-        for string in strings:
-            if not isinstance(string, String):
-                raise Panic('to_str must return a string')
-        return String('[' + ', '.join(string.str for string in strings) + ']')
+        strs = [to_str(scope, elem) for elem in lst.elems]
+        return String('[' + ', '.join(strs) + ']')
 
 
 class ListLen(PrimFun):

@@ -3,6 +3,7 @@ from ..bootstrap import (
     Object,
     Type,
     PrimFun,
+    String,
     object_type,
 )
 from .scope import Scope
@@ -11,6 +12,8 @@ from .list import List
 
 class Fun(Object):
     def __init__(self, defn_scope, name, body):
+        if not len(body.elems_list()) > 0:
+            raise Panic('Funs must have at least one body statement')
         super().__init__(
             {'name': name, 'body': body, 'definer': defn_scope}, fun_type)
         # print(f'Created fun with body {body}')
@@ -27,11 +30,24 @@ class Fun(Object):
         if not isinstance(body, List):
             raise Panic('Function body must be a list')
         try:
-            for statement in body.elems[:-1]:
+            for statement_idx, statement in enumerate(body.elems[:-1]):
                 scope.eval(statement)
-            return scope.eval(body.elems[-1])
+            statement = body.elems[-1]
+            statement_idx = len(body.elems) - 1
+            return scope.eval(statement)
         except ReturnException as e:  # hack to use Python's function stack instead of building our own
             return e.obj
+        except Panic as p:
+            raise Panic(p.msg, stack=p.stack +
+                        [(self, {'args': args,
+                                 'statement': statement,
+                                 'statement_idx': statement_idx})])
+
+    def name_string(self):
+        name = self.get('name')
+        if not isinstance(name, String):
+            return '[Fun name {} not a string]'.format(name)
+        return name.str
 
     def __repr__(self):
         return 'Fun({})'.format(self.body)
@@ -42,6 +58,7 @@ class FunConstructor(PrimFun):
         super().__init__('Fun', ['name', 'body'])
 
     def macro(self, scope, name, body):
+        name = scope.eval(name)
         return Fun(scope, name, body)
 
 

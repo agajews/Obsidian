@@ -26,6 +26,8 @@ from .types import (
     nil,
 )
 
+from .types.scope import to_str, type_name
+
 from .types.ast import (
     model_to_ast,
     ast_node_type,
@@ -65,6 +67,7 @@ from .funs import (
     map,
     tuple,
     string,
+    ast,
 )
 
 
@@ -197,15 +200,22 @@ builtin_vars = {
     'false': false,
 }
 
+prelude = None
+
 
 def load_prelude():
-    import os
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    fnm = os.path.join(dirname, '../prelude/prelude.on')
-    with open(fnm, 'r') as f:
-        source = f.read()
-    ast, source_map = parse(source)
-    return load_module(ast, source_map, 'prelude', {'prim': prim})
+    global prelude
+    if prelude is None:
+        import os
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        fnm = os.path.join(dirname, '../prelude/prelude.on')
+        with open(fnm, 'r') as f:
+            source = f.read()
+        prelude_ast, source_map = parse(source)
+        prelude = load_module(prelude_ast, source_map,
+                              'prelude', {'prim': prim})
+        if prelude is None:
+            raise Exception('Failed to load prelude')
 
 
 def load_module(statements, source_map, module_name, preload=None, include_prelude=False):
@@ -217,6 +227,7 @@ def load_module(statements, source_map, module_name, preload=None, include_prelu
     for name, obj in preload.items():
         module.set(name, obj)
     if include_prelude:
+        load_prelude()
         for name, obj in prelude.attrs.items():
             module.set(name, obj)
     try:
@@ -226,12 +237,26 @@ def load_module(statements, source_map, module_name, preload=None, include_prelu
             module.eval(statement)
         return module
     except Panic as p:
-        if p.parseinfo is not None:
+        parseinfo = statement.parseinfo
+        msg = p.msg
+        stack = p.stack
+        print('=' * 10 + ' Panic: ' + '=' * 10)
+        for (fun, info) in reversed(stack):
+            if isinstance(fun, PrimFun):
+                print('PrimFun `{}` panicked:'.format(
+                    fun.name))
+            else:
+                print('Fun `{}` panicked at statement {}:'.format(
+                    fun.name_string(), info['statement_idx']))
+                print('    Statement: {}'.format(
+                    to_str(module, info['statement'], panic=False)))
+            print('    Args: {}'.format(
+                ' '.join(to_str(module, a, panic=False) for a in info['args'])))
+        if parseinfo is not None:
             print('Module `{}` panicked at line {}:'.format(
-                module_name, p.parseinfo.line + 1))
-            print('Panic: {}'.format(p.msg))
+                module_name, parseinfo.line))
         else:
-            print('Panic: {}'.format(p.msg))
-
-
-prelude = load_prelude()
+            print('Module `{}` panicked:')
+        print('    Statement: {}'.format(to_str(module, statement)))
+        print('    Panic: {}'.format(msg))
+        return None

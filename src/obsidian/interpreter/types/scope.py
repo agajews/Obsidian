@@ -30,19 +30,20 @@ from .list import list_type, List
 from .tuple import tuple_type, Tuple
 from .map import map_type
 from .symbol import symbol_type, Symbol
+from .bool import Bool
 
 
-def list_elems(ast):
-    if not isinstance(ast, List):
-        raise Panic('Invalid list')
-    return ast.elems
-
-
-def tuple_elems(ast):
-    if not isinstance(ast, Tuple):
-        raise Panic('Invalid tuple')
-    return ast.elems
-
+# def list_elems(ast):
+#     if not isinstance(ast, List):
+#         raise Panic('Invalid list')
+#     return ast.elems
+#
+#
+# def tuple_elems(ast):
+#     if not isinstance(ast, Tuple):
+#         raise Panic('Invalid tuple')
+#     return ast.elems
+#
 
 class Scope(Object):
     def __init__(self, parent=None):
@@ -125,40 +126,35 @@ class Scope(Object):
                         'Associativity must be either @left, @none, or @right')
             slurp[i] = (op, raw_op, precedence, associativity)
         pos, expr = self.parse_binary_subexpr(slurp, slurp[0])
+        # print('Binary slurp:')
+        # print(expr)
         return expr
 
     def preprocess(self, ast):
-        try:
-            return self._preprocess(ast)
-        except Panic as p:
-            if ast.parseinfo is not None:
-                raise Panic(p.msg, ast.parseinfo)
-            raise p
-
-    def _preprocess(self, ast):
         if isinstance(ast, ASTCall):
             return ASTCall(self.preprocess(ast.get('callable')),
                            List([self.preprocess(arg)
-                                 for arg in list_elems(ast.get('args'))]),
+                                 for arg in ast.args_list()]),
                            parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTList):
-            return ASTList(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]),
+            return ASTList(List([self.preprocess(elem) for elem in ast.elems_list()]),
                            parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTTuple):
-            return ASTTuple(Tuple([self.preprocess(elem) for elem in tuple_elems(ast.get('elems'))]),
+            return ASTTuple(Tuple([self.preprocess(elem) for elem in ast.elems_list()]),
                             parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTMap):
-            return ASTMap(List([self.preprocess(elem) for elem in list_elems(ast.get('elems'))]),
+            return ASTMap(List([self.preprocess(elem) for elem in ast.elems_list()]),
                           parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTBlock):
-            return ASTBlock(List([self.preprocess(elem) for elem in list_elems(ast.get('statements'))]),
+            return ASTBlock(List([self.preprocess(elem) for elem in ast.statements_list()]),
                             parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTTrailed):
             return ASTTrailed(self.preprocess(ast.get('expr')), self.preprocess(ast.get('trailer')),
                               parseinfo=ast.parseinfo)
+        elif isinstance(ast, ASTInterpolatedString):
+            return ASTInterpolatedString(List([self.preprocess(body) for body in ast.body_list()]))
         elif isinstance(ast, (ASTIdent,
                               ASTString,
-                              ASTInterpolatedString,
                               ASTInt,
                               ASTFloat,
                               ASTSymbol)):
@@ -190,19 +186,12 @@ class Scope(Object):
         raise Panic('No such object `{}`'.format(name))
 
     def eval(self, ast):
-        try:
-            return self._eval(ast)
-        except Panic as p:
-            # print('Caught panic')
-            # print(ast)
-            # print(ast.parseinfo)
-            if ast.parseinfo is not None:
-                raise Panic(p.msg, ast.parseinfo)
-            raise p
+        ast = self.preprocess(ast)
+        return self._eval(ast)
 
     def _eval(self, ast):
         if isinstance(ast, ASTCall):
-            return self.eval(ast.get('callable')).call(self, ast.get('args').elems)
+            return self._eval(ast.get('callable')).call(self, ast.get('args').elems)
         elif isinstance(ast, ASTIdent):
             ident = ast.get('ident')
             if not isinstance(ident, String):
@@ -214,7 +203,7 @@ class Scope(Object):
             body = ast.get('body')
             if not isinstance(ast.get('body'), List):
                 raise Panic('Invalid interpolated string')
-            strings = [get_attr.fun(self.eval(elem), String('to_str')).call(self)
+            strings = [get_attr.fun(self._eval(elem), String('to_str')).call(self)
                        for elem in body.elems]
             return String(''.join(s.str for s in strings))
         elif isinstance(ast, ASTInt):
@@ -226,14 +215,14 @@ class Scope(Object):
         elif isinstance(ast, ASTList):
             return list_type.call(self, [ast])
         elif isinstance(ast, ASTTrailed):
-            expr = self.eval(ast.get('expr'))
+            expr = self._eval(ast.get('expr'))
             trailer = ast.get('trailer')
             return get_attr.fun(expr, String('get')).call(self, [trailer])
         elif isinstance(ast, ASTBlock):
             statements = ast.get('statements')
             if not isinstance(statements, List):
                 raise Panic('Invalid block')
-            return List([self.eval(statement) for statement in statements.elems])
+            return List([self._eval(statement) for statement in statements.elems])
         elif isinstance(ast, ASTTuple):
             return tuple_type.call(self, [ast])
         elif isinstance(ast, ASTMap):
@@ -251,7 +240,11 @@ class MethodFun(PrimFun):
 
     def macro(self, scope, *args):
         scope.set('__self__', self.obj)
-        return self.method.call(scope, [ASTIdent(String('__self__'))] + list(args))
+        res = self.method.call(
+            scope, [ASTIdent(String('__self__'))] + list(args))
+        if '__self__' in scope.attrs:
+            del scope.attrs['__self__']
+        return res
 
 
 class GetAttr(PrimFun):
@@ -278,13 +271,66 @@ class GetAttr(PrimFun):
         return obj.get(attr.str)
 
 
+def type_name(obj):
+    try:
+        type = obj.get('meta').get('type')
+    except Panic:
+        return '[Object has no type]'
+    try:
+        name = type.get('name')
+    except Panic:
+        return '[Type has no name]'
+    if not isinstance(name, String):
+        return '[Type name is not a String]'
+    return name.str
+
+
+def to_str(scope, obj, panic=True):
+    if panic:
+        string = get_attr.fun(obj, String('to_str')).call(scope)
+    else:
+        try:
+            string = get_attr.fun(obj, String('to_str')).call(scope)
+        except Panic as p:
+            return "[`{}`'s `to_str` failed with message '{}']".format(type_name(obj), p.msg)
+    if not isinstance(string, String):
+        if panic:
+            raise Panic(
+                '`to_str` for `{}` must return a `String`'.format(type_name(obj)))
+        else:
+            try:
+                return "[`{}`'s `to_str` returned a `{}`, not a `String`]".format(type_name(obj), type_name(string))
+            except Panic:
+                return "[Calling `to_str` failed]"
+    return string.str
+
+
+def hash_obj(scope, obj):
+    code = get_attr.fun(obj, String('hash')).call(scope)
+    if not isinstance(code, Int):
+        raise Panic(
+            '`hash` for `{}` must return an `Int`'.format(type_name(obj)))
+    return code.int
+
+
+def obj_eq(parent_scope, obj, other):
+    scope = Scope(parent_scope)
+    scope.set('__other__', other.key)
+    code = get_attr.fun(obj, String('eq')).call(
+        scope, [ASTIdent(String('__other__'))])
+    if not isinstance(code, Bool):
+        raise Panic(
+            '`eq` for `{}` must return a `Bool`'.format(type_name(obj)))
+    return code.bool
+
+
 class Eval(PrimFun):
     def __init__(self, scope):
         super().__init__('eval', ['ast'])
         self.scope = scope
 
     def fun(self, ast):
-        ast = self.scope.preprocess(ast)
+        # ast = self.scope.preprocess(ast)
         return self.scope.eval(ast)
 
 

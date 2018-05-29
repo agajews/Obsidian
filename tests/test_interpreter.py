@@ -1,6 +1,8 @@
 from obsidian.parser import parse
 from obsidian.interpreter import load_module, prim
+from obsidian.interpreter.types import Panic
 from textwrap import dedent
+import pytest
 
 
 def get_output(source, capsys):
@@ -171,8 +173,235 @@ def test_panic(capsys):
     let 'danger' (Fun 'danger' [(panic 'Panicking')])
     (danger)
     '''
-    target = ['Module `test` panicked at line 7:', 'Panic: Panicking']
-    assert get_output(source, capsys) == target
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              "    Statement: (panic 'Panicking')",
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              "    Args: {'Panicking'}",
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: Panicking']
+    # with pytest.raises(Panic):
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_interpolated_string(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'how_much' 'a bit'
+    let 'danger' (Fun 'danger' [(panic "Panicking $how_much")])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              '    Statement: (panic "\'Panicking \'how_much")',
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              '    Args: "\'Panicking \'how_much"',
+              'Module `test` panicked at line 7:',
+              '    Statement: (danger)',
+              '    Panic: Panicking a bit']
+    # with pytest.raises(Panic):
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_int(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic "Panicking $3")])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              '    Statement: (panic "\'Panicking \'3")',
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              '    Args: "\'Panicking \'3"',
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: Panicking 3']
+    # with pytest.raises(Panic):
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_float(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic "Panicking $3.0")])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              '    Statement: (panic "\'Panicking \'3.0")',
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              '    Args: "\'Panicking \'3.0"',
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: Panicking 3.0']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_symbol(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic "Panicking $@low")])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              '    Statement: (panic "\'Panicking \'@low")',
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              '    Args: "\'Panicking \'@low"',
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: Panicking @low']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_list(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic "Panicking $[1, 2, 3]")])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              '    Statement: (panic "\'Panicking \'[1, 2, 3]")',
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              '    Args: "\'Panicking \'[1, 2, 3]"',
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: Panicking [1, 2, 3]']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_tuple(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic "Panicking $(1, 2, 3)")])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              '    Statement: (panic "\'Panicking \'(1, 2, 3)")',
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              '    Args: "\'Panicking \'(1, 2, 3)"',
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: Panicking (1, 2, 3)']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_map(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    (let '->' (Fun '->' [(puts 'arrow')]))
+    let 'danger' (Fun 'danger' [(panic 'error')])
+    (danger {1 -> "horses", 2 -> "fish", 3 -> "dogs"})
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              "    Statement: (panic 'error')",
+              "    Args: { {(-> 1 'horses'), (-> 2 'fish'), (-> 3 'dogs')} }",
+              'PrimFun `prim.panic` panicked:',
+              "    Args: {'error'}",
+              'Module `test` panicked at line 7:',
+              "    Statement: (danger {(-> 1 'horses'), (-> 2 'fish'), (-> 3 'dogs')})",
+              '    Panic: error']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_block(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic "Panicking")])
+    danger
+        3
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              "    Statement: (panic 'Panicking')",
+              '    Args: {3}',
+              'PrimFun `prim.panic` panicked:',
+              "    Args: {'Panicking'}",
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger 3)',
+              '    Panic: Panicking']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
+
+
+def test_panic_trailed(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'Fun' (get_attr prim 'Fun'))
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'panic' (get_attr prim 'panic'))
+    let 'danger' (Fun 'danger' [(panic ['low', 'med', 'high'][0])])
+    (danger)
+    '''
+    target = ['========== Panic: ==========',
+              'Fun `danger` panicked at statement 0:',
+              "    Statement: (panic ['low', 'med', 'high'][0])",
+              '    Args: ',
+              'PrimFun `prim.panic` panicked:',
+              "    Args: ['low', 'med', 'high'][0]",
+              'Module `test` panicked at line 6:',
+              '    Statement: (danger)',
+              '    Panic: low']
+    # with pytest.raises(Panic):
+
+    output = get_output(source, capsys)
+    assert output == target
 
 
 def test_return(capsys):
@@ -1536,7 +1765,7 @@ def test_statics_inheritance(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_statics_inheritance_missing(capsys):
+def test_panic_statics_inheritance_missing(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     let 'puts' (get_attr prim 'puts')
@@ -1548,9 +1777,16 @@ def test_statics_inheritance_missing(capsys):
     let 'butch' (Object Beagle)
     puts (get_attr butch 'species')
     '''
+    target = ['========== Panic: ==========',
+              'PrimFun `prim.puts` panicked:',
+              "    Args: (get_attr butch 'species')",
+              'PrimFun `get_attr` panicked:',
+              "    Args: {butch} {'species'}",
+              'Module `test` panicked at line 9:',
+              "    Statement: (puts (get_attr butch 'species'))",
+              '    Panic: Object has no attribute species']
     output = get_output(source, capsys)
-    assert output == ['Module `test` panicked at line 10:',
-                      'Panic: Object has no attribute species']
+    assert output == target
 
 
 def test_methods(capsys):

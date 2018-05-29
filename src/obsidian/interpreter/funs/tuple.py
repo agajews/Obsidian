@@ -7,6 +7,7 @@ from ..types import (
     tuple_type,
 )
 from .get_attr import get_attr
+from ..types.scope import to_str
 
 
 class TupleHash(PrimFun):
@@ -42,12 +43,8 @@ class TupleToStr(PrimFun):
         tup = scope.eval(tup)
         if not isinstance(tup, Tuple):
             raise Panic('Argument must be a tuple')
-        strings = [get_attr.fun(elem, String('to_str')).call(scope)
-                   for elem in tup.elems]
-        for string in strings:
-            if not isinstance(string, String):
-                raise Panic('to_str must return a string')
-        return String('(' + ', '.join(string.str for string in strings) + ')')
+        strs = [to_str(scope, elem) for elem in tup.elems]
+        return String('(' + ', '.join(strs) + ')')
 
 
 tuple_type.get('methods').set('get', TupleGet())
