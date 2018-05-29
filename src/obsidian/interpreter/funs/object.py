@@ -4,7 +4,7 @@ from .get_attr import get_attr
 
 class ObjectAssign(PrimFun):
     def __init__(self):
-        super().__init__('Object.{=}', ['object', 'val'])
+        super().__init__('Object.assign', ['object', 'val'])
 
     def fun(self, obj, val):
         return val
@@ -12,7 +12,7 @@ class ObjectAssign(PrimFun):
 
 class ObjectDot(PrimFun):
     def __init__(self):
-        super().__init__('Object.{.}', ['object', 'attr'])
+        super().__init__('Object.dot', ['object', 'attr'])
 
     def fun(self, obj, attr):
         return get_attr.fun(obj, attr)
@@ -29,6 +29,6 @@ class ObjectToStr(PrimFun):
         return String('<{}>'.format(type_name.str))
 
 
-object_type.get('methods').set('=', ObjectAssign())
-object_type.get('methods').set('.', ObjectDot())
+object_type.get('methods').set('assign', ObjectAssign())
+object_type.get('methods').set('dot', ObjectDot())
 object_type.get('methods').set('to_str', ObjectToStr())

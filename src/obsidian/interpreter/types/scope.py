@@ -22,7 +22,6 @@ from .ast import (
     ASTSymbol,
     ASTUnquote,
     ASTBlock,
-    ASTTrailed,
 )
 from .int import int_type, Int
 from .float import float_type
@@ -32,18 +31,6 @@ from .map import map_type
 from .symbol import symbol_type, Symbol
 from .bool import Bool
 
-
-# def list_elems(ast):
-#     if not isinstance(ast, List):
-#         raise Panic('Invalid list')
-#     return ast.elems
-#
-#
-# def tuple_elems(ast):
-#     if not isinstance(ast, Tuple):
-#         raise Panic('Invalid tuple')
-#     return ast.elems
-#
 
 class Scope(Object):
     def __init__(self, parent=None):
@@ -148,9 +135,6 @@ class Scope(Object):
         elif isinstance(ast, ASTBlock):
             return ASTBlock(List([self.preprocess(elem) for elem in ast.statements_list()]),
                             parseinfo=ast.parseinfo)
-        elif isinstance(ast, ASTTrailed):
-            return ASTTrailed(self.preprocess(ast.get('expr')), self.preprocess(ast.get('trailer')),
-                              parseinfo=ast.parseinfo)
         elif isinstance(ast, ASTInterpolatedString):
             return ASTInterpolatedString(List([self.preprocess(body) for body in ast.body_list()]))
         elif isinstance(ast, (ASTIdent,
@@ -214,10 +198,6 @@ class Scope(Object):
             return symbol_type.call(self, [ast])
         elif isinstance(ast, ASTList):
             return list_type.call(self, [ast])
-        elif isinstance(ast, ASTTrailed):
-            expr = self._eval(ast.get('expr'))
-            trailer = ast.get('trailer')
-            return get_attr.fun(expr, String('get')).call(self, [trailer])
         elif isinstance(ast, ASTBlock):
             statements = ast.get('statements')
             if not isinstance(statements, List):

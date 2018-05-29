@@ -247,28 +247,6 @@ class ASTBlockType(Type):
         super().__init__('ast.Block', ast_node_type, constructor=ASTBlockConstructor())
 
 
-class ASTTrailed(Object):
-    def __init__(self, expr, trailer, parseinfo=None):
-        self.parseinfo = parseinfo
-        super().__init__({'expr': expr, 'trailer': trailer}, ast_trailed_type)
-
-    def __repr__(self):
-        return 'ASTTrailed({}, {})'.format(self.get('expr'), self.get('trailer'))
-
-
-class ASTTrailedConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Trailed', ['expr', 'trailer'])
-
-    def fun(self, expr, trailer):
-        return ASTTrailed(expr, trailer)
-
-
-class ASTTrailedType(Type):
-    def __init__(self):
-        super().__init__('ast.Trailed', ast_node_type, constructor=ASTTrailedConstructor())
-
-
 class ASTTuple(Object):
     def __init__(self, elems, parseinfo=None):
         if not isinstance(elems, Tuple):
@@ -451,11 +429,6 @@ def model_to_ast(model):
     elif isinstance(model, sem.Block):
         return ASTBlock(List([model_to_ast(statement) for statement in model.statements]),
                         parseinfo=model.parseinfo)
-    elif isinstance(model, sem.Trailed):
-        expr = model_to_ast(model.expr)
-        for trailer in model.trailers:
-            expr = ASTTrailed(expr, model_to_ast(trailer),
-                              parseinfo=model.parseinfo)
         return expr
     else:
         raise NotImplementedError(
@@ -476,4 +449,3 @@ ast_call_type = ASTCallType()
 ast_unquote_type = ASTUnquoteType()
 ast_binary_slurp_type = ASTBinarySlurpType()
 ast_block_type = ASTBlockType()
-ast_trailed_type = ASTTrailedType()

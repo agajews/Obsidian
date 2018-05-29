@@ -29,11 +29,7 @@ binary_op = {eol} @:op {eol}
           ;
 
 
-TRAILER = /\[/ {eol} @:expression {eol} ']' ;
-
-simple_expression = expr:atomic_expression trailers:{TRAILER} ;
-
-atomic_expression =
+simple_expression =
                   | triple_single_string
                   | single_string
                   | triple_interpolated_string
@@ -42,10 +38,7 @@ atomic_expression =
                   ;
 
 
-simple_single_expression = expr:atomic_single_expression trailers:{TRAILER} ;
-
-
-atomic_single_expression =
+simple_single_expression =
                   | triple_single_string
                   | single_string
                   | nonstring_expression

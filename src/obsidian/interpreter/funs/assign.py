@@ -12,7 +12,7 @@ class Assign(PrimFun):
             raise Panic('Name must be a string')
         name = name.str
         new_val = get_attr.fun(scope.get_recursive(
-            name), String('=')).call(scope, [val])
+            name), String('assign')).call(scope, [val])
         scope.assign_recursive(name, new_val)
         return new_val
 

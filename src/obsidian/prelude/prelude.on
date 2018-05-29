@@ -1,40 +1,32 @@
 (get_attr prim 'let') '.' ((get_attr prim 'Fun') 'prelude.{.}' [
   ((get_attr prim 'let') 'let' (get_attr prim 'let')),
   (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-  ((get_attr prim 'puts') (get_attr meta 'args')),
+  # ((get_attr prim 'puts') (get_attr meta 'args')),
   # ((get_attr prim 'puts') 'getting lhs'),
-  (let 'lhs' (get_attr meta 'args')[0]),
+  (let 'lhs' ((get_attr (get_attr meta 'args') 'get') 0)),
   # ((get_attr prim 'puts') 'getting rhs'),
-  (let 'rhs' (get_attr meta 'args')[1]),
+  (let 'rhs' ((get_attr (get_attr meta 'args') 'get') 1)),
   # ((get_attr prim 'puts') 'got both'),
-  ((get_attr (eval lhs) '.') (get_attr rhs 'ident')),
+  ((get_attr (eval lhs) 'dot') (get_attr rhs 'ident')),
 ])
 
 prim.let 'let' (prim.Fun 'prelude.let' [
-  (prim.puts 'Letting...'),
-  (prim.puts 'caller:' meta.caller),
   (prim.let 'caller' meta.caller),
-  (prim.puts 'caller.meta:' caller.meta),
-  # (prim.let 'eval' (get_attr meta.caller.meta 'eval')),
-  # (prim.puts 'Got eval'),
-  # (prim.puts meta.args),
-  # (prim.puts 'getting lval'),
-  # (prim.let 'lval' meta.args[0].args[0]),
-  # (prim.puts 'getting rval'),
-  # (prim.let 'rval' (eval meta.args[0].args[1])),
-  # (prim.puts 'got both'),
-  # (prim.let 'is' prim.is),
-  # (prim.let 'and' prim.bool.and),
-  # (prim.let 'let_recursive' (Fun 'let_recursive' [
-  #   (prim.let 'eval' meta.caller.meta.eval),
-  #   (prim.let 'lval' (eval meta.args[0])),
-  #   (prim.let 'rval' (eval meta.args[1])),
-  #   (prim.cond [
-  #     ((is lval.meta.type prim.ast.Ident), [(set_attr meta.caller lval.ident)]),
-  #     # (lval.meta.type ~is prim.ast.Call ~and lval.callable, ),
-  #   ]),
-  # ])),
-  # (let_recursive lval rval)
+  (prim.let 'eval' (get_attr meta.caller.meta 'eval')),
+  (prim.let 'lval' ((meta.args.get 0).args.get 0)),
+  (prim.let 'rval' (eval ((meta.args.get 0).args.get 1))),
+  (prim.let 'is' prim.is),
+  (prim.let 'and' prim.bool.and),
+  (prim.let 'let_recursive' (prim.Fun 'let_recursive' [
+    (prim.let 'eval' meta.caller.meta.eval),
+    (prim.let 'lval' (eval (meta.args.get 0))),
+    (prim.let 'rval' (eval (meta.args.get 1))),
+    (prim.cond
+      ((is lval.meta.type prim.ast.Ident), [(set_attr caller lval.ident rval)])
+      # (lval.meta.type ~is prim.ast.Call ~and lval.callable, ),
+    ),
+  ])),
+  (let_recursive lval rval)
 ])
 
 prim.let '=' (prim.Fun 'prelude.assign' [

@@ -242,36 +242,7 @@ class ObsidianParser(Parser):
             self._error('no available options')
 
     @tatsumasu()
-    def _TRAILER_(self):  # noqa
-        self._pattern(r'\[')
-
-        def block0():
-            self._eol_()
-        self._closure(block0)
-        self._expression_()
-        self.name_last_node('@')
-
-        def block2():
-            self._eol_()
-        self._closure(block2)
-        self._token(']')
-
-    @tatsumasu()
     def _simple_expression_(self):  # noqa
-        self._atomic_expression_()
-        self.name_last_node('expr')
-
-        def block2():
-            self._TRAILER_()
-        self._closure(block2)
-        self.name_last_node('trailers')
-        self.ast._define(
-            ['expr', 'trailers'],
-            []
-        )
-
-    @tatsumasu()
-    def _atomic_expression_(self):  # noqa
         with self._choice():
             with self._option():
                 self._triple_single_string_()
@@ -287,20 +258,6 @@ class ObsidianParser(Parser):
 
     @tatsumasu()
     def _simple_single_expression_(self):  # noqa
-        self._atomic_single_expression_()
-        self.name_last_node('expr')
-
-        def block2():
-            self._TRAILER_()
-        self._closure(block2)
-        self.name_last_node('trailers')
-        self.ast._define(
-            ['expr', 'trailers'],
-            []
-        )
-
-    @tatsumasu()
-    def _atomic_single_expression_(self):  # noqa
         with self._choice():
             with self._option():
                 self._triple_single_string_()
@@ -777,19 +734,10 @@ class ObsidianSemantics(object):
     def binary_op(self, ast):  # noqa
         return ast
 
-    def TRAILER(self, ast):  # noqa
-        return ast
-
     def simple_expression(self, ast):  # noqa
         return ast
 
-    def atomic_expression(self, ast):  # noqa
-        return ast
-
     def simple_single_expression(self, ast):  # noqa
-        return ast
-
-    def atomic_single_expression(self, ast):  # noqa
         return ast
 
     def nonstring_expression(self, ast):  # noqa

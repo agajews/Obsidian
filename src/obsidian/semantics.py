@@ -140,13 +140,6 @@ class Call(Node):
         return '(' + self.callable_expr.show(indent) + ' ' + ' '.join(e.show(indent) for e in self.args) + ')'
 
 
-class Trailed(Node):
-    def __init__(self, expr, trailers=None, parseinfo=None):
-        super().__init__(parseinfo=parseinfo)
-        self.expr = expr
-        self.trailers = trailers if trailers is not None else []
-
-
 class Unquote(Node):
     def __init__(self, expr, parseinfo=None):
         super().__init__(parseinfo=parseinfo)
@@ -250,16 +243,6 @@ class Semantics:
         if info['contents'] is None:
             return List()
         return List(info['contents'], parseinfo=info.parseinfo)
-
-    def simple_expression(info):
-        if len(info['trailers']) == 0:
-            return info['expr']
-        return Trailed(info['expr'], info['trailers'], parseinfo=info.parseinfo)
-
-    def simple_single_expression(info):
-        if len(info['trailers']) == 0:
-            return info['expr']
-        return Trailed(info['expr'], info['trailers'], parseinfo=info.parseinfo)
 
     def binary_slurp(info):
         slurp = info['slurp']

@@ -9,7 +9,6 @@ from obsidian.semantics import (
     List,
     Tuple,
     Call,
-    Trailed,
     Unquote,
     BinarySlurp,
     Block
@@ -829,62 +828,6 @@ def test_list_dot_slice():
         Ident('.'),
         BinarySlurp([Int(3), Ident('..'), Int(5)])
     ])])]
-
-
-def test_trailer():
-    source = '''
-    puts list[3]
-    '''
-    assert parse(source) == [Call(Ident('puts'), [
-        Trailed(Ident('list'), [Int(3)])])]
-
-
-def test_nontrailer_arg():
-    source = '''
-    puts list [3]
-    '''
-    assert parse(source) == [Call(Ident('puts'), [
-        Ident('list'), List([Int(3)])])]
-
-
-def test_trailer_expression():
-    source = '''
-    list[3]
-    '''
-    assert parse(source) == [Trailed(Ident('list'), [Int(3)])]
-
-
-def test_nontrailer_call():
-    source = '''
-    list [3]
-    '''
-    assert parse(source) == [Call(Ident('list'), [List([Int(3)])])]
-
-
-def test_multiple_trailers():
-    source = '''
-    puts list[3][4][5]
-    '''
-    assert parse(source) == [Call(Ident('puts'), [
-        Trailed(Ident('list'), [Int(3), Int(4), Int(5)])])]
-
-
-def test_multiple_trailers_arg():
-    source = '''
-    puts list [3][4][5]
-    '''
-    assert parse(source) == [Call(Ident('puts'), [
-        Ident('list'), Trailed(List([Int(3)]), [Int(4), Int(5)])])]
-
-
-def test_list_bracket_slice():
-    source = '''
-    puts list[3..5]
-    '''
-    assert parse(source) == [Call(Ident('puts'), [Trailed(
-        Ident('list'),
-        [BinarySlurp([Int(3), Ident('..'), Int(5)])],
-    )])]
 
 
 def test_toplevel_expression():

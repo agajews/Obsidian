@@ -26,7 +26,7 @@ from .types import (
     nil,
 )
 
-from .types.scope import to_str, type_name
+from .types.scope import to_str
 
 from .types.ast import (
     model_to_ast,
@@ -44,7 +44,6 @@ from .types.ast import (
     ast_symbol_type,
     ast_unquote_type,
     ast_block_type,
-    ast_trailed_type,
 )
 
 from .funs import (
@@ -130,7 +129,6 @@ prim.set('ast', Module('ast', parent=prim, attrs={
     'Unquote': ast_unquote_type,
     'BinarySlurp': ast_binary_slurp_type,
     'Block': ast_block_type,
-    'Trailed': ast_trailed_type,
 }))
 
 prim.set('int', Module('int', parent=prim, attrs={

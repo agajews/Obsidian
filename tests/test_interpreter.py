@@ -380,30 +380,6 @@ def test_panic_block(capsys):
     assert output == target
 
 
-def test_panic_trailed(capsys):
-    source = '''
-    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
-    (let 'Fun' (get_attr prim 'Fun'))
-    (let 'puts' (get_attr prim 'puts'))
-    (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic ['low', 'med', 'high'][0])])
-    (danger)
-    '''
-    target = ['========== Panic: ==========',
-              'Fun `danger` panicked at statement 0:',
-              "    Statement: (panic ['low', 'med', 'high'][0])",
-              '    Args: ',
-              'PrimFun `prim.panic` panicked:',
-              "    Args: ['low', 'med', 'high'][0]",
-              'Module `test` panicked at line 6:',
-              '    Statement: (danger)',
-              '    Panic: low']
-    # with pytest.raises(Panic):
-
-    output = get_output(source, capsys)
-    assert output == target
-
-
 def test_return(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
@@ -584,67 +560,45 @@ def test_map_get(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_list_trailed_get(capsys):
-    source = '''
-    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
-    let 'puts' (get_attr prim 'puts')
-    let 'list' [1, 2, 3]
-    puts ((get_attr list[2] 'to_str'))
-    '''
-    target = ['3']
-    assert get_output(source, capsys) == target
-
-
-def test_tuple_trailed_get(capsys):
-    source = '''
-    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
-    let 'puts' (get_attr prim 'puts')
-    let 'tuple' (1, 2, 3)
-    puts ((get_attr tuple[0] 'to_str'))
-    '''
-    target = ['1']
-    assert get_output(source, capsys) == target
-
-
-def test_map_trailed_get_string_key(capsys):
+def test_map_get_string_key(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     let 'map' {('dogs', 1), ('fish', 2), ('horses', 3)}
-    puts ((get_attr map['fish'] 'to_str'))
+    puts ((get_attr map 'get') 'fish')
     '''
     target = ['2']
     assert get_output(source, capsys) == target
 
 
-def test_map_trailed_get_int_key(capsys):
+def test_map_get_int_key(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     let 'map' {(1, 'dogs'), (2, 'fish'), (3, 'horses')}
-    puts map[1]
+    puts ((get_attr map 'get') 1)
     '''
     target = ['dogs']
     assert get_output(source, capsys) == target
 
 
-def test_map_trailed_get_float_key(capsys):
+def test_map_get_float_key(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     let 'map' {(1.0, 'dogs'), (2.0, 'fish'), (3.0, 'horses')}
-    puts map[1.0]
+    puts ((get_attr map 'get') 1.0)
     '''
     target = ['dogs']
     assert get_output(source, capsys) == target
 
 
-def test_map_trailed_get_symbol_key(capsys):
+def test_map_get_symbol_key(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     let 'map' {(@fuzzy, 'dogs'), (@scaly, 'fish'), (@runny, 'horses')}
-    puts map[@fuzzy]
+    puts ((get_attr map 'get') @fuzzy)
     '''
     target = ['dogs']
     assert get_output(source, capsys) == target
@@ -670,7 +624,7 @@ def test_map_set(capsys):
     let 'map' {('dogs', 1), ('fish', 2), ('horses', 3)}
     puts map
     ((get_attr map 'set') 'horses' 4)
-    puts map['horses']
+    puts ((get_attr map 'get') 'horses')
     puts map
     '''
     target = ['{dogs -> 1, fish -> 2, horses -> 3}',
@@ -686,7 +640,7 @@ def test_map_set_add(capsys):
     let 'map' {('dogs', 1), ('fish', 2), ('horses', 3)}
     puts map
     ((get_attr map 'set') 'whales' 8)
-    puts map['whales']
+    puts ((get_attr map 'get') 'whales')
     puts map
     '''
     target = ['{dogs -> 1, fish -> 2, horses -> 3}',
@@ -1564,7 +1518,7 @@ def test_cond(capsys):
     let 'int' (get_attr prim 'int')
     let '+' (get_attr int 'add')
     let '==' (get_attr int 'eq')
-    puts (cond (1 + 1 == 2, 'Math works'))
+    puts (cond (1 + 1 == 2, ['Math works']))
     '''
     target = ['Math works']
     assert get_output(source, capsys) == target
@@ -1579,8 +1533,8 @@ def test_cond_multi(capsys):
     let '+' (get_attr int 'add')
     let '==' (get_attr int 'eq')
     let '!=' (get_attr int 'neq')
-    puts (cond (1 + 1 != 2, 'Math is broken') (2 + 2 == 4,
-          'Math works') (1 + 1 == 2, 'Math still works'))
+    puts (cond (1 + 1 != 2, ['Math is broken']) (2 + 2 == 4,
+          ['Math works']) (1 + 1 == 2, ['Math still works']))
     '''
     target = ['Math works']
     assert get_output(source, capsys) == target
@@ -1595,7 +1549,7 @@ def test_cond_lazy(capsys):
     let '+' (get_attr int 'add')
     let '==' (get_attr int 'eq')
     let '!=' (get_attr int 'neq')
-    cond (1 + 1 != 2, (puts 'Math is broken')) (2 + 2 == 4, (puts 'Math works')) (1 + 1 == 2, (puts 'Math still works'))
+    cond (1 + 1 != 2, [(puts 'Math is broken')]) (2 + 2 == 4, [(puts 'Math works')]) (1 + 1 == 2, [(puts 'Math still works')])
     '''
     target = ['Math works']
     assert get_output(source, capsys) == target
@@ -1631,13 +1585,13 @@ def test_int_sigil(capsys):
     set_attr Im 'call' (Fun 'Im' [
         (let 'self' (Object Im)),
         (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'val' (eval (get_attr meta 'args')[0])),
+        (let 'val' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
         (set_attr self 'val' val),
         self,
     ])
     set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str' [
         (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'self' (eval (get_attr meta 'args')[0])),
+        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
         (let 'val_str' ((get_attr (get_attr self 'val') 'to_str'))),
         (concat val_str 'i'),
     ])
@@ -1664,13 +1618,13 @@ def test_float_sigil(capsys):
     set_attr Im 'call' (Fun 'Im' [
         (let 'self' (Object Im)),
         (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'val' (eval (get_attr meta 'args')[0])),
+        (let 'val' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
         (set_attr self 'val' val),
         self,
     ])
     set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str' [
         (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'self' (eval (get_attr meta 'args')[0])),
+        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
         (let 'val_str' ((get_attr (get_attr self 'val') 'to_str'))),
         (concat val_str 'i'),
     ])
@@ -1696,13 +1650,13 @@ def test_string_sigil(capsys):
     set_attr FunnyString 'call' (Fun 'FunnyString' [
         (let 'self' (Object FunnyString)),
         (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'string' (eval (get_attr meta 'args')[0])),
+        (let 'string' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
         (set_attr self 'string' string),
         self,
     ])
     set_attr (get_attr FunnyString 'methods') 'to_str' (Fun 'FunnyString.to_str' [
         (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'self' (eval (get_attr meta 'args')[0])),
+        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
         "haha $(get_attr self 'string')"
     ])
     let 's' (FunnyString 'I like cheese')

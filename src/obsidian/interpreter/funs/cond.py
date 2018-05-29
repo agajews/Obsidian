@@ -5,7 +5,7 @@ from ..types import (
     Panic,
     nil
 )
-from ..types.ast import ASTTuple
+from ..types.ast import ASTTuple, ASTList
 
 
 class Cond(PrimFun):
@@ -24,12 +24,19 @@ class Cond(PrimFun):
                 raise Panic('Invalid tuple')
             if not len(elems.elems) == 2:
                 raise Panic('Clauses must be tuples of length 2')
-            condition, expr = elems.elems
+            condition, exprs = elems.elems
+            if not isinstance(exprs, ASTList):
+                raise Panic('Cond expressions must be in a list')
+            exprs = exprs.elems_list()
+            if len(exprs) == 0:
+                raise Panic('Cond clauses must have at least one expression')
             condition = scope.eval(condition)
             if not isinstance(condition, Bool):
                 raise Panic('Conditions must return Bools')
             if condition.bool:
-                return scope.eval(expr)
+                for expr in exprs[:-1]:
+                    scope.eval(expr)
+                return scope.eval(exprs[-1])
         return nil
 
 

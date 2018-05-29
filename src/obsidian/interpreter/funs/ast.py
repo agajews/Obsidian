@@ -15,7 +15,6 @@ from ..types.ast import (
     ASTTuple,
     ASTMap,
     ASTBlock,
-    ASTTrailed,
     ASTCall,
     ast_string_type,
     ast_interpolated_string_type,
@@ -27,7 +26,6 @@ from ..types.ast import (
     ast_tuple_type,
     ast_map_type,
     ast_block_type,
-    ast_trailed_type,
     ast_call_type,
 )
 
@@ -79,10 +77,6 @@ def ast_to_str(scope, ast, first=True):
         else:
             return '[{}]'.format(', '.join(
                 ast_to_str(scope, body, first=False) for body in ast.elems_list()))
-    elif isinstance(ast, ASTTrailed):
-        return '{}[{}]'.format(
-            ast_to_str(scope, ast.get('expr'), first=False),
-            ast_to_str(scope, ast.get('trailer'), first=False))
     elif isinstance(ast, ASTBlock):
         if first:
             return '{{{}}}'.format('; '.join(
@@ -234,18 +228,6 @@ class ASTBlockToStr(PrimFun):
         return String(ast_to_str(scope, scope.preprocess(ast)))
 
 
-class ASTTrailedToStr(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Trailed.to_str', ['ast'])
-
-    def macro(self, scope, ast):
-        ast = scope.eval(ast)
-        if not isinstance(ast, ASTTrailed):
-            raise Panic(
-                'Argument must be an ast.Trailed, not a `{}`'.format(type(ast)))
-        return String(ast_to_str(scope, scope.preprocess(ast)))
-
-
 ast_string_type.get('methods').set('to_str', ASTStringToStr())
 ast_interpolated_string_type.get('methods').set(
     'to_str', ASTInterpolatedStringToStr())
@@ -257,5 +239,4 @@ ast_list_type.get('methods').set('to_str', ASTListToStr())
 ast_tuple_type.get('methods').set('to_str', ASTTupleToStr())
 ast_map_type.get('methods').set('to_str', ASTMapToStr())
 ast_block_type.get('methods').set('to_str', ASTBlockToStr())
-ast_trailed_type.get('methods').set('to_str', ASTTrailedToStr())
 ast_call_type.get('methods').set('to_str', ASTCallToStr())
