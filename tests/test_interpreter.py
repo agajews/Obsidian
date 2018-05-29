@@ -128,6 +128,32 @@ def test_fun(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_import(capsys, tmpdir):
+    other_source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')
+    let 'puts' (get_attr prim 'puts')
+    let 'Fun' (get_attr prim 'Fun')
+    let 'hello' (Fun 'hello' [(puts 'Hello, World!')])
+    let 'x' 3
+    puts 'hello from other'
+    '''
+    tmpfile = tmpdir.join('other.on')
+    tmpfile.write(other_source)
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    let 'import' (get_attr prim 'import')
+    let 'puts' (get_attr prim 'puts')
+    puts 'hello from test'
+    let 'other' (import '{}' 'other')
+    puts (get_attr other 'x')
+    ((get_attr other 'hello'))
+    puts (get_attr (get_attr other 'meta') 'name')
+    '''.format(str(tmpfile))
+    target = ['hello from test', 'hello from other',
+              '3', 'Hello, World!', 'other']
+    assert get_output(source, capsys) == target
+
+
 def test_panic(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
@@ -432,11 +458,31 @@ def test_map_set_add(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_puts_multiple_args(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts 3 4 5
+    '''
+    target = ['3 4 5']
+    assert get_output(source, capsys) == target
+
+
 def test_int(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     let 'puts' (get_attr prim 'puts')
     puts ((get_attr 3 'to_str'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_int_implicit_to_str(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    puts 3
     '''
     target = ['3']
     assert get_output(source, capsys) == target

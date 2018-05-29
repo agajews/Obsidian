@@ -1,6 +1,10 @@
+from ..parser import parse
+
 from .types import (
     Module,
     Panic,
+    PrimFun,
+    String,
     fun_type,
     scope_type,
     module_type,
@@ -62,6 +66,21 @@ from .funs import (
 )
 
 
+class Import(PrimFun):
+    def __init__(self):
+        super().__init__('prim.import', ['path', 'name'])
+
+    def fun(self, path, name):
+        if not isinstance(path, String):
+            raise Panic('Path must be a string')
+        if not isinstance(name, String):
+            raise Panic('Name must be a string')
+        with open(path.str, 'r') as f:
+            source = f.read()
+        ast, source_map = parse(source)
+        return load_module(ast, source_map, name.str, {'prim': prim})
+
+
 prim = Module('prim', attrs={
     'Type': type_type,
     'Object': object_type,
@@ -80,6 +99,7 @@ prim = Module('prim', attrs={
     'Bool': bool_type,
     'Nil': nil_type,
 
+    'import': Import(),
     'let': let,
     'assign': assign,
     'panic': panic,
@@ -183,6 +203,7 @@ def load_module(statements, source_map, module_name, preload=None):
             statement = model_to_ast(statement)
             statement = module.preprocess(statement)
             module.eval(statement)
+        return module
     except Panic as p:
         if p.parseinfo is not None:
             print('Module `{}` panicked at line {}:'.format(
