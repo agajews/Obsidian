@@ -59,6 +59,7 @@ from .funs import (
     object,
     int,
     float,
+    bool,
     list,
     map,
     tuple,
@@ -158,6 +159,11 @@ prim.set('float', Module('float', parent=prim, attrs={
     'lte': float.lte,
     'gt': float.gt,
     'gte': float.gte,
+}))
+
+prim.set('bool', Module('list', parent=prim, attrs={
+    'and': bool.and_fn,
+    'or': bool.or_fn,
 }))
 
 

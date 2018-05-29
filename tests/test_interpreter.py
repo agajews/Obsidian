@@ -1259,6 +1259,66 @@ def test_binary_op_neq(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_bool_and_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'bool' (get_attr prim 'bool')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '&&' (get_attr bool 'and')
+    puts 1 + 1 == 2 && 2 + 2 == 4
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_bool_and_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'bool' (get_attr prim 'bool')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '&&' (get_attr bool 'and')
+    puts 1 + 1 == 2 && 2 + 1 == 4
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
+def test_bool_or_true(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'bool' (get_attr prim 'bool')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '||' (get_attr bool 'or')
+    puts 2 + 1 == 2 || 2 + 2 == 4
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
+def test_bool_or_false(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'int' (get_attr prim 'int')
+    let 'bool' (get_attr prim 'bool')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '||' (get_attr bool 'or')
+    puts 1 + 2 == 2 || 2 + 1 == 4
+    '''
+    target = ['false']
+    assert get_output(source, capsys) == target
+
+
 def test_cond(capsys):
     source = '''
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
