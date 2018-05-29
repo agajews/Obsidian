@@ -1,5 +1,6 @@
 from .get_attr import get_attr
 from .set_attr import set_attr
+from .has_attr import has_attr
 from .let import let
 from .assign import assign
 from .panic import panic

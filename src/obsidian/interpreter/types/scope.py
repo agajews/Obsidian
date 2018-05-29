@@ -250,9 +250,8 @@ class MethodFun(PrimFun):
         self.method = method
 
     def macro(self, scope, *args):
-        obj_scope = Scope(scope)
-        obj_scope.set('__self__', self.obj)
-        return self.method.call(obj_scope, [ASTIdent(String('__self__'))] + list(args))
+        scope.set('__self__', self.obj)
+        return self.method.call(scope, [ASTIdent(String('__self__'))] + list(args))
 
 
 class GetAttr(PrimFun):

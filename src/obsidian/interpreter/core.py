@@ -48,6 +48,7 @@ from .types.ast import (
 from .funs import (
     get_attr,
     set_attr,
+    has_attr,
     let,
     assign,
     panic,
@@ -190,13 +191,24 @@ prim.set('string', Module('string', parent=prim, attrs={
 builtin_vars = {
     'get_attr': get_attr,
     'set_attr': set_attr,
+    'has_attr': has_attr,
     'nil': nil,
     'true': true,
     'false': false,
 }
 
 
-def load_module(statements, source_map, module_name, preload=None):
+def load_prelude():
+    import os
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    fnm = os.path.join(dirname, '../prelude/prelude.on')
+    with open(fnm, 'r') as f:
+        source = f.read()
+    ast, source_map = parse(source)
+    return load_module(ast, source_map, 'prelude', {'prim': prim})
+
+
+def load_module(statements, source_map, module_name, preload=None, include_prelude=False):
     if preload is None:
         preload = {}
     module = Module(module_name)
@@ -204,6 +216,9 @@ def load_module(statements, source_map, module_name, preload=None):
         module.set(name, obj)
     for name, obj in preload.items():
         module.set(name, obj)
+    if include_prelude:
+        for name, obj in prelude.attrs.items():
+            module.set(name, obj)
     try:
         for statement in statements:
             statement = model_to_ast(statement)
@@ -217,3 +232,6 @@ def load_module(statements, source_map, module_name, preload=None):
             print('Panic: {}'.format(p.msg))
         else:
             print('Panic: {}'.format(p.msg))
+
+
+prelude = load_prelude()

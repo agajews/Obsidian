@@ -1,0 +1,13 @@
+(get_attr prim 'let') '.' ((get_attr prim 'Fun') 'prelude.{.}' [
+  ((get_attr prim 'let') 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
+  ((get_attr prim 'let') 'lhs' (eval (get_attr meta 'args')[0])),
+  ((get_attr prim 'let') 'rhs' (get_attr (get_attr meta 'args')[1] 'ident')),
+  ((get_attr lhs '.') (get_attr (get_attr meta 'args')[1] 'ident')),
+])
+
+# prim.let 'let' (prim.Fun 'prelude.let' [
+#   (prim.let 'eval' meta.caller.meta.eval),
+#   (prim.let 'lval' meta.args[0].args[0]),
+#   (prim.let 'rval' (eval meta.args[0].args[2])),
+#   (set_attr )
+# ])

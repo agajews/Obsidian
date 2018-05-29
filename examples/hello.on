@@ -20,6 +20,8 @@ int = 3i
 float = bob
 puts "Hello " * 3 + name; puts "Goodbye"
 
+x.y args
+
 puts r'hello'
 puts r"""hello"""
 

@@ -11,7 +11,7 @@ patterns: [
     match: '(^|;)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*+[?!]?)([ \t]*\\.[ \t]*([_a-zA-Z][_a-zA-Z0-9]*[?!]?))*+[ \t]*+(?=[^+\\-=/*&|^%!<>.:])'
     captures:
       2: name: 'keyword.call.obsidian'
-      4: name: 'string.call.obsidian'
+      4: name: 'keyword.call.obsidian'
   }
   {
     include: '#call'
@@ -277,7 +277,7 @@ repository:
     ]
     end: "'"
     endCaptures:
-      1: name: 'string.quoted.single.obsidian'
+      0: name: 'string.quoted.single.obsidian'
   symbol:
     match: '(@[_a-zA-Z][_a-zA-Z0-9]*[?!]?)'
     name: 'constant.other.obsidian'

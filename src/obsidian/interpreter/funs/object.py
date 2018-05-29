@@ -1,12 +1,21 @@
 from ..types import PrimFun, Panic, String, object_type
+from .get_attr import get_attr
 
 
 class ObjectAssign(PrimFun):
     def __init__(self):
-        super().__init__('Object.=', ['object', 'val'])
+        super().__init__('Object.{=}', ['object', 'val'])
 
     def fun(self, obj, val):
         return val
+
+
+class ObjectDot(PrimFun):
+    def __init__(self):
+        super().__init__('Object.{.}', ['object', 'attr'])
+
+    def fun(self, obj, attr):
+        return get_attr.fun(obj, attr)
 
 
 class ObjectToStr(PrimFun):
@@ -21,4 +30,5 @@ class ObjectToStr(PrimFun):
 
 
 object_type.get('methods').set('=', ObjectAssign())
+object_type.get('methods').set('.', ObjectDot())
 object_type.get('methods').set('to_str', ObjectToStr())

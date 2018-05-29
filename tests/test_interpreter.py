@@ -36,6 +36,14 @@ def test_set_attr(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_has_attr(capsys):
+    source = '''
+    ((get_attr prim 'puts') (has_attr prim 'puts'))
+    '''
+    target = ['true']
+    assert get_output(source, capsys) == target
+
+
 def test_call_string(capsys):
     source = '''
     (get_attr prim 'puts') ((get_attr prim 'String') "Hello, World!")
