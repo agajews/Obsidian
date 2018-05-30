@@ -5,7 +5,9 @@ from ..types import (
     Int,
     String,
 )
-from ..types.scope import to_str
+from ..types.scope import to_str, call_method
+from ..types.ast import ASTList, ASTIdent
+from .get_attr import get_attr
 
 
 class ListConstructor(PrimFun):
@@ -65,8 +67,30 @@ class ListLen(PrimFun):
         return Int(len(lst.elems))
 
 
+class ListDot(PrimFun):
+    def __init__(self):
+        super().__init__('List.dot', ['list', 'attr'])
+
+    def macro(self, scope, lst, attr):
+        lst = scope.eval(lst)
+        attr = scope.eval(attr)
+        self.typecheck_arg(lst, List)
+        self.typecheck_arg(attr, (ASTIdent, ASTList))
+        attr.validate()
+        if isinstance(attr, ASTIdent):
+            return get_attr.fun(lst, attr.get('ident'))
+        else:
+            elems = attr.elems_list()
+            if not len(elems) == 1:
+                raise Panic(
+                    'PrimFun `List.dot` needs exactly `1` element in its attribute list, not `{}`'
+                    .format(len(elems)))
+            return call_method(scope, lst, 'get', [attr.elems_list()[0]])
+
+
 List.T.set('call', ListConstructor())
 List.T.get('methods').set('len', ListLen())
 List.T.get('methods').set('get', ListGet())
 List.T.get('methods').set('set', ListSet())
 List.T.get('methods').set('to_str', ListToStr())
+List.T.get('methods').set('dot', ListDot())

@@ -248,7 +248,13 @@ class GetAttr(PrimFun):
                     return MethodFun(obj, obj_type.get('methods').get(attr.str))
                 if obj_type.get('statics').has(attr.str):
                     return obj_type.get('statics').get(attr.str)
+            raise Panic('{} `{}` has no attribute `{}`'.format(
+                type_name(obj), to_str(Scope(), obj), attr.str))
         return obj.get(attr.str)
+
+
+def call_method(scope, obj, name, args):
+    return get_attr.fun(obj, String(name)).call(scope, args)
 
 
 def to_str(scope, obj, panic=True):

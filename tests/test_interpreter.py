@@ -1722,7 +1722,7 @@ def test_panic_statics_inheritance_missing(capsys):
               "    Args: {butch} {'species'}",
               'Module `test` panicked at line 9:',
               "    Statement: (puts (get_attr butch 'species'))",
-              '    Panic: Object has no attribute species']
+              '    Panic: Beagle `<Beagle>` has no attribute `species`']
     output = get_output(source, capsys)
     assert output == target
 

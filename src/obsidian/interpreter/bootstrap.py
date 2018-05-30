@@ -88,9 +88,16 @@ class PrimFun(Object):
         self.variadic = variadic
 
     def typecheck_arg(self, arg, type):
-        if not isinstance(arg, type):
-            raise Panic('Arg `{}` of `{}` must be a `{}`, not a `{}`'.format(
-                arg, self.name, type_type_name(type), type_name(arg)))
+        if isinstance(type, tuple):
+            if not any(isinstance(arg, t) for t in type):
+                types_str = ', '.join('`{}`'.format(
+                    type_type_name(t)) for t in type)
+                raise Panic('Arg `{}` of `{}` must be one of ({}), not a `{}`'.format(
+                    arg, self.name, types_str, type_name(arg)))
+        else:
+            if not isinstance(arg, type):
+                raise Panic('Arg `{}` of `{}` must be a `{}`, not a `{}`'.format(
+                    arg, self.name, type_type_name(type), type_name(arg)))
 
     def call(self, caller_scope, args=None):
         if args is None:

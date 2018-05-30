@@ -4,6 +4,7 @@ from .scope import (
     to_str,
     hash_obj,
     obj_eq,
+    call_method,
 )
 from .module import Module
 from .int import Int
