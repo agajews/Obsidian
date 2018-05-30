@@ -1,5 +1,10 @@
 from .fun import Fun
-from .scope import Scope
+from .scope import (
+    Scope,
+    to_str,
+    hash_obj,
+    obj_eq,
+)
 from .module import Module
 from .int import Int
 from .float import Float
@@ -21,4 +26,5 @@ from ..bootstrap import (
     Panic,
     Nil,
     nil,
+    type_name,
 )

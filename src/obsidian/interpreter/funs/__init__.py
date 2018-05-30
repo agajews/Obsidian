@@ -9,6 +9,8 @@ from .attrs import attrs
 from .puts import puts
 from .cond import cond
 from .while_fn import while_fn
+from .type_fn import type_fn
+from .is_instance import is_instance
 from . import int
 from . import float
 from . import list

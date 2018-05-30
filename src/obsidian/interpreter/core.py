@@ -54,6 +54,8 @@ from .funs import (
     puts,
     cond,
     while_fn,
+    type_fn,
+    is_instance,
     int,
     float,
     bool,
@@ -103,6 +105,8 @@ prim = Module('prim', attrs={
     'attrs': attrs,
     'cond': cond,
     'while': while_fn,
+    'type': type_fn,
+    'is_instance': is_instance,
     'puts': puts,
 })
 

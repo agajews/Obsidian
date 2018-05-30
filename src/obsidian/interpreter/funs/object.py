@@ -4,6 +4,7 @@ from ..types import (
     Panic,
     String,
 )
+from ..types.ast import ASTIdent
 from .get_attr import get_attr
 
 
@@ -20,7 +21,8 @@ class ObjectDot(PrimFun):
         super().__init__('Object.dot', ['object', 'attr'])
 
     def fun(self, obj, attr):
-        return get_attr.fun(obj, attr)
+        self.typecheck_arg(attr, ASTIdent)
+        return get_attr.fun(obj, attr.get('ident'))
 
 
 class ObjectToStr(PrimFun):

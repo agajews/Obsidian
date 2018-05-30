@@ -1,9 +1,9 @@
 from ..types import (
-    Tuple,
     Bool,
     PrimFun,
     Panic,
     nil,
+    type_name,
 )
 from ..types.ast import ASTTuple, ASTList
 
@@ -14,25 +14,24 @@ class Cond(PrimFun):
 
     def macro(self, scope, *clauses):
         if len(clauses) == 0:
-            raise Panic('Cond needs at least one clause')
+            raise Panic('PrimFun `Cond` needs at least one clause')
         for clause in clauses:
-            if not isinstance(clause, ASTTuple):
+            self.typecheck_arg(clause, ASTTuple)
+            elems = clause.elems_list()
+            if not len(elems) == 2:
                 raise Panic(
-                    'Clauses must be tuples of conditions and expressions to evaluate')
-            elems = clause.get('elems')
-            if not isinstance(elems, Tuple):
-                raise Panic('Invalid tuple')
-            if not len(elems.elems) == 2:
-                raise Panic('Clauses must be tuples of length 2')
-            condition, exprs = elems.elems
-            if not isinstance(exprs, ASTList):
-                raise Panic('Cond expressions must be in a list')
+                    'PrimFun `Cond` needs clauses to be tuples of length 2, not `{}`'
+                    .format(len(elems)))
+            condition, exprs = elems
+            self.typecheck_arg(exprs, ASTList)
             exprs = exprs.elems_list()
             if len(exprs) == 0:
-                raise Panic('Cond clauses must have at least one expression')
+                raise Panic(
+                    'PrimFun `Cond` needs clauses to have at least one expression')
             condition = scope.eval(condition)
             if not isinstance(condition, Bool):
-                raise Panic('Conditions must return Bools')
+                raise Panic(
+                    'PrimFun `Cond` needs conditions to return `Bool`s, not `{}`'.format(type_name(condition)))
             if condition.bool:
                 for expr in exprs[:-1]:
                     scope.eval(expr)
