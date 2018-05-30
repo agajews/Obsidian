@@ -16,22 +16,22 @@ prim.let 'ast' prim.ast
 
 prim.let 'let' (prim.Fun 'prelude.let'
   (prim.let 'caller' meta.caller)
-  (prim.let 'eval' (get_attr meta.caller.meta 'eval'))
+  (prim.let 'ceval' (get_attr meta.caller.meta 'eval'))
   (prim.let 'lval' meta.args.[0].args.[0])
-  (prim.let 'rval' (eval meta.args.[0].args.[1]))
+  (prim.let 'rval' (ceval meta.args.[0].args.[1]))
   (prim.let 'let_recursive' (prim.Fun 'let_recursive'
     (prim.let 'eval' meta.caller.meta.eval)
     (prim.let 'lval' (eval meta.args.[0]))
     (prim.let 'rval' (eval meta.args.[1]))
     (prim.cond
-      (lval ~is_instance ast.Ident, [(set_attr caller lval.ident rval)])
-      # (lval ~is_instance ast.Call, [
-      #    (prim.cond ((eval lval.callable) ~is {.} ~and (prim.int.eq lval.args.len 2) ~and lval.args.[1] ~is_instance ast.Ident, [
-      #      (set_attr (eval lval.args.[0]) lval.args.[1].ident rval),
-      #      (prim.panic "Fun `prelude.let` received invalid lval `$lval`"),
-      #    ])),
-      #  ])
-      (true, [(prim.panic "Fun `prelude.let` received invalid lval `$lval`")])
+      (lval ~is_instance ast.Ident, (set_attr caller lval.ident rval))
+      (lval ~is_instance ast.Call, [
+        (prim.cond
+          ((eval lval.callable) ~is {.} ~and (prim.int.eq (lval.args.len) 2) ~and lval.args.[1] ~is_instance ast.Ident,
+            (set_attr (ceval lval.args.[0]) lval.args.[1].ident rval))
+          (true, (prim.panic "Fun `prelude.let` received invalid lval `$lval`"))),
+      ])
+      (true, (prim.panic "Fun `prelude.let` received invalid lval `$lval`"))
     )))
   (let_recursive lval rval))
 

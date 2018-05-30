@@ -56,6 +56,7 @@ from .funs import (
     while_fn,
     type_fn,
     is_instance,
+    do,
     int,
     float,
     bool,
@@ -107,6 +108,7 @@ prim = Module('prim', attrs={
     'while': while_fn,
     'type': type_fn,
     'is_instance': is_instance,
+    'do': do,
     'puts': puts,
 })
 
@@ -223,7 +225,8 @@ def load_module(statements, source_map, module_name, preload=None, include_prelu
     if include_prelude:
         load_prelude()
         for name, obj in prelude.attrs.items():
-            module.set(name, obj)
+            if name != 'meta':
+                module.set(name, obj)
     try:
         for statement in statements:
             statement = model_to_ast(statement)

@@ -116,6 +116,35 @@ def test_let(capsys):
     assert get_output(source, capsys) == target
 
 
+def test_scope(capsys):
+    source = '''
+    let x = 3
+    prim.puts meta.scope.x
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_eval(capsys):
+    source = '''
+    let x = 3
+    prim.puts (meta.eval (ast.Ident 'x'))
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+def test_let_dot(capsys):
+    source = '''
+    let x = 3
+    prim.puts x
+    let x.pretty_name = 'three'
+    prim.puts x.pretty_name
+    '''
+    target = ['3', 'three']
+    assert get_output(source, capsys) == target
+
+
 def test_let_invalid(capsys):
     source = '''
     let @x = 3
@@ -126,10 +155,10 @@ def test_let_invalid(capsys):
               '    Statement: (let_recursive lval rval)',
               '    Args: (= @x 3)',
               'Fun `let_recursive` panicked at statement 3:',
-              '    Statement: ((. prim cond) ((is_instance lval (. ast Ident)), [(set_attr caller (. lval ident) rval)]) (true, [((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")]))',
+              '    Statement: ((. prim cond) ((is_instance lval (. ast Ident)), (set_attr caller (. lval ident) rval)) ((is_instance lval (. ast Call)), [((. prim cond) ((and (is (eval (. lval callable)) .) (and ((. (. prim int) eq) ((. (. lval args) len)) 2) (is_instance (. (. lval args) [1]) (. ast Ident)))), (set_attr (ceval (. (. lval args) [0])) (. (. (. lval args) [1]) ident) rval)) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))]) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))',
               '    Args: {lval} {rval}',
               'PrimFun `prim.cond` panicked:',
-              '    Args: {((is_instance lval (. ast Ident)), [(set_attr caller (. lval ident) rval)])} {(true, [((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")])}',
+              '    Args: {((is_instance lval (. ast Ident)), (set_attr caller (. lval ident) rval))} {((is_instance lval (. ast Call)), [((. prim cond) ((and (is (eval (. lval callable)) .) (and ((. (. prim int) eq) ((. (. lval args) len)) 2) (is_instance (. (. lval args) [1]) (. ast Ident)))), (set_attr (ceval (. (. lval args) [0])) (. (. (. lval args) [1]) ident) rval)) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))])} {(true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'"))}',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Fun `prelude.let` received invalid lval `\'lval\'`\'"',
               'Module `test` panicked at line 2:',

@@ -1530,7 +1530,7 @@ def test_cond(capsys):
     let 'int' (get_attr prim 'int')
     let '+' (get_attr int 'add')
     let '==' (get_attr int 'eq')
-    puts (cond (1 + 1 == 2, ['Math works']))
+    puts (cond (1 + 1 == 2, 'Math works'))
     '''
     target = ['Math works']
     assert get_output(source, capsys) == target
@@ -1545,8 +1545,8 @@ def test_cond_multi(capsys):
     let '+' (get_attr int 'add')
     let '==' (get_attr int 'eq')
     let '!=' (get_attr int 'neq')
-    puts (cond (1 + 1 != 2, ['Math is broken']) (2 + 2 == 4,
-          ['Math works']) (1 + 1 == 2, ['Math still works']))
+    puts (cond (1 + 1 != 2, 'Math is broken') (2 + 2 == 4,
+          'Math works') (1 + 1 == 2, 'Math still works'))
     '''
     target = ['Math works']
     assert get_output(source, capsys) == target
@@ -1561,9 +1561,25 @@ def test_cond_lazy(capsys):
     let '+' (get_attr int 'add')
     let '==' (get_attr int 'eq')
     let '!=' (get_attr int 'neq')
-    cond (1 + 1 != 2, [(puts 'Math is broken')]) (2 + 2 == 4, [(puts 'Math works')]) (1 + 1 == 2, [(puts 'Math still works')])
+    cond (1 + 1 != 2, (puts 'Math is broken')) (2 + 2 == 4, (puts 'Math works')) (1 + 1 == 2, (puts 'Math still works'))
     '''
     target = ['Math works']
+    assert get_output(source, capsys) == target
+
+
+def test_cond_do(capsys):
+    source = '''
+    ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
+    let 'puts' (get_attr prim 'puts')
+    let 'cond' (get_attr prim 'cond')
+    let 'int' (get_attr prim 'int')
+    let 'do' (get_attr prim 'do')
+    let '+' (get_attr int 'add')
+    let '==' (get_attr int 'eq')
+    let '!=' (get_attr int 'neq')
+    cond (1 + 1 != 2, (puts 'Math is broken')) (2 + 2 == 4, (do (puts 'Math works') (puts 'And math is awesome'))) (1 + 1 == 2, (puts 'Math still works'))
+    '''
+    target = ['Math works', 'And math is awesome']
     assert get_output(source, capsys) == target
 
 
