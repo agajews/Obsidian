@@ -212,6 +212,9 @@ class Scope(Object):
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))
 
+    def __repr__(self):
+        return 'Scope({})'.format({k: v for k, v in self.attrs.items() if k != 'meta'})
+
 
 class MethodFun(PrimFun):
     def __init__(self, obj, method):

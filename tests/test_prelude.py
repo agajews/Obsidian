@@ -34,69 +34,13 @@ def test_dot_list(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_dot_list_panic(capsys):
+def test_dot_list_var(capsys):
     source = '''
-    prim.puts [1, 2, 3].[1, 2]
+    prim.let 'i' 2
+    prim.puts [1, 2, 3].[i]
     '''
-    target = ['========== Panic: ==========',
-              'PrimFun `prim.puts` panicked:',
-              '    Args: (. [1, 2, 3] [1, 2])',
-              'Fun `prelude.{.}` panicked at statement 5:',
-              "    Statement: ((get_attr (eval lhs) 'dot') rhs)",
-              '    Args: {[1, 2, 3]} {[1, 2]}',
-              'PrimFun `method_fun` panicked:',
-              '    Args: {rhs}',
-              'PrimFun `List.dot` panicked:',
-              '    Args: {__self__} {rhs}',
-              'Module `test` panicked at line 2:',
-              '    Statement: ((. prim puts) (. [1, 2, 3] [1, 2]))',
-              '    Panic: PrimFun `List.dot` needs exactly `1` element in its attribute list, not `2`']
-    output = get_output(source, capsys)
-    assert output == target
-
-
-def test_dot_list_panic_invalid_type(capsys):
-    source = '''
-    prim.puts [1, 2, 3].['fish']
-    '''
-    target = ['========== Panic: ==========',
-              'PrimFun `prim.puts` panicked:',
-              "    Args: (. [1, 2, 3] ['fish'])",
-              'Fun `prelude.{.}` panicked at statement 5:',
-              "    Statement: ((get_attr (eval lhs) 'dot') rhs)",
-              "    Args: {[1, 2, 3]} {['fish']}",
-              'PrimFun `method_fun` panicked:',
-              '    Args: {rhs}',
-              'PrimFun `List.dot` panicked:',
-              '    Args: {__self__} {rhs}',
-              'PrimFun `method_fun` panicked:',
-              "    Args: {'fish'}",
-              'PrimFun `List.get` panicked:',
-              "    Args: {__self__} {'fish'}",
-              'Module `test` panicked at line 2:',
-              "    Statement: ((. prim puts) (. [1, 2, 3] ['fish']))",
-              '    Panic: Arg `"fish"` of `List.get` must be a `Int`, not a `String`']
-    output = get_output(source, capsys)
-    assert output == target
-
-
-def test_dot_missing_attr(capsys):
-    source = '''
-    prim.missing 'missing'
-    '''
-    target = ['========== Panic: ==========',
-              'Fun `prelude.{.}` panicked at statement 5:',
-              "    Statement: ((get_attr (eval lhs) 'dot') rhs)",
-              '    Args: {prim} {missing}',
-              'PrimFun `method_fun` panicked:',
-              '    Args: {rhs}',
-              'PrimFun `Object.dot` panicked:',
-              '    Args: {__self__} {rhs}',
-              'Module `test` panicked at line 2:',
-              "    Statement: ((. prim missing) 'missing')",
-              '    Panic: Module `<Module `prim`>` has no attribute `missing`']
-    output = get_output(source, capsys)
-    assert output == target
+    target = ['3']
+    assert get_output(source, capsys) == target
 
 
 def test_dot_map(capsys):
@@ -105,6 +49,99 @@ def test_dot_map(capsys):
     '''
     target = ['3']
     assert get_output(source, capsys) == target
+
+
+def test_dot_map_var(capsys):
+    source = '''
+    prim.let 'key' 'fish'
+    prim.puts {('fish', 1), ('dogs', 2), ('whales', 3)}.[key]
+    '''
+    target = ['1']
+    assert get_output(source, capsys) == target
+
+
+def test_dot_tuple(capsys):
+    source = '''
+    prim.puts (1, 2, 3).[1]
+    '''
+    target = ['2']
+    assert get_output(source, capsys) == target
+
+
+def test_dot_tuple_var(capsys):
+    source = '''
+    prim.let 'i' 2
+    prim.puts (1, 2, 3).[i]
+    '''
+    target = ['3']
+    assert get_output(source, capsys) == target
+
+
+# def test_dot_list_panic(capsys):
+#     source = '''
+#     prim.puts [1, 2, 3].[1, 2]
+#     '''
+#     target = ['========== Panic: ==========',
+#               'PrimFun `prim.puts` panicked:',
+#               '    Args: (. [1, 2, 3] [1, 2])',
+#               'Fun `prelude.{.}` panicked at statement 5:',
+#               "    Statement: ((get_attr (eval lhs) 'dot') rhs)",
+#               '    Args: {[1, 2, 3]} {[1, 2]}',
+#               'PrimFun `method_fun` panicked:',
+#               '    Args: {rhs}',
+#               'PrimFun `List.dot` panicked:',
+#               '    Args: {__self__} {rhs}',
+#               'Module `test` panicked at line 2:',
+#               '    Statement: ((. prim puts) (. [1, 2, 3] [1, 2]))',
+#               '    Panic: PrimFun `List.dot` needs exactly `1` element in its attribute list, not `2`']
+#     output = get_output(source, capsys)
+#     assert output == target
+#
+#
+# def test_dot_list_panic_invalid_type(capsys):
+#     source = '''
+#     prim.puts [1, 2, 3].['fish']
+#     '''
+#     target = ['========== Panic: ==========',
+#               'PrimFun `prim.puts` panicked:',
+#               "    Args: (. [1, 2, 3] ['fish'])",
+#               'Fun `prelude.{.}` panicked at statement 5:',
+#               "    Statement: ((get_attr (eval lhs) 'dot') rhs)",
+#               "    Args: {[1, 2, 3]} {['fish']}",
+#               'PrimFun `method_fun` panicked:',
+#               '    Args: {rhs}',
+#               'PrimFun `List.dot` panicked:',
+#               '    Args: {__self__} {rhs}',
+#               'PrimFun `method_fun` panicked:',
+#               "    Args: {'fish'}",
+#               'PrimFun `List.get` panicked:',
+#               "    Args: {__self__} {'fish'}",
+#               'Module `test` panicked at line 2:',
+#               "    Statement: ((. prim puts) (. [1, 2, 3] ['fish']))",
+#               '    Panic: Arg `"fish"` of `List.get` must be a `Int`, not a `String`']
+#     output = get_output(source, capsys)
+#     assert output == target
+#
+#
+# def test_dot_missing_attr(capsys):
+#     source = '''
+#     prim.missing 'missing'
+#     '''
+#     target = ['========== Panic: ==========',
+#               'Fun `prelude.{.}` panicked at statement 5:',
+#               "    Statement: ((get_attr (eval lhs) 'dot') rhs)",
+#               '    Args: {prim} {missing}',
+#               'PrimFun `method_fun` panicked:',
+#               '    Args: {rhs}',
+#               'PrimFun `Object.dot` panicked:',
+#               '    Args: {__self__} {rhs}',
+#               'Module `test` panicked at line 2:',
+#               "    Statement: ((. prim missing) 'missing')",
+#               '    Panic: Module `<Module `prim`>` has no attribute `missing`']
+#     output = get_output(source, capsys)
+#     assert output == target
+#
+#
 
 
 def test_let(capsys):
@@ -145,24 +182,82 @@ def test_let_dot(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_let_invalid(capsys):
+def test_let_tuple(capsys):
     source = '''
-    let @x = 3
+    let (x, y, z) = (1, 2, 3)
     prim.puts x
+    prim.puts y
+    prim.puts z
     '''
-    target = ['========== Panic: ==========',
-              'Fun `prelude.let` panicked at statement 5:',
-              '    Statement: (let_recursive lval rval)',
-              '    Args: (= @x 3)',
-              'Fun `let_recursive` panicked at statement 3:',
-              '    Statement: ((. prim cond) ((is_instance lval (. ast Ident)), (set_attr caller (. lval ident) rval)) ((is_instance lval (. ast Call)), [((. prim cond) ((and (is (eval (. lval callable)) .) (and ((. (. prim int) eq) ((. (. lval args) len)) 2) (is_instance (. (. lval args) [1]) (. ast Ident)))), (set_attr (ceval (. (. lval args) [0])) (. (. (. lval args) [1]) ident) rval)) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))]) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))',
-              '    Args: {lval} {rval}',
-              'PrimFun `prim.cond` panicked:',
-              '    Args: {((is_instance lval (. ast Ident)), (set_attr caller (. lval ident) rval))} {((is_instance lval (. ast Call)), [((. prim cond) ((and (is (eval (. lval callable)) .) (and ((. (. prim int) eq) ((. (. lval args) len)) 2) (is_instance (. (. lval args) [1]) (. ast Ident)))), (set_attr (ceval (. (. lval args) [0])) (. (. (. lval args) [1]) ident) rval)) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))])} {(true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'"))}',
-              'PrimFun `prim.panic` panicked:',
-              '    Args: "\'Fun `prelude.let` received invalid lval `\'lval\'`\'"',
-              'Module `test` panicked at line 2:',
-              '    Statement: (let (= @x 3))',
-              '    Panic: Fun `prelude.let` received invalid lval `{@x}`']
-    output = get_output(source, capsys)
-    assert output == target
+    target = ['1', '2', '3']
+    assert get_output(source, capsys) == target
+
+
+def test_let_tuple_from_list(capsys):
+    source = '''
+    let (x, y, z) = [1, 2, 3]
+    prim.puts x
+    prim.puts y
+    prim.puts z
+    '''
+    target = ['1', '2', '3']
+    assert get_output(source, capsys) == target
+
+
+def test_let_list(capsys):
+    source = '''
+    let [x, y, z] = [1, 2, 3]
+    prim.puts x
+    prim.puts y
+    prim.puts z
+    '''
+    target = ['1', '2', '3']
+    assert get_output(source, capsys) == target
+
+
+def test_let_list_from_tuple(capsys):
+    source = '''
+    let [x, y, z] = [1, 2, 3]
+    prim.puts x
+    prim.puts y
+    prim.puts z
+    '''
+    target = ['1', '2', '3']
+    assert get_output(source, capsys) == target
+
+
+def test_let_tuple_nested(capsys):
+    source = '''
+    let ((w, x), y, z) = ((1, 2), 2, 3)
+    prim.puts w
+    prim.puts x
+    prim.puts y
+    prim.puts z
+    '''
+    target = ['1', '2', '2', '3']
+    assert get_output(source, capsys) == target
+
+
+# def test_let_invalid(capsys):
+#     source = '''
+#     let @x = 3
+#     prim.puts x
+#     '''
+#     target = ['========== Panic: ==========',
+#               'Fun `prelude.let` panicked at statement 5:',
+#               '    Statement: (let_recursive lval rval)',
+#               '    Args: (= @x 3)',
+#               'Fun `let_recursive` panicked at statement 3:',
+#               '    Statement: ((. prim cond) ((is_instance lval (. ast Ident)), (set_attr caller (. lval ident) rval)) ((is_instance lval (. ast Call)), [((. prim cond) ((and (is (eval (. lval callable)) .) (and ((. (. prim int) eq) ((. (. lval args) len)) 2) (is_instance (. (. lval args) [1]) (. ast Ident)))), (set_attr (ceval (. (. lval args) [0])) (. (. (. lval args) [1]) ident) rval)) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))]) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))',
+#               '    Args: {lval} {rval}',
+#               'PrimFun `prim.cond` panicked:',
+#               '    Args: {((is_instance lval (. ast Ident)), (set_attr caller (. lval ident) rval))} {((is_instance lval (. ast Call)), [((. prim cond) ((and (is (eval (. lval callable)) .) (and ((. (. prim int) eq) ((. (. lval args) len)) 2) (is_instance (. (. lval args) [1]) (. ast Ident)))), (set_attr (ceval (. (. lval args) [0])) (. (. (. lval args) [1]) ident) rval)) (true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'")))])} {(true, ((. prim panic) "\'Fun `prelude.let` received invalid lval `\'lval\'`\'"))}',
+#               'PrimFun `prim.panic` panicked:',
+#               '    Args: "\'Fun `prelude.let` received invalid lval `\'lval\'`\'"',
+#               'Module `test` panicked at line 2:',
+#               '    Statement: (let (= @x 3))',
+#               '    Panic: Fun `prelude.let` received invalid lval `{@x}`']
+#     output = get_output(source, capsys)
+#     assert output == target
+#
+#

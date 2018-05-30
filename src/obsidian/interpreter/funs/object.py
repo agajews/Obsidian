@@ -18,9 +18,9 @@ class ObjectAssign(PrimFun):
 
 class ObjectDot(PrimFun):
     def __init__(self):
-        super().__init__('Object.dot', ['object', 'attr'])
+        super().__init__('Object.dot', ['object', 'scope', 'attr'])
 
-    def fun(self, obj, attr):
+    def fun(self, obj, scope, attr):
         self.typecheck_arg(attr, ASTIdent)
         return get_attr.fun(obj, attr.get('ident'))
 

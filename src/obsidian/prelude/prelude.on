@@ -4,7 +4,7 @@
   (let 'is_instance' (get_attr prim 'is_instance'))
   (let 'lhs' ((get_attr (get_attr meta 'args') 'get') 0))
   (let 'rhs' ((get_attr (get_attr meta 'args') 'get') 1))
-  ((get_attr (eval lhs) 'dot') rhs))
+  ((get_attr (eval lhs) 'dot') (get_attr meta 'caller') rhs))
 
 set_attr {.} 'precedence' 10
 
@@ -12,7 +12,9 @@ prim.let 'is' prim.is
 prim.let 'is_instance' prim.is_instance
 prim.let 'type' prim.type
 prim.let 'and' prim.bool.and
+prim.let 'or' prim.bool.or
 prim.let 'ast' prim.ast
+prim.let 'do' prim.do
 
 prim.let 'let' (prim.Fun 'prelude.let'
   (prim.let 'caller' meta.caller)
@@ -31,6 +33,11 @@ prim.let 'let' (prim.Fun 'prelude.let'
             (set_attr (ceval lval.args.[0]) lval.args.[1].ident rval))
           (true, (prim.panic "Fun `prelude.let` received invalid lval `$lval`"))),
       ])
+      (lval ~is_instance ast.Tuple ~or lval ~is_instance ast.List, (do
+        (prim.let 'i' 0)
+        (prim.while (prim.int.lt i (lval.elems.len))
+          (let_recursive lval.elems.[i] rval.[i])
+          (prim.assign 'i' (prim.int.add i 1)))))
       (true, (prim.panic "Fun `prelude.let` received invalid lval `$lval`"))
     )))
   (let_recursive lval rval))

@@ -52,7 +52,8 @@ class Fun(Object):
         return name.str
 
     def __repr__(self):
-        return 'Fun({})'.format(self.body)
+        return 'Fun({})'.format(self.get('name'))
+        # return 'Fun({})'.format(self.get('body'))
 
 
 class ReturnException(Exception):

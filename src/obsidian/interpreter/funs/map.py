@@ -4,6 +4,7 @@ from ..types import (
     String,
     PrimFun,
     Panic,
+    Scope,
 )
 from ..types.scope import (
     to_str,
@@ -94,12 +95,14 @@ class MapToStr(PrimFun):
 
 class MapDot(PrimFun):
     def __init__(self):
-        super().__init__('Map.dot', ['map', 'attr'])
+        super().__init__('Map.dot', ['map', 'scope', 'attr'])
 
-    def macro(self, scope, map, attr):
+    def macro(self, scope, map, eval_scope, attr):
         map = scope.eval(map)
+        eval_scope = scope.eval(eval_scope)
         attr = scope.eval(attr)
         self.typecheck_arg(map, Map)
+        self.typecheck_arg(eval_scope, Scope)
         self.typecheck_arg(attr, (ASTIdent, ASTList))
         attr.validate()
         if isinstance(attr, ASTIdent):
@@ -110,7 +113,7 @@ class MapDot(PrimFun):
                 raise Panic(
                     'PrimFun `Map.dot` needs exactly `1` element in its attribute list, not `{}`'
                     .format(len(elems)))
-            return call_method(scope, map, 'get', [attr.elems_list()[0]])
+            return call_method(eval_scope, map, 'get', [attr.elems_list()[0]])
 
 
 Map.T.set('call', MapConstructor())

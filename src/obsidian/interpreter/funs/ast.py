@@ -242,7 +242,7 @@ class ASTListConstructor(PrimFun):
         super().__init__('ast.List', ['list'])
 
     def fun(self, lst):
-        self.typecheck_arg(lst)
+        self.typecheck_arg(lst, List)
         return ASTList(lst, List)
 
 
