@@ -4,7 +4,6 @@ from ..types import (
     Panic,
     nil,
 )
-from ..types.ast import ASTList
 from ..types.scope import type_name
 
 
@@ -18,15 +17,19 @@ def check_condition(condition, scope):
 
 class While(PrimFun):
     def __init__(self):
-        super().__init__('prim.while', ['cond', 'body'])
+        super().__init__('prim.while', variadic=True)
 
-    def macro(self, scope, condition, body):
-        self.typecheck_arg(body, ASTList)
-        statements = body.elems_list()
+    def macro(self, scope, *args):
+        if len(args) < 2:
+            raise Panic(
+                'PrimFun `Fun` requires a name and at least one body statement as arguments, not `{}` arguments'.format(len(args)))
+        condition = args[0]
+        statements = args[1:]
+        res = nil
         while check_condition(condition, scope):
             for statement in statements:
-                scope.eval(statement)
-        return nil
+                res = scope.eval(statement)
+        return res
 
 
 while_fn = While()

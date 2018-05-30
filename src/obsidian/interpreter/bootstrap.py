@@ -38,7 +38,7 @@ class PrimObject:
     def get(self, attr):
         if not attr in self.attrs:
             raise Panic(
-                'Object has no attribute {}'.format(attr))
+                'Object has no attribute `{}`'.format(attr))
         return self.attrs[attr]
 
     def set(self, name, obj):
@@ -189,9 +189,10 @@ meta_obj = PrimObject({})
 meta_obj.set('meta', meta_obj)
 
 Object.T = PrimObject({})
-Object.T.set('meta', PrimObject({'type': Object.T, 'meta': meta_obj}))
+Object.T.set('meta', PrimObject({'type': Type.T, 'meta': meta_obj}))
 meta_obj.set('type', Object.T)
-String.T = PrimObject({'meta': PrimObject({'Type': Type.T, 'meta': meta_obj})})
+String.T = PrimObject(
+    {'meta': PrimObject({'type': Type.T, 'meta': meta_obj})})
 Object.T.set('name', String('Object'))
 
 String.T.set('name', String('String'))

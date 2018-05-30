@@ -248,7 +248,7 @@ def load_module(statements, source_map, module_name, preload=None, include_prelu
                 ' '.join(to_str(module, a, panic=False) for a in info['args'])))
         if parseinfo is not None:
             print('Module `{}` panicked at line {}:'.format(
-                module_name, parseinfo.line))
+                module_name, parseinfo.line + 1))
         else:
             print('Module `{}` panicked:')
         if isinstance(statement, Object):

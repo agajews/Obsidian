@@ -1,17 +1,25 @@
 from ..types import (
+    Panic,
     PrimFun,
     Fun,
     String,
+    List,
 )
 
 
 class FunConstructor(PrimFun):
     def __init__(self):
-        super().__init__('Fun', ['name', 'body'])
+        super().__init__('Fun', variadic=True)
 
-    def macro(self, scope, name, body):
+    def macro(self, scope, *args):
+        if len(args) < 2:
+            raise Panic(
+                'PrimFun `Fun` requires a name and at least one body statement as arguments, not `{}` arguments'.format(len(args)))
+        name = args[0]
         name = scope.eval(name)
-        return Fun(scope, name, body)
+        self.typecheck_arg(name, String)
+        body = args[1:]
+        return Fun(scope, name, List(body))
 
 
 class FunToStr(PrimFun):

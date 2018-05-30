@@ -10,8 +10,10 @@ from ..types.scope import (
     hash_obj,
     obj_eq,
     type_name,
+    call_method,
 )
-from ..types.ast import ASTMap
+from ..types.ast import ASTMap, ASTIdent, ASTList
+from .get_attr import get_attr
 
 
 class MapKey:
@@ -90,7 +92,29 @@ class MapToStr(PrimFun):
                       + '}')
 
 
+class MapDot(PrimFun):
+    def __init__(self):
+        super().__init__('Map.dot', ['map', 'attr'])
+
+    def macro(self, scope, map, attr):
+        map = scope.eval(map)
+        attr = scope.eval(attr)
+        self.typecheck_arg(map, Map)
+        self.typecheck_arg(attr, (ASTIdent, ASTList))
+        attr.validate()
+        if isinstance(attr, ASTIdent):
+            return get_attr.fun(map, attr.get('ident'))
+        else:
+            elems = attr.elems_list()
+            if not len(elems) == 1:
+                raise Panic(
+                    'PrimFun `Map.dot` needs exactly `1` element in its attribute list, not `{}`'
+                    .format(len(elems)))
+            return call_method(scope, map, 'get', [attr.elems_list()[0]])
+
+
 Map.T.set('call', MapConstructor())
 Map.T.get('methods').set('to_str', MapToStr())
 Map.T.get('methods').set('get', MapGet())
 Map.T.get('methods').set('set', MapSet())
+Map.T.get('methods').set('dot', MapDot())

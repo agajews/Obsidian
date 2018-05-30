@@ -23,3 +23,4 @@ from . import fun
 from . import module
 from . import scope
 from . import symbol
+from . import type

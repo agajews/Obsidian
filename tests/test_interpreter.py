@@ -1,8 +1,6 @@
 from obsidian.parser import parse
 from obsidian.interpreter import load_module, prim
-from obsidian.interpreter.types import Panic
 from textwrap import dedent
-import pytest
 
 
 def get_output(source, capsys):
@@ -115,7 +113,7 @@ def test_fun(capsys):
     ((get_attr prim 'let') 'let' (get_attr prim 'let'))  # import let
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
-    let 'hello' (Fun 'hello' [(puts 'Hello, World!')])
+    let 'hello' (Fun 'hello' (puts 'Hello, World!'))
     (hello)
     '''
     target = ['Hello, World!']
@@ -127,7 +125,7 @@ def test_import(capsys, tmpdir):
     (get_attr prim 'let') 'let' (get_attr prim 'let')
     let 'puts' (get_attr prim 'puts')
     let 'Fun' (get_attr prim 'Fun')
-    let 'hello' (Fun 'hello' [(puts 'Hello, World!')])
+    let 'hello' (Fun 'hello' (puts 'Hello, World!'))
     let 'x' 3
     puts 'hello from other'
     '''
@@ -154,7 +152,7 @@ def test_panic(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic 'Panicking')])
+    let 'danger' (Fun 'danger' (panic 'Panicking'))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -163,7 +161,7 @@ def test_panic(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               "    Args: {'Panicking'}",
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger)',
               '    Panic: Panicking']
     # with pytest.raises(Panic):
@@ -178,7 +176,7 @@ def test_panic_interpolated_string(capsys):
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
     let 'how_much' 'a bit'
-    let 'danger' (Fun 'danger' [(panic "Panicking $how_much")])
+    let 'danger' (Fun 'danger' (panic "Panicking $how_much"))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -187,7 +185,7 @@ def test_panic_interpolated_string(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Panicking \'how_much"',
-              'Module `test` panicked at line 7:',
+              'Module `test` panicked at line 8:',
               '    Statement: (danger)',
               '    Panic: Panicking a bit']
     # with pytest.raises(Panic):
@@ -201,7 +199,7 @@ def test_panic_int(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic "Panicking $3")])
+    let 'danger' (Fun 'danger' (panic "Panicking $3"))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -210,7 +208,7 @@ def test_panic_int(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Panicking \'3"',
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger)',
               '    Panic: Panicking 3']
     # with pytest.raises(Panic):
@@ -224,7 +222,7 @@ def test_panic_float(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic "Panicking $3.0")])
+    let 'danger' (Fun 'danger' (panic "Panicking $3.0"))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -233,7 +231,7 @@ def test_panic_float(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Panicking \'3.0"',
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger)',
               '    Panic: Panicking 3.0']
     # with pytest.raises(Panic):
@@ -248,7 +246,7 @@ def test_panic_symbol(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic "Panicking $@low")])
+    let 'danger' (Fun 'danger' (panic "Panicking $@low"))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -257,7 +255,7 @@ def test_panic_symbol(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Panicking \'@low"',
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger)',
               '    Panic: Panicking @low']
     # with pytest.raises(Panic):
@@ -272,7 +270,7 @@ def test_panic_list(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic "Panicking $[1, 2, 3]")])
+    let 'danger' (Fun 'danger' (panic "Panicking $[1, 2, 3]"))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -281,7 +279,7 @@ def test_panic_list(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Panicking \'[1, 2, 3]"',
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger)',
               '    Panic: Panicking [1, 2, 3]']
     # with pytest.raises(Panic):
@@ -296,7 +294,7 @@ def test_panic_tuple(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic "Panicking $(1, 2, 3)")])
+    let 'danger' (Fun 'danger' (panic "Panicking $(1, 2, 3)"))
     (danger)
     '''
     target = ['========== Panic: ==========',
@@ -305,7 +303,7 @@ def test_panic_tuple(capsys):
               '    Args: ',
               'PrimFun `prim.panic` panicked:',
               '    Args: "\'Panicking \'(1, 2, 3)"',
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger)',
               '    Panic: Panicking (1, 2, 3)']
     # with pytest.raises(Panic):
@@ -320,8 +318,8 @@ def test_panic_map(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    (let '->' (Fun '->' [(puts 'arrow')]))
-    let 'danger' (Fun 'danger' [(panic 'error')])
+    (let '->' (Fun '->' (puts 'arrow')))
+    let 'danger' (Fun 'danger' (panic 'error'))
     (danger {1 -> "horses", 2 -> "fish", 3 -> "dogs"})
     '''
     target = ['========== Panic: ==========',
@@ -330,7 +328,7 @@ def test_panic_map(capsys):
               "    Args: { {(-> 1 'horses'), (-> 2 'fish'), (-> 3 'dogs')} }",
               'PrimFun `prim.panic` panicked:',
               "    Args: {'error'}",
-              'Module `test` panicked at line 7:',
+              'Module `test` panicked at line 8:',
               "    Statement: (danger {(-> 1 'horses'), (-> 2 'fish'), (-> 3 'dogs')})",
               '    Panic: error']
     # with pytest.raises(Panic):
@@ -345,7 +343,7 @@ def test_panic_block(capsys):
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
     (let 'panic' (get_attr prim 'panic'))
-    let 'danger' (Fun 'danger' [(panic "Panicking")])
+    let 'danger' (Fun 'danger' (panic "Panicking"))
     danger
         3
     '''
@@ -355,7 +353,7 @@ def test_panic_block(capsys):
               '    Args: {3}',
               'PrimFun `prim.panic` panicked:',
               "    Args: {'Panicking'}",
-              'Module `test` panicked at line 6:',
+              'Module `test` panicked at line 7:',
               '    Statement: (danger 3)',
               '    Panic: Panicking']
     # with pytest.raises(Panic):
@@ -369,7 +367,7 @@ def test_return(capsys):
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
-    let 'fn' (Fun 'fn' [(puts 'Hello'), (return 'People'), (puts 'Yay!')])
+    let 'fn' (Fun 'fn' (puts 'Hello') (return 'People') (puts 'Yay!'))
     puts (fn)
     '''
     target = ['Hello', 'People']
@@ -381,8 +379,8 @@ def test_return_nested(capsys):
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     (let 'Fun' (get_attr prim 'Fun'))
     (let 'puts' (get_attr prim 'puts'))
-    let 'fn1' (Fun 'fn1' [(puts 'You'), (return 'All'), (puts 'Yay!')])
-    let 'fn2' (Fun 'fn2' [(puts 'Hello'), (return (fn1)), (puts 'Yay!')])
+    let 'fn1' (Fun 'fn1' (puts 'You') (return 'All') (puts 'Yay!'))
+    let 'fn2' (Fun 'fn2' (puts 'Hello') (return (fn1)) (puts 'Yay!'))
     puts (fn2)
     '''
     target = ['Hello', 'You', 'All']
@@ -400,6 +398,40 @@ def test_is(capsys):
     puts x ~is y
     '''
     target = ['true', 'false']
+    assert get_output(source, capsys) == target
+
+
+def test_is_instance(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'is_instance' (get_attr prim 'is_instance'))
+    let 'x' 3
+    puts x ~is_instance (get_attr prim 'Int')
+    puts x ~is_instance (get_attr prim 'String')
+    '''
+    target = ['true', 'false']
+    assert get_output(source, capsys) == target
+
+
+def test_type(capsys):
+    source = '''
+    (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
+    (let 'puts' (get_attr prim 'puts'))
+    (let 'type' (get_attr prim 'type'))
+    let 'x' 3
+    puts (type x)
+    let 'y' 'hello'
+    puts (type y)
+    puts (type (get_attr prim 'Type'))
+    puts (type (get_attr prim 'Object'))
+    puts (type (get_attr prim 'meta'))
+    '''
+    target = ['<Type `Int`>',
+              '<Type `String`>',
+              '<Type `Type`>',
+              '<Type `Type`>',
+              '<Type `Object`>']
     assert get_output(source, capsys) == target
 
 
@@ -454,16 +486,14 @@ def test_block(capsys):
     let 'assign' (get_attr prim 'assign')
     let '-' (get_attr (get_attr prim 'int') 'sub')
     let '>=' (get_attr (get_attr prim 'int') 'gte')
-    let 'run' (Fun 'run' [
-        (let 'statements' (get_attr ((get_attr (get_attr meta 'args') 'get') 0) 'statements')),
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'n_args' ((get_attr statements 'len'))),
-        (let 'i' n_args - 1),
-        (while i >= 0 [
-            (eval ((get_attr statements 'get') i)),
-            (assign 'i' i - 1)
-        ]),
-    ])
+    let 'run' (Fun 'run'
+        (let 'statements' (get_attr ((get_attr (get_attr meta 'args') 'get') 0) 'statements'))
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'n_args' ((get_attr statements 'len')))
+        (let 'i' n_args - 1)
+        (while i >= 0
+            (eval ((get_attr statements 'get') i))
+            (assign 'i' i - 1)))
     run
         puts 'Hello, World!'
         puts 'Hi again'
@@ -482,15 +512,13 @@ def test_block_global_i(capsys):
     let '+' (get_attr (get_attr prim 'int') 'add')
     let '<' (get_attr (get_attr prim 'int') 'lt')
     let 'i' 0
-    let 'run' (Fun 'run' [
-        (let 'statements' (get_attr ((get_attr (get_attr meta 'args') 'get') 0) 'statements')),
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'n_args' ((get_attr statements 'len'))),
-        (while i < n_args [
-            (eval ((get_attr statements 'get') i)),
-            (assign 'i' i + 1)
-        ]),
-    ])
+    let 'run' (Fun 'run'
+        (let 'statements' (get_attr ((get_attr (get_attr meta 'args') 'get') 0) 'statements'))
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'n_args' ((get_attr statements 'len')))
+        (while i < n_args
+            (eval ((get_attr statements 'get') i))
+            (assign 'i' i + 1)))
     run
         puts 'Hello, World!'
         puts 'Hi again'
@@ -1566,19 +1594,17 @@ def test_int_sigil(capsys):
     let 'Fun' (get_attr prim 'Fun')
     let 'Im' (Type 'Im' Object)
     let 'concat' (get_attr (get_attr prim 'string') 'concat')
-    set_attr Im 'call' (Fun 'Im' [
-        (let 'self' (Object Im)),
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'val' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
-        (set_attr self 'val' val),
-        self,
-    ])
-    set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str' [
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
-        (let 'val_str' ((get_attr (get_attr self 'val') 'to_str'))),
-        (concat val_str 'i'),
-    ])
+    set_attr Im 'call' (Fun 'Im'
+        (let 'self' (Object Im))
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'val' (eval ((get_attr (get_attr meta 'args') 'get') 0)))
+        (set_attr self 'val' val)
+        self)
+    set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str'
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0)))
+        (let 'val_str' ((get_attr (get_attr self 'val') 'to_str')))
+        (concat val_str 'i'))
     let 'num' (Im 3)
     puts num
     ((get_attr (get_attr Int 'sigils') 'set') 'i' Im)
@@ -1599,19 +1625,17 @@ def test_float_sigil(capsys):
     let 'Fun' (get_attr prim 'Fun')
     let 'Im' (Type 'Im' Object)
     let 'concat' (get_attr (get_attr prim 'string') 'concat')
-    set_attr Im 'call' (Fun 'Im' [
-        (let 'self' (Object Im)),
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'val' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
-        (set_attr self 'val' val),
-        self,
-    ])
-    set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str' [
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
-        (let 'val_str' ((get_attr (get_attr self 'val') 'to_str'))),
-        (concat val_str 'i'),
-    ])
+    set_attr Im 'call' (Fun 'Im'
+        (let 'self' (Object Im))
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'val' (eval ((get_attr (get_attr meta 'args') 'get') 0)))
+        (set_attr self 'val' val)
+        self)
+    set_attr (get_attr Im 'methods') 'to_str' (Fun 'Im.to_str'
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0)))
+        (let 'val_str' ((get_attr (get_attr self 'val') 'to_str')))
+        (concat val_str 'i'))
     let 'num' (Im 3.0)
     puts num
     ((get_attr (get_attr Float 'sigils') 'set') 'i' Im)
@@ -1631,18 +1655,16 @@ def test_string_sigil(capsys):
     let 'Type' (get_attr prim 'Type')
     let 'Fun' (get_attr prim 'Fun')
     let 'FunnyString' (Type 'FunnyString' Object)
-    set_attr FunnyString 'call' (Fun 'FunnyString' [
-        (let 'self' (Object FunnyString)),
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'string' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
-        (set_attr self 'string' string),
-        self,
-    ])
-    set_attr (get_attr FunnyString 'methods') 'to_str' (Fun 'FunnyString.to_str' [
-        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval')),
-        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0))),
-        "haha $(get_attr self 'string')"
-    ])
+    set_attr FunnyString 'call' (Fun 'FunnyString'
+        (let 'self' (Object FunnyString))
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'string' (eval ((get_attr (get_attr meta 'args') 'get') 0)))
+        (set_attr self 'string' string)
+        self)
+    set_attr (get_attr FunnyString 'methods') 'to_str' (Fun 'FunnyString.to_str'
+        (let 'eval' (get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval'))
+        (let 'self' (eval ((get_attr (get_attr meta 'args') 'get') 0)))
+        "haha $(get_attr self 'string')")
     let 's' (FunnyString 'I like cheese')
     puts s
     ((get_attr (get_attr String 'sigils') 'set') 'f' FunnyString)
@@ -1674,7 +1696,6 @@ def test_statics(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     let 'puts' (get_attr prim 'puts')
-    let 'Fun' (get_attr prim 'Fun')
     let 'Object' (get_attr prim 'Object')
     let 'Type' (get_attr prim 'Type')
     let 'Dog' (Type 'Dog' Object)
@@ -1690,7 +1711,6 @@ def test_statics_inheritance(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     let 'puts' (get_attr prim 'puts')
-    let 'Fun' (get_attr prim 'Fun')
     let 'Object' (get_attr prim 'Object')
     let 'Type' (get_attr prim 'Type')
     let 'Dog' (Type 'Dog' Object)
@@ -1707,7 +1727,6 @@ def test_panic_statics_inheritance_missing(capsys):
     source = '''
     (get_attr prim 'let') 'let' (get_attr prim 'let')  # import let
     let 'puts' (get_attr prim 'puts')
-    let 'Fun' (get_attr prim 'Fun')
     let 'Object' (get_attr prim 'Object')
     let 'Type' (get_attr prim 'Type')
     let 'Dog' (Type 'Dog' Object)
@@ -1737,11 +1756,10 @@ def test_methods(capsys):
     let 'Dog' (Type 'Dog' Object)
     let 'string' (get_attr prim 'string')
     let 'strcat' (get_attr string 'concat')
-    set_attr (get_attr Dog 'methods') 'greet' (Fun 'greet' [
-        (let 'raw_name' ((get_attr (get_attr meta 'args') 'get') 1)),
-        (let 'name' ((get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval') raw_name)),
-        (puts (strcat 'Woof ' name '!')),
-    ])
+    set_attr (get_attr Dog 'methods') 'greet' (Fun 'greet'
+        (let 'raw_name' ((get_attr (get_attr meta 'args') 'get') 1))
+        (let 'name' ((get_attr (get_attr (get_attr meta 'caller') 'meta') 'eval') raw_name))
+        (puts (strcat 'Woof ' name '!')))
     let 'butch' (Object Dog)
     ((get_attr butch 'greet') 'Jim')
     '''

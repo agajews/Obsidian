@@ -100,9 +100,9 @@ class Scope(Object):
                 if not isinstance(precedence, Int):
                     raise Panic('Invalid precedence {}'.format(precedence))
                 precedence = precedence.int
-                if precedence < 0 or precedence > 9:
+                if precedence < 0 or precedence > 11:
                     raise Panic(
-                        'Precedence must be between 0 and 9, inclusive')
+                        'Precedence must be between 0 and 11, inclusive')
             if op.has('associativity'):
                 associativity = op.get('associativity')
                 if not isinstance(associativity, Symbol):
@@ -175,7 +175,7 @@ class Scope(Object):
         return self._eval(ast)
 
     def name_string(self):
-        name = self.get('name')
+        name = self.get('meta').get('name')
         if not isinstance(name, String):
             return '[Fun name {} not a string]'.format(name)
         return name.str

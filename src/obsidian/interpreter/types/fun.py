@@ -13,7 +13,7 @@ class Fun(Object):
     T = Type('Fun', Object.T)
 
     def __init__(self, defn_scope, name, body):
-        if not len(body.elems_list()) > 0:
+        if not len(body.elems) > 0:
             raise Panic('Funs must have at least one body statement')
         super().__init__(
             {'name': name, 'body': body, 'definer': defn_scope})
@@ -27,9 +27,10 @@ class Fun(Object):
         scope.get('meta').set('caller', caller_scope)
         scope.get('meta').set('fun', self)
         scope.set('return', ret)
-        body = self.get('body').get('elems')
-        if not isinstance(body, List):
-            raise Panic('Function body must be a list')
+        self.typecheck_attr('body', List)
+        body = self.get('body')
+        if not len(body.elems) > 0:
+            raise Panic('Funs must have at least one body statement')
         try:
             for statement_idx, statement in enumerate(body.elems[:-1]):
                 scope.eval(statement)
