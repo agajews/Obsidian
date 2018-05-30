@@ -1,4 +1,9 @@
-from ..types import PrimFun, Panic, String, object_type
+from ..types import (
+    Object,
+    PrimFun,
+    Panic,
+    String,
+)
 from .get_attr import get_attr
 
 
@@ -29,6 +34,6 @@ class ObjectToStr(PrimFun):
         return String('<{}>'.format(type_name.str))
 
 
-object_type.get('methods').set('assign', ObjectAssign())
-object_type.get('methods').set('dot', ObjectDot())
-object_type.get('methods').set('to_str', ObjectToStr())
+Object.T.get('methods').set('assign', ObjectAssign())
+Object.T.get('methods').set('dot', ObjectDot())
+Object.T.get('methods').set('to_str', ObjectToStr())

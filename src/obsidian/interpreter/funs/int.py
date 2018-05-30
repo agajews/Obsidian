@@ -1,13 +1,11 @@
 from ..types import (
     PrimFun,
-    Panic,
     Int,
     String,
     Symbol,
     Map,
     true,
     false,
-    int_type,
 )
 from ..types.ast import ASTString, ASTInt
 from .get_attr import get_attr
@@ -18,19 +16,25 @@ class IntConstructor(PrimFun):
         super().__init__('Int', ['ast'])
 
     def macro(self, scope, ast):
-        int = ast.get('int')
-        if not isinstance(int, Int):
-            raise Panic('Invalid int')
+        self.typecheck_arg(ast, ASTInt)
+        ast.validate()
         sigil = ast.get('sigil')
-        if not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
-        int = Int(int.int)
+        int = Int(ast.get('int').int)
         if sigil.str == '':
             return int
-        constructors = int_type.get('sigils')
+        constructors = Int.T.get('sigils')
         constructor = get_attr.fun(
             constructors, String('get')).call(scope, [ASTString(sigil)])
         return constructor.call(scope, [ASTInt(int)])
+
+
+class IntToStr(PrimFun):
+    def __init__(self):
+        super().__init__('Int.to_str', ['int'])
+
+    def fun(self, int):
+        self.typecheck_arg(int, Int)
+        return String(str(int.int))
 
 
 class IntEq(PrimFun):
@@ -38,10 +42,8 @@ class IntEq(PrimFun):
         super().__init__('Int.eq', ['a', 'b'])
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return true if a.int == b.int else false
 
 
@@ -50,8 +52,7 @@ class IntHash(PrimFun):
         super().__init__('Int.hash', ['int'])
 
     def fun(self, int):
-        if not isinstance(int, Int):
-            raise Panic('Argument must be an int')
+        self.typecheck_arg(int, Int)
         return Int(hash(int.int))
 
 
@@ -62,10 +63,8 @@ class Add(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return Int(a.int + b.int)
 
 
@@ -76,10 +75,8 @@ class Sub(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return Int(a.int - b.int)
 
 
@@ -90,10 +87,8 @@ class Mul(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return Int(a.int * b.int)
 
 
@@ -104,10 +99,8 @@ class FloorDiv(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return Int(a.int // b.int)
 
 
@@ -118,10 +111,8 @@ class Mod(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return Int(a.int % b.int)
 
 
@@ -132,10 +123,8 @@ class Pow(PrimFun):
         self.set('associativity', Symbol('right'))
 
     def fun(self, a, b):
-        if not isinstance(a, Int):
-            raise Panic('Argument `a` must be an int')
-        if not isinstance(b, Int):
-            raise Panic('Argument `b` must be an int')
+        self.typecheck_arg(a, Int)
+        self.typecheck_arg(b, Int)
         return Int(a.int ** b.int)
 
 
@@ -147,8 +136,7 @@ class Eq(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Int):
-                raise Panic('Argument {} must be an int'.format(i))
+            self.typecheck_arg(num, Int)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.int != b.int:
                 return false
@@ -163,8 +151,7 @@ class NEq(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Int):
-                raise Panic('Argument {} must be an int'.format(i))
+            self.typecheck_arg(num, Int)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.int == b.int:
                 return false
@@ -179,8 +166,7 @@ class LT(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Int):
-                raise Panic('Argument {} must be an int'.format(i))
+            self.typecheck_arg(num, Int)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.int >= b.int:
                 return false
@@ -195,8 +181,7 @@ class LTE(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Int):
-                raise Panic('Argument {} must be an int'.format(i))
+            self.typecheck_arg(num, Int)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.int > b.int:
                 return false
@@ -211,8 +196,7 @@ class GT(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Int):
-                raise Panic('Argument {} must be an int'.format(i))
+            self.typecheck_arg(num, Int)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.int <= b.int:
                 return false
@@ -227,18 +211,18 @@ class GTE(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Int):
-                raise Panic('Argument {} must be an int'.format(i))
+            self.typecheck_arg(num, Int)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.int < b.int:
                 return false
         return true
 
 
-int_type.set('call', IntConstructor())
-int_type.get('methods').set('eq', IntEq())
-int_type.get('methods').set('hash', IntHash())
-int_type.set('sigils', Map({}))
+Int.T.set('call', IntConstructor())
+Int.T.get('methods').set('to_str', IntToStr())
+Int.T.get('methods').set('eq', IntEq())
+Int.T.get('methods').set('hash', IntHash())
+Int.T.set('sigils', Map({}))
 
 add = Add()
 sub = Sub()

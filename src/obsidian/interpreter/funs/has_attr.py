@@ -1,4 +1,9 @@
-from ..types import String, PrimFun, Panic, true, false
+from ..types import (
+    String,
+    PrimFun,
+    true,
+    false,
+)
 
 
 class HasAttr(PrimFun):
@@ -6,8 +11,7 @@ class HasAttr(PrimFun):
         super().__init__('has_attr', ['obj', 'attr'])
 
     def fun(self, obj, attr):
-        if not isinstance(attr, String):
-            raise Panic('Attribute must be a string')
+        self.typecheck_arg(attr, String)
         return true if obj.has(attr.str) else false
 
 

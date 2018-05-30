@@ -1,11 +1,8 @@
 from ... import semantics as sem
 from ..bootstrap import (
-    PrimFun,
     String,
     Object,
     Type,
-    Panic,
-    object_type,
 )
 from .int import Int
 from .float import Float
@@ -14,312 +11,202 @@ from .tuple import Tuple
 from .symbol import Symbol
 
 
-class ASTNodeType(Type):
-    def __init__(self):
-        super().__init__('ast.Node', object_type)
+ast_node_type = Type('ast.Node', Object.T)
 
 
 class ASTString(Object):
+    T = Type('ast.String', ast_node_type)
+
     def __init__(self, string, sigil=None, parseinfo=None):
-        if not isinstance(string, String):
-            raise Panic('Invalid string')
         if sigil is None:
             sigil = String('')
-        if not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
         self.parseinfo = parseinfo
-        super().__init__(
-            {'str': string, 'sigil': sigil}, ast_string_type)
+        super().__init__({'str': string, 'sigil': sigil})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('str', String)
+        self.typecheck_attr('sigil', String)
 
     def __repr__(self):
         return 'ASTString({}, {})'.format(self.get('str'), self.get('sigil'))
 
 
-class ASTStringConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.String', ['str', 'sigil'])
-
-    def fun(self, string, sigil):
-        return ASTString(string, sigil)
-
-
-class ASTStringType(Type):
-    def __init__(self):
-        super().__init__('ast.String', ast_node_type, constructor=ASTStringConstructor())
-
-
 class ASTInterpolatedString(Object):
+    T = Type('ast.InterpolatedString', ast_node_type)
+
     def __init__(self, body, parseinfo=None):
-        if not isinstance(body, List):
-            raise Panic('Body must be a list')
         self.parseinfo = parseinfo
-        super().__init__(
-            {'body': body}, ast_interpolated_string_type)
+        super().__init__({'body': body})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('body', List)
 
     def body_list(self):
-        body = self.get('body')
-        if not isinstance(body, List):
-            raise Panic('`ast.InterpolatedString` body must be a `List`')
-        return body.elems
+        self.validate()
+        return self.get('body').elems
 
     def __repr__(self):
         return 'ASTInterpolatedString({})'.format(self.get('body'))
 
 
-class ASTInterpolatedStringConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.InterpolatedString', ['body'])
-
-    def fun(self, body):
-        return ASTInterpolatedString(body)
-
-
-class ASTInterpolatedStringType(Type):
-    def __init__(self):
-        super().__init__('ast.InterpolatedString',
-                         ast_node_type, constructor=ASTInterpolatedStringConstructor())
-
-
 class ASTIdent(Object):
+    T = Type('ast.Ident', ast_node_type)
+
     def __init__(self, ident, parseinfo=None):
-        if not isinstance(ident, String):
-            raise Panic('Invalid ident')
         self.parseinfo = parseinfo
-        super().__init__({'ident': ident}, ast_ident_type)
+        super().__init__({'ident': ident})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('ident', String)
 
     def __repr__(self):
         return 'ASTIdent({})'.format(self.get('ident'))
 
 
-class ASTIdentConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Ident', ['ident'])
-
-    def fun(self, ident):
-        return ASTIdent(ident)
-
-
-class ASTIdentType(Type):
-    def __init__(self):
-        super().__init__('ast.Ident', ast_node_type, constructor=ASTIdentConstructor())
-
-
 class ASTInt(Object):
+    T = Type('ast.Int', ast_node_type)
+
     def __init__(self, val, sigil=None, parseinfo=None):
-        if not isinstance(val, Int):
-            raise Panic('Invalid int')
         if sigil is None:
             sigil = String('')
-        if not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
         self.parseinfo = parseinfo
-        super().__init__(
-            {'int': val, 'sigil': sigil}, ast_int_type)
+        super().__init__({'int': val, 'sigil': sigil})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('int', Int)
+        self.typecheck_attr('sigil', String)
 
     def __repr__(self):
         return 'ASTInt({}, {})'.format(self.get('int'), self.get('sigil'))
 
 
-class ASTIntConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Int', ['int', 'sigil'])
-
-    def fun(self, val, sigil):
-        return ASTInt(val, sigil)
-
-
-class ASTIntType(Type):
-    def __init__(self):
-        super().__init__('ast.Int', ast_node_type, constructor=ASTIntConstructor())
-
-
 class ASTFloat(Object):
+    T = Type('ast.Float', ast_node_type)
+
     def __init__(self, val, sigil=None, parseinfo=None):
-        if not isinstance(val, Float):
-            raise Panic('Invalid float')
         if sigil is None:
             sigil = String('')
-        if not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
         self.parseinfo = parseinfo
-        super().__init__(
-            {'float': val, 'sigil': sigil}, ast_float_type)
+        super().__init__({'float': val, 'sigil': sigil})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('float', Float)
+        self.typecheck_attr('sigil', String)
 
     def __repr__(self):
         return 'ASTFloat({}, {})'.format(self.get('float'), self.get('sigil'))
 
 
-class ASTFloatConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Float', ['float', 'sigil'])
-
-    def fun(self, val, sigil):
-        return ASTFloat(val, sigil)
-
-
-class ASTFloatType(Type):
-    def __init__(self):
-        super().__init__('ast.Float', ast_node_type, constructor=ASTFloatConstructor())
-
-
 class ASTSymbol(Object):
+    T = Type('ast.Symbol', ast_node_type)
+
     def __init__(self, symbol, parseinfo=None):
-        if not isinstance(symbol, Symbol):
-            raise Panic('Invalid symbol')
         self.parseinfo = parseinfo
-        super().__init__(
-            {'symbol': symbol}, ast_symbol_type)
+        super().__init__({'symbol': symbol})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('symbol', Symbol)
 
     def __repr__(self):
         return 'ASTSymbol({})'.format(self.get('symbol'))
 
 
-class ASTSymbolConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Symbol', ['symbol'])
-
-    def fun(self, symbol):
-        return ASTSymbol(symbol)
-
-
-class ASTSymbolType(Type):
-    def __init__(self):
-        super().__init__('ast.Symbol', ast_node_type, constructor=ASTSymbolConstructor())
-
-
 class ASTList(Object):
+    T = Type('ast.List', ast_node_type)
+
     def __init__(self, elems, parseinfo=None):
-        if not isinstance(elems, List):
-            raise Panic('Invalid list')
         self.parseinfo = parseinfo
-        super().__init__({'elems': elems}, ast_list_type)
+        super().__init__({'elems': elems})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('elems', List)
 
     def elems_list(self):
-        elems = self.get('elems')
-        if not isinstance(elems, List):
-            raise Panic('`ast.List` elems must be a `List`')
-        return elems.elems
+        self.validate()
+        return self.get('elems').elems
 
     def __repr__(self):
         return 'ASTList({})'.format(self.get('elems'))
 
 
-class ASTListConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.List', ['list'])
-
-    def fun(self, lst):
-        return ASTList(lst)
-
-
-class ASTListType(Type):
-    def __init__(self):
-        super().__init__('ast.List', ast_node_type, constructor=ASTListConstructor())
-
-
 class ASTBlock(Object):
+    T = Type('ast.Block', ast_node_type)
+
     def __init__(self, statements, parseinfo=None):
-        if not isinstance(statements, List):
-            raise Panic('Invalid list')
         self.parseinfo = parseinfo
-        super().__init__({'statements': statements}, ast_block_type)
+        super().__init__({'statements': statements})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('statements', List)
 
     def statements_list(self):
-        statements = self.get('statements')
-        if not isinstance(statements, List):
-            raise Panic('`ast.Block` statements must be a `List`')
-        return statements.elems
+        self.validate()
+        return self.get('statements').elems
 
     def __repr__(self):
         return 'ASTBlock({})'.format(self.get('statements'))
 
 
-class ASTBlockConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Block', ['statements'])
-
-    def fun(self, statements):
-        return ASTBlock(statements)
-
-
-class ASTBlockType(Type):
-    def __init__(self):
-        super().__init__('ast.Block', ast_node_type, constructor=ASTBlockConstructor())
-
-
 class ASTTuple(Object):
+    T = Type('ast.Tuple', ast_node_type)
+
     def __init__(self, elems, parseinfo=None):
-        if not isinstance(elems, Tuple):
-            raise Panic('Invalid tuple')
         self.parseinfo = parseinfo
-        super().__init__({'elems': elems}, ast_tuple_type)
+        super().__init__({'elems': elems})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('elems', Tuple)
 
     def elems_list(self):
-        elems = self.get('elems')
-        if not isinstance(elems, Tuple):
-            raise Panic('`ast.Tuple` elems must be a `Tuple`')
-        return elems.elems
+        self.validate()
+        return self.get('elems').elems
 
     def __repr__(self):
         return 'ASTTuple({})'.format(self.get('elems'))
 
 
-class ASTTupleConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Tuple', ['tuple'])
-
-    def fun(self, tup):
-        return ASTTuple(tup)
-
-
-class ASTTupleType(Type):
-    def __init__(self):
-        super().__init__('ast.Tuple', ast_node_type, constructor=ASTTupleConstructor())
-
-
 class ASTMap(Object):
+    T = Type('ast.Map', ast_node_type)
+
     def __init__(self, elems, parseinfo=None):
-        if not isinstance(elems, List):
-            raise Panic('Invalid map')
         self.parseinfo = parseinfo
-        super().__init__({'elems': elems}, ast_map_type)
+        super().__init__({'elems': elems})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('elems', List)
 
     def elems_list(self):
-        elems = self.get('elems')
-        if not isinstance(elems, List):
-            raise Panic('`ast.Map` elems must be a `List`')
-        return elems.elems
+        self.validate()
+        return self.get('elems').elems
 
     def __repr__(self):
         return 'ASTMap({})'.format(self.get('elems'))
 
 
-class ASTMapConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Map', ['map'])
-
-    def fun(self, lst):
-        return ASTMap(lst)
-
-
-class ASTMapType(Type):
-    def __init__(self):
-        super().__init__('ast.Map', ast_node_type, constructor=ASTMapConstructor())
-
-
 class ASTCall(Object):
+    T = Type('ast.Call', ast_node_type)
+
     def __init__(self, callable_expr, args, parseinfo=None):
-        if not isinstance(args, List):
-            raise Panic('Args must be a list')
         self.parseinfo = parseinfo
-        super().__init__(
-            {'callable': callable_expr, 'args': args}, ast_call_type)
+        super().__init__({'callable': callable_expr, 'args': args})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('args', List)
 
     def args_list(self):
-        args = self.get('args')
-        if not isinstance(args, List):
-            raise Panic('`ast.Call` arguments must be a `List`')
-        return args.elems
+        self.validate()
+        return self.get('args').elems
 
     def __eq__(self, other):
         def clean_dict(dictionary):
@@ -332,64 +219,30 @@ class ASTCall(Object):
         return 'ASTCall({}, {})'.format(self.get('callable'), self.get('args'))
 
 
-class ASTCallConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Call', ['callable', 'args'])
-
-    def fun(self, callable_expr, args):
-        return ASTCall(callable_expr, args)
-
-
-class ASTCallType(Type):
-    def __init__(self):
-        super().__init__('ast.Call', ast_node_type, constructor=ASTCallConstructor())
-
-
 class ASTBinarySlurp(Object):
+    T = Type('ast.BinarySlurp', ast_node_type)
+
     def __init__(self, slurp, parseinfo=None):
-        if not isinstance(slurp, List):
-            raise Panic('Invalid slurp')
         self.parseinfo = parseinfo
-        super().__init__({'slurp': slurp}, ast_binary_slurp_type)
+        super().__init__({'slurp': slurp})
+        self.validate()
+
+    def validate(self):
+        self.typecheck_attr('slurp', List)
 
     def __repr__(self):
         return 'ASTBinarySlurp({})'.format(' '.join(str(e) for e in self.get('slurp').elems))
 
 
-class ASTBinarySlurpConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.BinarySlurp', ['slurp'])
-
-    def fun(self, slurp):
-        return ASTBinarySlurp(slurp)
-
-
-class ASTBinarySlurpType(Type):
-    def __init__(self):
-        super().__init__('ast.BinarySlurp', ast_node_type,
-                         constructor=ASTBinarySlurpConstructor())
-
-
 class ASTUnquote(Object):
+    T = Type('ast.Unquote', ast_node_type)
+
     def __init__(self, expr, parseinfo=None):
         self.parseinfo = parseinfo
-        super().__init__({'expr': expr}, ast_unquote_type)
+        super().__init__({'expr': expr})
 
     def __repr__(self):
         return 'Unquote({})'.format(self.get('expr'))
-
-
-class ASTUnquoteConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('ast.Unquote', ['expr'])
-
-    def fun(self, expr):
-        return ASTUnquote(expr)
-
-
-class ASTUnquoteType(Type):
-    def __init__(self):
-        super().__init__('ast.Unquote', ast_node_type, constructor=ASTUnquoteConstructor())
 
 
 def model_to_ast(model):
@@ -429,23 +282,21 @@ def model_to_ast(model):
     elif isinstance(model, sem.Block):
         return ASTBlock(List([model_to_ast(statement) for statement in model.statements]),
                         parseinfo=model.parseinfo)
-        return expr
     else:
         raise NotImplementedError(
             'Translation of model node {} to AST not implemented'.format(model))
 
 
-ast_node_type = ASTNodeType()
-ast_string_type = ASTStringType()
-ast_interpolated_string_type = ASTInterpolatedStringType()
-ast_ident_type = ASTIdentType()
-ast_int_type = ASTIntType()
-ast_float_type = ASTFloatType()
-ast_symbol_type = ASTSymbolType()
-ast_list_type = ASTListType()
-ast_tuple_type = ASTTupleType()
-ast_map_type = ASTMapType()
-ast_call_type = ASTCallType()
-ast_unquote_type = ASTUnquoteType()
-ast_binary_slurp_type = ASTBinarySlurpType()
-ast_block_type = ASTBlockType()
+# ASTString.T = Type('ast.String', ast_node_type)
+# ASTInterpolatedString.T = Type('ast.InterpolatedString', ast_node_type)
+# ASTIdent.T = Type('ast.Ident', ast_node_type)
+# ASTInt.T = Type('ast.Int', ast_node_type)
+# ASTFloat.T = Type('ast.Float', ast_node_type)
+# ASTSymbol.T = Type('ast.Symbol', ast_node_type)
+# ASTList.T = Type('ast.List', ast_node_type)
+# ASTTuple.T = Type('ast.Tuple', ast_node_type)
+# ASTMap.T = Type('ast.Map', ast_node_type)
+# ASTCall.T = Type('ast.Call', ast_node_type)
+# ASTBlock.T = Type('ast.Block', ast_node_type)
+# ASTUnquote.T = Type('ast.Unquote', ast_node_type)
+# ASTBinarySlurp.T = Type('ast.BinarySlurp', ast_node_type)

@@ -1,4 +1,8 @@
-from ..types import PrimFun, Panic, String
+from ..types import (
+    PrimFun,
+    Panic,
+    String,
+)
 
 
 class PanicFun(PrimFun):
@@ -6,8 +10,7 @@ class PanicFun(PrimFun):
         super().__init__('prim.panic', ['message'])
 
     def fun(self, message):
-        if not isinstance(message, String):
-            raise Panic('Panic message must be a string')
+        self.typecheck_arg(message, String)
         raise Panic(message.str)
 
 

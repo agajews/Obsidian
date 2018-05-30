@@ -1,6 +1,5 @@
 from ..types import (
     PrimFun,
-    Panic,
     Int,
     Float,
     Symbol,
@@ -8,7 +7,6 @@ from ..types import (
     String,
     true,
     false,
-    float_type,
 )
 from ..types.ast import ASTString, ASTFloat
 from .get_attr import get_attr
@@ -19,19 +17,25 @@ class FloatConstructor(PrimFun):
         super().__init__('Float', ['ast'])
 
     def macro(self, scope, ast):
-        float = ast.get('float')
-        if not isinstance(float, Float):
-            raise Panic('Invalid float')
+        self.typecheck_arg(ast, ASTFloat)
+        ast.validate()
+        float = Float(ast.get('float').float)
         sigil = ast.get('sigil')
-        if not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
-        float = Float(float.float)
         if sigil.str == '':
             return float
-        constructors = float_type.get('sigils')
+        constructors = Float.T.get('sigils')
         constructor = get_attr.fun(
             constructors, String('get')).call(scope, [ASTString(sigil)])
         return constructor.call(scope, [ASTFloat(float)])
+
+
+class FloatToStr(PrimFun):
+    def __init__(self):
+        super().__init__('Float.to_str', ['float'])
+
+    def fun(self, float):
+        self.typecheck_arg(float, Float)
+        return String(str(float.float))
 
 
 class FloatEq(PrimFun):
@@ -39,10 +43,8 @@ class FloatEq(PrimFun):
         super().__init__('Float.eq', ['a', 'b'])
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return true if a.float == b.float else false
 
 
@@ -51,8 +53,7 @@ class FloatHash(PrimFun):
         super().__init__('Float.hash', ['float'])
 
     def fun(self, float):
-        if not isinstance(float, Float):
-            raise Panic('Argument must be a float')
+        self.typecheck_arg(float, Float)
         return Int(hash(float.float))
 
 
@@ -63,10 +64,8 @@ class Add(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float + b.float)
 
 
@@ -77,10 +76,8 @@ class Sub(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float - b.float)
 
 
@@ -91,10 +88,8 @@ class Mul(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float * b.float)
 
 
@@ -105,10 +100,8 @@ class Div(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float / b.float)
 
 
@@ -119,10 +112,8 @@ class FloorDiv(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float // b.float)
 
 
@@ -133,10 +124,8 @@ class Mod(PrimFun):
         self.set('associativity', Symbol('left'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float % b.float)
 
 
@@ -147,10 +136,8 @@ class Pow(PrimFun):
         self.set('associativity', Symbol('right'))
 
     def fun(self, a, b):
-        if not isinstance(a, Float):
-            raise Panic('Argument `a` must be a float')
-        if not isinstance(b, Float):
-            raise Panic('Argument `b` must be a float')
+        self.typecheck_arg(a, Float)
+        self.typecheck_arg(b, Float)
         return Float(a.float ** b.float)
 
 
@@ -162,8 +149,7 @@ class Eq(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Float):
-                raise Panic('Argument {} must be a float'.format(i))
+            self.typecheck_arg(num, Float)
         for a, b in zip(nums[:-1], nums[1:]):
             if a != b:
                 return false
@@ -178,8 +164,7 @@ class NEq(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Float):
-                raise Panic('Argument {} must be a float'.format(i))
+            self.typecheck_arg(num, Float)
         for a, b in zip(nums[:-1], nums[1:]):
             if a == b:
                 return false
@@ -194,8 +179,7 @@ class LT(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Float):
-                raise Panic('Argument {} must be a float'.format(i))
+            self.typecheck_arg(num, Float)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.float >= b.float:
                 return false
@@ -210,8 +194,7 @@ class LTE(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Float):
-                raise Panic('Argument {} must be a float'.format(i))
+            self.typecheck_arg(num, Float)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.float > b.float:
                 return false
@@ -226,8 +209,7 @@ class GT(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Float):
-                raise Panic('Argument {} must be a float'.format(i))
+            self.typecheck_arg(num, Float)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.float <= b.float:
                 return false
@@ -242,18 +224,18 @@ class GTE(PrimFun):
 
     def fun(self, *nums):
         for i, num in enumerate(nums):
-            if not isinstance(num, Float):
-                raise Panic('Argument {} must be a float'.format(i))
+            self.typecheck_arg(num, Float)
         for a, b in zip(nums[:-1], nums[1:]):
             if a.float < b.float:
                 return false
         return true
 
 
-float_type.set('call', FloatConstructor())
-float_type.get('methods').set('eq', FloatEq())
-float_type.get('methods').set('hash', FloatHash())
-float_type.set('sigils', Map({}))
+Float.T.set('call', FloatConstructor())
+Float.T.get('methods').set('to_str', FloatToStr())
+Float.T.get('methods').set('eq', FloatEq())
+Float.T.get('methods').set('hash', FloatHash())
+Float.T.set('sigils', Map({}))
 add = Add()
 sub = Sub()
 mul = Mul()

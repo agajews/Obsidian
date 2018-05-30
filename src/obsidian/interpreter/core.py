@@ -1,49 +1,45 @@
 from ..parser import parse
 
 from .types import (
+    Object,
     Module,
     Panic,
     PrimFun,
     String,
-    fun_type,
-    scope_type,
-    module_type,
-    int_type,
-    float_type,
-    list_type,
-    tuple_type,
-    map_type,
-    bool_type,
+    Fun,
+    Scope,
+    Int,
+    Float,
+    List,
+    Tuple,
+    Map,
+    Bool,
+    Symbol,
+    Type,
+    Nil,
     true,
     false,
-    symbol_type,
-    type_type,
-    string_type,
-    object_type,
-    prim_fun_type,
-    meta_type,
-    nil_type,
     nil,
 )
 
 from .types.scope import to_str
 
 from .types.ast import (
-    model_to_ast,
     ast_node_type,
-    ast_ident_type,
-    ast_string_type,
-    ast_interpolated_string_type,
-    ast_int_type,
-    ast_float_type,
-    ast_list_type,
-    ast_tuple_type,
-    ast_map_type,
-    ast_call_type,
-    ast_binary_slurp_type,
-    ast_symbol_type,
-    ast_unquote_type,
-    ast_block_type,
+    ASTIdent,
+    ASTString,
+    ASTInterpolatedString,
+    ASTInt,
+    ASTFloat,
+    ASTList,
+    ASTTuple,
+    ASTMap,
+    ASTCall,
+    ASTBinarySlurp,
+    ASTSymbol,
+    ASTUnquote,
+    ASTBlock,
+    model_to_ast,
 )
 
 from .funs import (
@@ -58,15 +54,14 @@ from .funs import (
     puts,
     cond,
     while_fn,
-    object,
     int,
     float,
     bool,
-    list,
-    map,
-    tuple,
+    # list,
+    # map,
+    # tuple,
+    # ast,
     string,
-    ast,
 )
 
 
@@ -75,33 +70,30 @@ class Import(PrimFun):
         super().__init__('prim.import', ['path', 'name'])
 
     def fun(self, path, name):
-        if not isinstance(path, String):
-            raise Panic('Path must be a string')
-        if not isinstance(name, String):
-            raise Panic('Name must be a string')
+        self.typecheck_arg(path, String)
+        self.typecheck_arg(name, String)
         with open(path.str, 'r') as f:
             source = f.read()
-        ast, source_map = parse(source)
-        return load_module(ast, source_map, name.str, {'prim': prim})
+        import_ast, source_map = parse(source)
+        return load_module(import_ast, source_map, name.str, {'prim': prim})
 
 
 prim = Module('prim', attrs={
-    'Type': type_type,
-    'Object': object_type,
-    'Meta': meta_type,
-    'PrimFun': prim_fun_type,
-    'Fun': fun_type,
-    'Module': module_type,
-    'Scope': scope_type,
-    'String': string_type,
-    'List': list_type,
-    'Tuple': tuple_type,
-    'Map': map_type,
-    'Int': int_type,
-    'Float': float_type,
-    'Symbol': symbol_type,
-    'Bool': bool_type,
-    'Nil': nil_type,
+    'Type': Type.T,
+    'Object': Object.T,
+    'PrimFun': PrimFun.T,
+    'Fun': Fun.T,
+    'Module': Module.T,
+    'Scope': Scope.T,
+    'String': String.T,
+    'List': List.T,
+    'Tuple': Tuple.T,
+    'Map': Map.T,
+    'Int': Int.T,
+    'Float': Float.T,
+    'Symbol': Symbol.T,
+    'Bool': Bool.T,
+    'Nil': Nil.T,
 
     'import': Import(),
     'let': let,
@@ -116,19 +108,19 @@ prim = Module('prim', attrs={
 
 prim.set('ast', Module('ast', parent=prim, attrs={
     'Node': ast_node_type,
-    'Ident': ast_ident_type,
-    'String': ast_string_type,
-    'Int': ast_int_type,
-    'Float': ast_float_type,
-    'Symbol': ast_symbol_type,
-    'InterpolatedString': ast_interpolated_string_type,
-    'List': ast_list_type,
-    'Tuple': ast_tuple_type,
-    'Map': ast_map_type,
-    'Call': ast_call_type,
-    'Unquote': ast_unquote_type,
-    'BinarySlurp': ast_binary_slurp_type,
-    'Block': ast_block_type,
+    'Ident': ASTIdent.T,
+    'String': ASTString.T,
+    'Int': ASTInt.T,
+    'Float': ASTFloat.T,
+    'Symbol': ASTSymbol.T,
+    'InterpolatedString': ASTInterpolatedString.T,
+    'List': ASTList.T,
+    'Tuple': ASTTuple.T,
+    'Map': ASTMap.T,
+    'Call': ASTCall.T,
+    'Unquote': ASTUnquote.T,
+    'BinarySlurp': ASTBinarySlurp.T,
+    'Block': ASTBlock.T,
 }))
 
 prim.set('int', Module('int', parent=prim, attrs={
@@ -255,6 +247,7 @@ def load_module(statements, source_map, module_name, preload=None, include_prelu
                 module_name, parseinfo.line))
         else:
             print('Module `{}` panicked:')
-        print('    Statement: {}'.format(to_str(module, statement)))
+        if isinstance(statement, Object):
+            print('    Statement: {}'.format(to_str(module, statement)))
         print('    Panic: {}'.format(msg))
         return None

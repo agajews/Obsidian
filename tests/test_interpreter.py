@@ -102,22 +102,6 @@ def test_string_name(capsys):
     assert get_output(source, capsys) == target
 
 
-def test_meta_name(capsys):
-    source = '''
-    (get_attr prim 'puts') (get_attr (get_attr prim 'Meta') 'name')
-    '''
-    target = ['Meta']
-    assert get_output(source, capsys) == target
-
-
-def test_meta_type(capsys):
-    source = '''
-    (get_attr prim 'puts') (get_attr (get_attr (get_attr meta 'meta') 'type') 'name')
-    '''
-    target = ['Meta']
-    assert get_output(source, capsys) == target
-
-
 def test_module_name(capsys):
     source = '''
     (get_attr prim 'puts') (get_attr meta 'name')

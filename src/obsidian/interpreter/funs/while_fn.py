@@ -1,32 +1,30 @@
 from ..types import (
-    List,
     Bool,
     PrimFun,
     Panic,
-    nil
+    nil,
 )
 from ..types.ast import ASTList
+from ..types.scope import type_name
 
 
 def check_condition(condition, scope):
     res = scope.eval(condition)
     if not isinstance(res, Bool):
-        raise Panic('Conditions must return Bools')
+        raise Panic('Conditions passed to `prim.while` must return `Bool`s, not `{}`'.format(
+            type_name(res)))
     return res.bool
 
 
 class While(PrimFun):
     def __init__(self):
-        super().__init__('ast.while', ['cond', 'body'])
+        super().__init__('prim.while', ['cond', 'body'])
 
     def macro(self, scope, condition, body):
-        if not isinstance(body, ASTList):
-            raise Panic('Body must be a list of statements')
-        statements = body.get('elems')
-        if not isinstance(statements, List):
-            raise Panic('Invalid ASTList')
+        self.typecheck_arg(body, ASTList)
+        statements = body.elems_list()
         while check_condition(condition, scope):
-            for statement in statements.elems:
+            for statement in statements:
                 scope.eval(statement)
         return nil
 

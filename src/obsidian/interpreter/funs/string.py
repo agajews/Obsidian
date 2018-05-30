@@ -1,11 +1,9 @@
 from ..types import (
     PrimFun,
-    Panic,
     String,
     Map,
     Int,
     Scope,
-    string_type,
     true,
     false,
 )
@@ -38,15 +36,13 @@ class StringConstructor(PrimFun):
         super().__init__('String', ['ast'])
 
     def macro(self, scope, ast):
+        self.typecheck_arg(ast, ASTString)
+        ast.validate()
         string = ast.get('str')
-        if not isinstance(string, String):
-            raise Panic('Invalid string')
         sigil = ast.get('sigil')
-        if not isinstance(sigil, String):
-            raise Panic('Invalid sigil')
         if sigil.str == 'r':
             return String(string.str)
-        constructors = string_type.get('sigils')
+        constructors = String.T.get('sigils')
         constructor = get_attr.fun(
             constructors, String('get')).call(scope, [ASTString(sigil, String('r'))])
         return constructor.call(scope, [ASTString(string, String('r'))])
@@ -65,8 +61,7 @@ class StringHash(PrimFun):
         super().__init__('String.hash', ['string'])
 
     def fun(self, string):
-        if not isinstance(string, String):
-            raise Panic('Argument must be a string')
+        self.typecheck_arg(string, String)
         return Int(hash(string.str))
 
 
@@ -75,10 +70,8 @@ class StringEq(PrimFun):
         super().__init__('String.eq', ['a', 'b'])
 
     def fun(self, a, b):
-        if not isinstance(a, String):
-            raise Panic('Argument `a` must be a string')
-        if not isinstance(b, String):
-            raise Panic('Argument `b` must be a string')
+        self.typecheck_arg(a, String)
+        self.typecheck_arg(b, String)
         return true if a.str == b.str else false
 
 
@@ -89,16 +82,15 @@ class Concat(PrimFun):
     def fun(self, *strings):
         catted_string = ''
         for string in strings:
-            if not isinstance(string, String):
-                raise Panic('Strings must be strings')
+            self.typecheck_arg(string, String)
             catted_string += string.str
         return String(catted_string)
 
 
-string_type.set('call', StringConstructor())
-string_type.get('methods').set('hash', StringHash())
-string_type.get('methods').set('eq', StringEq())
-string_type.set('sigils', Map({
+String.T.set('call', StringConstructor())
+String.T.get('methods').set('hash', StringHash())
+String.T.get('methods').set('eq', StringEq())
+String.T.set('sigils', Map({
     MapKey(String(''), Scope()): StringDefaultConstructor(),
 }))
 concat = Concat()

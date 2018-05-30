@@ -7,6 +7,30 @@ class Panic(Exception):
         self.stack = stack
 
 
+def type_name(obj):
+    try:
+        type = obj.get('meta').get('type')
+    except Panic:
+        return '[Object has no type]'
+    try:
+        name = type.get('name')
+    except Panic:
+        return '[Type has no name]'
+    if not isinstance(name, String):
+        return '[Type name is not a String]'
+    return name.str
+
+
+def type_type_name(t):
+    try:
+        name = t.T.get('name')
+    except Panic:
+        return '[Type has no name]'
+    if not isinstance(name, String):
+        return '[Type name is not a String]'
+    return name.str
+
+
 class PrimObject:
     def __init__(self, attrs):
         self.attrs = attrs
@@ -22,6 +46,11 @@ class PrimObject:
 
     def has(self, attr):
         return attr in self.attrs
+
+    def typecheck_attr(self, attr, t):
+        if not isinstance(self.get(attr), t):
+            raise Panic('Attr `{}` of `{}` must be a `{}`, not a `{}`'.format(
+                attr, type_name(self), type_type_name(t), type_name(self.get(attr))))
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -44,21 +73,24 @@ class PrimObject:
 
 
 class Object(PrimObject):
-    def __init__(self, attrs, type=None):
+    def __init__(self, attrs):
         super().__init__(attrs)
-        if type is None:
-            type = object_type
-        self.attrs['meta'] = PrimObject({'type': type, 'meta': meta_obj})
+        self.attrs['meta'] = PrimObject(
+            {'type': self.__class__.T, 'meta': meta_obj})
 
 
 class PrimFun(Object):
-    def __init__(self, name, args=None, type=None, variadic=False):
-        super().__init__({'name': String(name)},
-                         prim_fun_type if type is None else type)
+    def __init__(self, name, args=None, variadic=False):
+        super().__init__({'name': String(name)})
         self.name = name
         assert args is not None or variadic
         self.args = args
         self.variadic = variadic
+
+    def typecheck_arg(self, arg, type):
+        if not isinstance(arg, type):
+            raise Panic('Arg `{}` of `{}` must be a `{}`, not a `{}`'.format(
+                arg, self.name, type_type_name(type), type_name(arg)))
 
     def call(self, caller_scope, args=None):
         if args is None:
@@ -84,7 +116,9 @@ class ObjectConstructor(PrimFun):
         super().__init__('Object', ['type'])
 
     def fun(self, type):
-        return Object({}, type)
+        class NewType(Object):
+            T = type
+        return NewType({})
 
 
 class TypeConstructor(PrimFun):
@@ -92,8 +126,7 @@ class TypeConstructor(PrimFun):
         super().__init__('Object', ['name', 'parent'])
 
     def fun(self, name, parent):
-        if not isinstance(name, String):
-            raise Panic('Name must be a string')
+        self.typecheck_arg(name, String)
         return Type(name.str, parent)
 
 
@@ -102,14 +135,13 @@ class StringToStr(PrimFun):
         super().__init__('String.to_str', ['str'])
 
     def fun(self, string):
-        if not isinstance(string, String):
-            raise Panic('Argument must be a string')
+        self.typecheck_arg(string, String)
         return string
 
 
 class String(Object):
     def __init__(self, string):
-        super().__init__({}, string_type)
+        super().__init__({})
         self.str = string
 
     def __repr__(self):
@@ -117,24 +149,15 @@ class String(Object):
 
 
 class Type(Object):
-    def __init__(self, name, parent, methods=None, statics=None, constructor=None):
-        if methods is None:
-            methods = {}
+    def __init__(self, name, parent, statics=None):
         if statics is None:
             statics = {}
         super().__init__({
             'name': String(name),
             'parent': parent,
-            'methods': Object(methods),
+            'methods': Object({}),
             'statics': Object(statics),
-        }, type_type)
-        if constructor is not None:
-            self.set('call', constructor)
-
-
-class MetaType(Type):
-    def __init__(self):
-        super().__init__('Meta', object_type)
+        })
 
 
 class NilToStr(PrimFun):
@@ -145,53 +168,46 @@ class NilToStr(PrimFun):
         return String('nil')
 
 
-class NilType(Type):
-    def __init__(self):
-        super().__init__('Nil', object_type, methods={'to_str': NilToStr()})
-
-
 class Nil(Object):
     def __init__(self):
-        super().__init__({}, nil_type)
+        super().__init__({})
 
     def __repr__(self):
         return 'nil'
 
 
-type_type = PrimObject({})
+Type.T = PrimObject({})
 
 meta_obj = PrimObject({})
 meta_obj.set('meta', meta_obj)
 
-string_type = Object({}, type_type)
-string_type.set('name', String('String'))
-type_type.set('name', String('Type'))
-type_type.set('meta', PrimObject(
-    {'name': String('Type'), 'type': type_type, 'meta': meta_obj}))
+Object.T = PrimObject({})
+Object.T.set('meta', PrimObject({'type': Object.T, 'meta': meta_obj}))
+meta_obj.set('type', Object.T)
+String.T = PrimObject({'meta': PrimObject({'Type': Type.T, 'meta': meta_obj})})
+Object.T.set('name', String('Object'))
 
-object_type = Object({'name': String('Object')}, type_type)
-object_type.set('parent', object_type)
-object_type.set('methods', Object({}, object_type))
-object_type.set('statics', Object({}, object_type))
-type_type.set('parent', object_type)
-type_type.set('methods', Object({}, object_type))
-type_type.set('statics', Object({}, object_type))
-string_type.set('statics', Object({}, object_type))
-string_type.set('parent', object_type)
+String.T.set('name', String('String'))
+Type.T.set('name', String('Type'))
+Type.T.set('meta', PrimObject(
+    {'name': String('Type'), 'type': Type.T, 'meta': meta_obj}))
 
-prim_fun_type = Object(
-    {'name': String('PrimFun'), 'parent': object_type}, type_type)
-prim_fun_type.set('methods', Object({}, object_type))
-prim_fun_type.set('statics', Object({}, object_type))
-object_type.set('call', ObjectConstructor())
-type_type.set('call', TypeConstructor())
-string_type.set('methods', Object({'to_str': StringToStr()}, object_type))
+Object.T.set('parent', Object.T)
+Object.T.set('methods', Object({}))
+Object.T.set('statics', Object({}))
+Type.T.set('parent', Object.T)
+Type.T.set('methods', Object({}))
+Type.T.set('statics', Object({}))
+String.T.set('statics', Object({}))
+String.T.set('parent', Object.T)
 
-meta_type = MetaType()
-meta_type.set('methods', Object({}, object_type))
-meta_type.set('statics', Object({}, object_type))
-meta_type.set('parent', object_type)
-meta_obj.set('type', meta_type)
+PrimFun.T = PrimObject(
+    {'name': String('PrimFun'), 'parent': Object.T, 'meta': PrimObject({'type': Type.T})})
+PrimFun.T.set('methods', Object({}))
+PrimFun.T.set('statics', Object({}))
+Object.T.set('call', ObjectConstructor())
+Type.T.set('call', TypeConstructor())
+String.T.set('methods', Object({'to_str': StringToStr()}))
 
-nil_type = NilType()
+Nil.T = Type('Nil', Object.T)
 nil = Nil()

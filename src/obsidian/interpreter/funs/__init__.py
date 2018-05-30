@@ -17,3 +17,7 @@ from . import map
 from . import object
 from . import string
 from . import ast
+from . import fun
+from . import module
+from . import scope
+from . import symbol

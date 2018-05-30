@@ -4,9 +4,8 @@ from ..bootstrap import (
     PrimFun,
     Panic,
     String,
-    object_type,
-    string_type,
     nil,
+    type_name,
 )
 from .ast import (
     ASTIdent,
@@ -23,18 +22,20 @@ from .ast import (
     ASTUnquote,
     ASTBlock,
 )
-from .int import int_type, Int
-from .float import float_type
-from .list import list_type, List
-from .tuple import tuple_type, Tuple
-from .map import map_type
-from .symbol import symbol_type, Symbol
+from .int import Int
+from .float import Float
+from .list import List
+from .tuple import Tuple
+from .map import Map
+from .symbol import Symbol
 from .bool import Bool
 
 
 class Scope(Object):
+    T = Type('Scope', Object.T)
+
     def __init__(self, parent=None):
-        super().__init__({}, scope_type)
+        super().__init__({})
         self.get('meta').set('eval', Eval(self))
         self.get('meta').set('scope', self)
         self.get('meta').set('parent', parent if parent is not None else nil)
@@ -173,40 +174,40 @@ class Scope(Object):
         ast = self.preprocess(ast)
         return self._eval(ast)
 
+    def name_string(self):
+        name = self.get('name')
+        if not isinstance(name, String):
+            return '[Fun name {} not a string]'.format(name)
+        return name.str
+
     def _eval(self, ast):
         if isinstance(ast, ASTCall):
             return self._eval(ast.get('callable')).call(self, ast.get('args').elems)
         elif isinstance(ast, ASTIdent):
-            ident = ast.get('ident')
-            if not isinstance(ident, String):
-                raise Panic('Invalid ident')
-            return self.get_recursive(ident.str)
+            ast.validate()
+            return self.get_recursive(ast.get('ident').str)
         elif isinstance(ast, ASTString):
-            return string_type.call(self, [ast])
+            return String.T.call(self, [ast])
         elif isinstance(ast, ASTInterpolatedString):
-            body = ast.get('body')
-            if not isinstance(ast.get('body'), List):
-                raise Panic('Invalid interpolated string')
+            ast.validate()
             strings = [get_attr.fun(self._eval(elem), String('to_str')).call(self)
-                       for elem in body.elems]
+                       for elem in ast.body_list()]
             return String(''.join(s.str for s in strings))
         elif isinstance(ast, ASTInt):
-            return int_type.call(self, [ast])
+            return Int.T.call(self, [ast])
         elif isinstance(ast, ASTFloat):
-            return float_type.call(self, [ast])
+            return Float.T.call(self, [ast])
         elif isinstance(ast, ASTSymbol):
-            return symbol_type.call(self, [ast])
+            return Symbol.T.call(self, [ast])
         elif isinstance(ast, ASTList):
-            return list_type.call(self, [ast])
+            return List.T.call(self, [ast])
         elif isinstance(ast, ASTBlock):
-            statements = ast.get('statements')
-            if not isinstance(statements, List):
-                raise Panic('Invalid block')
-            return List([self._eval(statement) for statement in statements.elems])
+            ast.validate()
+            return List([self._eval(statement) for statement in ast.statements_list()])
         elif isinstance(ast, ASTTuple):
-            return tuple_type.call(self, [ast])
+            return Tuple.T.call(self, [ast])
         elif isinstance(ast, ASTMap):
-            return map_type.call(self, [ast])
+            return Map.T.call(self, [ast])
         else:
             raise NotImplementedError(
                 'Evaluation of node {} not implemented'.format(ast))
@@ -232,8 +233,7 @@ class GetAttr(PrimFun):
         super().__init__('get_attr', ['obj', 'attr'])
 
     def fun(self, obj, attr):
-        if not isinstance(attr, String):
-            raise Panic('Attribute must be a string')
+        self.typecheck_arg(attr, String)
         if not obj.has(attr.str):
             obj_type = obj.get('meta').get('type')
             if obj_type.get('methods').has(attr.str):
@@ -249,20 +249,6 @@ class GetAttr(PrimFun):
                 if obj_type.get('statics').has(attr.str):
                     return obj_type.get('statics').get(attr.str)
         return obj.get(attr.str)
-
-
-def type_name(obj):
-    try:
-        type = obj.get('meta').get('type')
-    except Panic:
-        return '[Object has no type]'
-    try:
-        name = type.get('name')
-    except Panic:
-        return '[Type has no name]'
-    if not isinstance(name, String):
-        return '[Type name is not a String]'
-    return name.str
 
 
 def to_str(scope, obj, panic=True):
@@ -314,20 +300,4 @@ class Eval(PrimFun):
         return self.scope.eval(ast)
 
 
-class ScopeConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('Scope', ['parent'])
-
-    def fun(self, parent):
-        if parent is nil:
-            return Scope()
-        return Scope(parent)
-
-
-class ScopeType(Type):
-    def __init__(self):
-        super().__init__('Scope', object_type, constructor=ScopeConstructor())
-
-
-scope_type = ScopeType()
 get_attr = GetAttr()

@@ -4,18 +4,19 @@ from ..bootstrap import (
     Type,
     PrimFun,
     String,
-    object_type,
 )
 from .scope import Scope
 from .list import List
 
 
 class Fun(Object):
+    T = Type('Fun', Object.T)
+
     def __init__(self, defn_scope, name, body):
         if not len(body.elems_list()) > 0:
             raise Panic('Funs must have at least one body statement')
         super().__init__(
-            {'name': name, 'body': body, 'definer': defn_scope}, fun_type)
+            {'name': name, 'body': body, 'definer': defn_scope})
         # print(f'Created fun with body {body}')
 
     def call(self, caller_scope, args=None):
@@ -53,20 +54,6 @@ class Fun(Object):
         return 'Fun({})'.format(self.body)
 
 
-class FunConstructor(PrimFun):
-    def __init__(self):
-        super().__init__('Fun', ['name', 'body'])
-
-    def macro(self, scope, name, body):
-        name = scope.eval(name)
-        return Fun(scope, name, body)
-
-
-class FunType(Type):
-    def __init__(self):
-        super().__init__('Fun', object_type, constructor=FunConstructor())
-
-
 class ReturnException(Exception):
     def __init__(self, obj):
         super().__init__()
@@ -81,5 +68,4 @@ class Return(PrimFun):
         raise ReturnException(obj)
 
 
-fun_type = FunType()
 ret = Return()

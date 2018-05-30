@@ -1,7 +1,7 @@
 from ..types import (
     PrimFun,
     true,
-    false
+    false,
 )
 
 

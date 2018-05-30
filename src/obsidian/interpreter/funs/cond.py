@@ -3,7 +3,7 @@ from ..types import (
     Bool,
     PrimFun,
     Panic,
-    nil
+    nil,
 )
 from ..types.ast import ASTTuple, ASTList
 
